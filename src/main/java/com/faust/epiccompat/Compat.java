@@ -51,7 +51,7 @@ public final class Compat {
                 nodes=defaults; Files.createDirectories(file.getParent());Files.writeString(file,Balance.JSON.toJson(nodes)+"\n");
             }
             var merged=new ArrayList<>(nodes);
-            for(String id:List.of(Combat.MASTERY,Combat.FIST_MASTERY))if(merged.stream().noneMatch(a->a.id().equals(id)))merged.add(mastery(id));
+            for(String id:List.of(Combat.MASTERY,Combat.FIST_MASTERY,Combat.SHIELD_MASTERY))if(merged.stream().noneMatch(a->a.id().equals(id)))merged.add(mastery(id));
             if(!merged.equals(nodes)){nodes=merged;Files.writeString(file,Balance.JSON.toJson(nodes)+"\n");}
             extend(CoreRuntime.balance);
         } catch(Exception ex) { throw new IllegalStateException("Invalid Epic Fight compatibility configuration: "+file,ex); }
@@ -59,7 +59,8 @@ public final class Compat {
     public static com.faust.core.progression.Skill branch(String name,String category) {
         return com.faust.core.progression.Skill.valueOf(Rules.branch(name,category));
     }
-    public static Balance.Ability mastery(String id){return new Balance.Ability(id,com.faust.core.progression.Skill.strength,5,"hits",0,"","faust_epic_compat:mastery",0);}
+    public static boolean isMastery(String id){return List.of(Combat.MASTERY,Combat.FIST_MASTERY,Combat.SHIELD_MASTERY).contains(id);}
+    public static Balance.Ability mastery(String id){return new Balance.Ability(id,id.equals(Combat.SHIELD_MASTERY)?com.faust.core.progression.Skill.defense:com.faust.core.progression.Skill.strength,5,"hits",0,"","faust_epic_compat:mastery",0);}
     public static String nodeId(Skill skill) {return "faust_epic_compat:"+skill.getRegistryName().getNamespace()+"/"+skill.getRegistryName().getPath();}
     public static Skill skill(String id) {
         if(!id.startsWith("faust_epic_compat:"))return null;

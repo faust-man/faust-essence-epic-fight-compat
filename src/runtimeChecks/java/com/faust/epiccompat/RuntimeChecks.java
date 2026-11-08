@@ -48,6 +48,19 @@ public final class RuntimeChecks {
             player.setItemInHand(InteractionHand.MAIN_HAND,new ItemStack(Items.IRON_SWORD));
             Combat.strike(patch,InteractionHand.MAIN_HAND);
             check(Combat.paid(patch)&&Math.abs(data.stamina-18)<0.0001,"one-handed weapon base cost");
+            player.setItemInHand(InteractionHand.OFF_HAND,new ItemStack(Items.SHIELD));
+            Combat.strike(patch,InteractionHand.MAIN_HAND);
+            check(Combat.paid(patch)&&Math.abs(data.stamina-16)<0.0001,"sword with shield costs two");
+            data.unlocked.add(Combat.MASTERY);Combat.strike(patch,InteractionHand.MAIN_HAND);
+            check(Combat.paid(patch)&&Math.abs(data.stamina-14)<0.0001,"strength mastery does not remove shield surcharge");
+            data.unlocked.add(Combat.SHIELD_MASTERY);Combat.strike(patch,InteractionHand.MAIN_HAND);
+            check(Combat.paid(patch)&&Math.abs(data.stamina-13)<0.0001,"defense mastery removes shield surcharge");
+            data.unlocked.remove(Combat.SHIELD_MASTERY);data.stamina=1;Combat.strike(patch,InteractionHand.MAIN_HAND);
+            check(!Combat.paid(patch)&&data.stamina==1,"shield surcharge requires full payment");
+            data.stamina=20;data.exhausted=false;
+            player.setItemInHand(InteractionHand.OFF_HAND,new ItemStack(Items.TORCH));Combat.strike(patch,InteractionHand.MAIN_HAND);
+            check(Combat.paid(patch)&&Math.abs(data.stamina-19)<0.0001,"non-shield offhand has no surcharge");
+            player.setItemInHand(InteractionHand.OFF_HAND,ItemStack.EMPTY);
             data.exhausted=true;Combat.strike(patch,InteractionHand.MAIN_HAND);
             check(!Combat.paid(patch),"exhaustion still blocks free attacks");data.exhausted=false;
             for(var slot:SkillSlots.values())if(slot.category()==SkillCategories.PASSIVE)check(Combat.allowedSlot(slot)==(slot==SkillSlots.PASSIVE1||slot==SkillSlots.PASSIVE2||slot==SkillSlots.PASSIVE3),"passive slot gate");
@@ -61,6 +74,7 @@ public final class RuntimeChecks {
             Combat.begin(patch);check(!Combat.paid(patch),"new animation invalidates old payment");
             check(balance.abilities.stream().anyMatch(a->a.id().equals(Combat.MASTERY)),"two-handed node migrated");
             check(balance.abilities.stream().anyMatch(a->a.id().equals(Combat.FIST_MASTERY)),"fist node migrated");
+            check(balance.abilities.stream().anyMatch(a->a.id().equals(Combat.SHIELD_MASTERY)&&a.skill()==com.faust.core.progression.Skill.defense),"shield node migrated into defense");
             System.out.println("FAUST COMPAT RUNTIME CHECKS PASSED: "+checks);
         }finally{balance.stamina.put("attackCost",oldAttack);event.getServer().halt(false);}
     }

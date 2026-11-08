@@ -11,12 +11,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class TreeMixin {
     @Inject(method="abilityName",at=@At("HEAD"),cancellable=true)
     private static void name(com.faust.core.progression.Balance.Ability ability,CallbackInfoReturnable<net.minecraft.network.chat.Component> cir){
-        if(ability.id().equals(com.faust.epiccompat.Combat.MASTERY)||ability.id().equals(com.faust.epiccompat.Combat.FIST_MASTERY)){cir.setReturnValue(net.minecraft.network.chat.Component.translatable("faust_epic_compat."+ability.id().split(":")[1]));return;}
+        if(Compat.isMastery(ability.id())){cir.setReturnValue(net.minecraft.network.chat.Component.translatable("faust_epic_compat."+ability.id().split(":")[1]));return;}
         var skill=Compat.skill(ability.id());if(skill!=null)cir.setReturnValue(net.minecraft.network.chat.Component.translatable(skill.getTranslationKey()));
     }
     @Inject(method="abilityDescription",at=@At("HEAD"),cancellable=true)
     private static void masteryDescription(com.faust.core.progression.Balance.Ability ability,com.faust.core.progression.Progress progress,com.faust.core.progression.Balance balance,CallbackInfoReturnable<java.util.ArrayList<net.minecraft.network.chat.Component>> cir){
-        if(ability.id().equals(com.faust.epiccompat.Combat.MASTERY)||ability.id().equals(com.faust.epiccompat.Combat.FIST_MASTERY))cir.setReturnValue(new java.util.ArrayList<>(java.util.List.of(net.minecraft.network.chat.Component.translatable("faust_epic_compat."+ability.id().split(":")[1]+".description"))));
+        if(Compat.isMastery(ability.id()))cir.setReturnValue(new java.util.ArrayList<>(java.util.List.of(net.minecraft.network.chat.Component.translatable("faust_epic_compat."+ability.id().split(":")[1]+".description"))));
     }
     @Shadow private SkillTrees.Node hovered(double x,double y){throw new AssertionError();}
     @Inject(method="mouseClicked",at=@At("HEAD"),cancellable=true)

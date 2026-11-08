@@ -18,6 +18,16 @@ public final class RulesTest {
         check(!Rules.canSpend(20,Float.POSITIVE_INFINITY,false,true));
         check(!Rules.canSpend(20,-1,false,true));
         check(Rules.canSpend(0,0,false,false));
+        check(Rules.strikeCost(1,false,false,false,false,false,true,false)==2);
+        check(Rules.strikeCost(1,false,false,false,false,false,true,true)==1);
+        check(Rules.strikeCost(1,false,false,true,false,false,true,false)==2);
+        check(Rules.strikeCost(1,false,false,false,false,false,false,false)==1);
+        check(Rules.strikeCost(1,true,false,false,false,false,true,false)==2);
+        check(Rules.strikeCost(1,false,false,false,true,true,true,false)==0);
+        check(Rules.strikeCost(1,false,false,false,true,false,true,false)==1);
+        check(Rules.strikeCost(1.5,false,false,false,false,false,true,false)==3);
+        check(Compat.mastery(Combat.SHIELD_MASTERY).skill()==com.faust.core.progression.Skill.defense);
+        check(Compat.mastery(Combat.SHIELD_MASTERY).level()==5);
         for(boolean twoHanded:new boolean[]{false,true})for(boolean spear:new boolean[]{false,true})for(boolean mastery:new boolean[]{false,true}){
             double cost=Rules.strikeCost(1.5,twoHanded,spear,mastery);
             check(cost==(twoHanded&&!spear&&!mastery?3:1.5));

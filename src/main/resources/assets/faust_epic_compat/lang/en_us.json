@@ -1,4 +1,6 @@
 {
+  "faust_epic_compat.shield_weapon_mastery": "Coordinated Shield Fighting",
+  "faust_epic_compat.shield_weapon_mastery.description": "One-handed weapon strikes with a shield use normal stamina: 1 instead of 2 with default settings.",
   "faust_epic_compat.two_handed_mastery": "Two-Handed Grip",
   "faust_epic_compat.two_handed_mastery.description": "Two-handed strikes cost the same stamina as one-handed strikes. Spears always use the normal cost.",
   "faust_epic_compat.fist_mastery": "Efficient Fist Fighting",

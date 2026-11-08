@@ -12,6 +12,7 @@ import java.util.*;
 public final class Combat {
     public static final String MASTERY="faust_epic_compat:two_handed_mastery";
     public static final String FIST_MASTERY="faust_epic_compat:fist_mastery";
+    public static final String SHIELD_MASTERY="faust_epic_compat:shield_weapon_mastery";
     private static final Map<PlayerPatch<?>,Boolean> PAID=new WeakHashMap<>();
     private static final ThreadLocal<ServerPlayer> COLLISION=new ThreadLocal<>();
     private Combat(){}
@@ -30,7 +31,11 @@ public final class Combat {
         boolean spear=cap.getWeaponCategory()==CapabilityItem.WeaponCategories.SPEAR;
         var progress=CoreRuntime.data(player);
         boolean fist=cap.getWeaponCategory()==CapabilityItem.WeaponCategories.FIST||player.getItemInHand(hand).isEmpty();
-        double cost=Rules.strikeCost(progress.actionCost("attack",CoreRuntime.balance),twoHanded,spear,progress.unlocked.contains(MASTERY),fist,progress.unlocked.contains(FIST_MASTERY));
+        var otherHand=hand==InteractionHand.MAIN_HAND?InteractionHand.OFF_HAND:InteractionHand.MAIN_HAND;
+        var category=cap.getWeaponCategory();
+        boolean shield=category!=CapabilityItem.WeaponCategories.NOT_WEAPON&&category!=CapabilityItem.WeaponCategories.SHIELD&&category!=CapabilityItem.WeaponCategories.RANGED
+                &&player.getItemInHand(otherHand).canPerformAction(net.neoforged.neoforge.common.ItemAbilities.SHIELD_BLOCK);
+        double cost=Rules.strikeCost(progress.actionCost("attack",CoreRuntime.balance),twoHanded,spear,progress.unlocked.contains(MASTERY),fist,progress.unlocked.contains(FIST_MASTERY),shield,progress.unlocked.contains(SHIELD_MASTERY));
         PAID.put(patch,CoreRuntime.pay(player,cost));CoreRuntime.sync(player);
     }
 }

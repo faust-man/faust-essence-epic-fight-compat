@@ -8,6 +8,10 @@ public final class Rules {
         return base*(twoHanded&&!spear&&!mastery?2:1);
     }
     public static double strikeCost(double base,boolean twoHanded,boolean spear,boolean mastery,boolean fist,boolean fistMastery){return fist&&fistMastery?0:strikeCost(base,twoHanded,spear,mastery);}
+    public static double strikeCost(double base,boolean twoHanded,boolean spear,boolean mastery,boolean fist,boolean fistMastery,boolean shield,boolean shieldMastery){
+        double cost=strikeCost(base,twoHanded,spear,mastery,fist,fistMastery);
+        return shield&&!twoHanded&&!fist&&!shieldMastery?cost*2:cost;
+    }
     public static boolean passiveSlot(String slot){return java.util.Set.of("PASSIVE1","PASSIVE2","PASSIVE3").contains(slot);}
     public static String branch(String name,String category){
         String key=(name+" "+category).toLowerCase(Locale.ROOT);

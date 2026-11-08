@@ -1,4 +1,6 @@
 {
+  "faust_epic_compat.shield_weapon_mastery": "Слаженный бой со щитом",
+  "faust_epic_compat.shield_weapon_mastery.description": "Удары одноручным оружием со щитом расходуют обычную выносливость: 1 вместо 2 при базовых настройках.",
   "faust_epic_compat.two_handed_mastery": "Двуручный хват",
   "faust_epic_compat.two_handed_mastery.description": "Удары двуручным оружием расходуют столько же выносливости, сколько одноручным. Копья всегда имеют обычный расход.",
   "faust_epic_compat.fist_mastery": "Экономный кулачный бой",
