@@ -117,10 +117,28 @@ public final class RuntimeChecks {
             for(boolean air:new boolean[]{false,true})for(int i=0;i<5;i++)check(CoreRuntime.attack(player,air),"disabled vanilla melee is not billed");
             check(data.stamina==unchanged&&player.getHealth()==health&&data.fatigue==oldFatigue,"disabled vanilla melee never spends stamina health or fatigue");
             vanillaRule.setRuleValue(player.level(),true);
+            player.setHealth(20);data.exhausted=false;data.stamina=20;player.setSprinting(false);
+            player.setItemInHand(InteractionHand.MAIN_HAND,ItemStack.EMPTY);player.setItemInHand(InteractionHand.OFF_HAND,ItemStack.EMPTY);
+            double fists=data.counters.getOrDefault(CombatPractice.FISTS,0.0);
+            victim(player).hurt(player.damageSources().playerAttack(player),100);check(data.counters.getOrDefault(CombatPractice.FISTS,0.0)==fists+1,"actual fist kill counted");
+            player.setItemInHand(InteractionHand.MAIN_HAND,new ItemStack(Items.IRON_SWORD));
+            double swords=data.counters.getOrDefault(CombatPractice.SWORDS,0.0);double dual=data.counters.getOrDefault(CombatPractice.DUAL,0.0);
+            victim(player).hurt(player.damageSources().playerAttack(player),100);check(data.counters.getOrDefault(CombatPractice.SWORDS,0.0)==swords+1&&data.counters.getOrDefault(CombatPractice.DUAL,0.0)==dual,"single sword kill classified");
+            player.setItemInHand(InteractionHand.OFF_HAND,new ItemStack(Items.IRON_SWORD));
+            victim(player).hurt(player.damageSources().playerAttack(player),100);check(data.counters.getOrDefault(CombatPractice.DUAL,0.0)==dual+1,"dual sword kill counted");
+            player.setItemInHand(InteractionHand.OFF_HAND,ItemStack.EMPTY);player.setItemInHand(InteractionHand.MAIN_HAND,new ItemStack(yesman.epicfight.registry.entries.EpicFightItems.IRON_GREATSWORD.get()));
+            double two=data.counters.getOrDefault(CombatPractice.TWO_HAND,0.0);victim(player).hurt(player.damageSources().playerAttack(player),100);check(data.counters.getOrDefault(CombatPractice.TWO_HAND,0.0)==two+1,"two-handed kill counted");
+            double prior=data.counters.getOrDefault(CombatPractice.SWORDS,0.0);var survivor=victim(player);survivor.setHealth(10);survivor.hurt(player.damageSources().playerAttack(player),1);check(data.counters.getOrDefault(CombatPractice.SWORDS,0.0)==prior,"non-lethal hits do not count as kills");
+            var arrow=net.minecraft.world.entity.EntityType.ARROW.create(player.serverLevel());victim(player).hurt(player.damageSources().arrow(arrow,player),100);check(data.counters.getOrDefault(CombatPractice.SWORDS,0.0)==prior,"projectile kills do not count for melee weapons");
+            var recipient=new net.neoforged.neoforge.common.util.FakePlayer(player.serverLevel(),new GameProfile(UUID.fromString("64f1e864-a644-448b-bbce-77be313e0fff"),"DamageChecks")){@Override public boolean isInvulnerableTo(net.minecraft.world.damagesource.DamageSource source){return false;}};
+            recipient.setHealth(20);recipient.hurt(recipient.damageSources().genericKill(),0.5f);
+            check(CoreRuntime.data(recipient).counters.getOrDefault(CombatPractice.DAMAGE,0.0)==0.5,"fractional incoming damage counted");
+            player.setHealth(0.5f);data.exhausted=true;
             double residual=data.stamina;check(CoreRuntime.pay(player,1),"lethal health payment accepted");
             check(player.isDeadOrDying()&&player.getHealth()==0&&data.stamina==residual,"health payment kills and preserves stamina");
             check(!Forbidden.pay(player,1),"dead player cannot pay again");
             System.out.println("FAUST COMPAT COMPLETE RUNTIME CHECKS PASSED: "+checks);
         }finally{vanillaRule.setRuleValue(player.level(),oldVanilla);balance.stamina.put("attackCost",oldAttack);event.getServer().halt(false);}
     }
+    private static net.minecraft.world.entity.animal.Pig victim(net.minecraft.server.level.ServerPlayer player){var pig=net.minecraft.world.entity.EntityType.PIG.create(player.serverLevel());pig.setHealth(2);return pig;}
 }

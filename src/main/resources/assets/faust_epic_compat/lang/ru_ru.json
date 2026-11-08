@@ -1,4 +1,9 @@
 {
+  "core.counter.faust_epic_damage_taken": "получено урона (HP; 2 HP = 1 сердце)",
+  "core.counter.faust_epic_fist_kills": "убийств кулаками или перчаткой",
+  "core.counter.faust_epic_two_hand_kills": "убийств двуручным оружием",
+  "core.counter.faust_epic_sword_kills": "убийств любыми мечами",
+  "core.counter.faust_epic_dual_sword_kills": "убийств парными мечами",
   "faust_epic_compat.dual_sword_mastery": "Парные мечи",
   "faust_epic_compat.dual_sword_mastery.description": "Удары с двумя мечами расходуют 0,5 выносливости вместо 1 при базовых настройках.",
   "faust_epic_compat.dual_dagger_mastery": "Парные кинжалы",

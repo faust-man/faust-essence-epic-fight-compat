@@ -1,4 +1,9 @@
 {
+  "core.counter.faust_epic_damage_taken": "damage received (HP; 2 HP = 1 heart)",
+  "core.counter.faust_epic_fist_kills": "bare-hand or glove kills",
+  "core.counter.faust_epic_two_hand_kills": "two-handed weapon kills",
+  "core.counter.faust_epic_sword_kills": "kills with any sword",
+  "core.counter.faust_epic_dual_sword_kills": "dual sword kills",
   "faust_epic_compat.dual_sword_mastery": "Paired Swords",
   "faust_epic_compat.dual_sword_mastery.description": "Dual sword strikes cost 0.5 stamina instead of 1 with default settings.",
   "faust_epic_compat.dual_dagger_mastery": "Paired Daggers",

@@ -71,6 +71,15 @@ public final class Compat {
             json.add("characteristics",com.google.gson.JsonParser.parseString("[{\"skill\":\"dexterity\",\"level\":5},{\"skill\":\"intelligence\",\"level\":5}]"));
         }
         if(a.id().equals(Combat.SWORD_MASTERY))json.addProperty("parent","faust_epic_compat:epicfight/swordmaster");
+        String counter=null;double amount=10;
+        if(a.id().equals(Combat.FIST_MASTERY))counter=CombatPractice.FISTS;
+        if(a.id().equals(Combat.MASTERY))counter=CombatPractice.TWO_HAND;
+        if(a.id().equals("faust_epic_compat:epicfight/swordmaster"))counter=CombatPractice.SWORDS;
+        if(a.id().equals(Combat.SWORD_MASTERY))counter=CombatPractice.DUAL;
+        if(a.id().equals("faust_epic_compat:epicfight/berserker")){counter=CombatPractice.DAMAGE;amount=40;json.addProperty("parent","");}
+        if(a.id().equals("faust_epic_compat:epicfight/vengeance")){counter=CombatPractice.DAMAGE;amount=80;json.addProperty("parent","faust_epic_compat:epicfight/berserker");}
+        if(a.id().equals("faust_epic_compat:epicfight/forbidden_strength")){counter=CombatPractice.DAMAGE;amount=120;json.addProperty("parent","faust_epic_compat:epicfight/vengeance");}
+        if(counter!=null){json.addProperty("counter",counter);json.addProperty("amount",amount);json.add("conditions",new com.google.gson.JsonArray());}
         return Balance.JSON.fromJson(json,Balance.Ability.class);
     }
     public static String icon(String id){
@@ -86,27 +95,29 @@ public final class Compat {
     public static void extend(Balance balance) {
         for(var node:nodes)if(balance.abilities.stream().noneMatch(a->a.id().equals(node.id())))balance.abilities.add(node);
         for(int i=0;i<balance.abilities.size();i++)balance.abilities.set(i,relocate(balance.abilities.get(i)));
-        // Keep existing/manual positions; pack missing integration nodes into four columns.
+        // Preserve Core positions; reflow addon nodes into the left branches and compact grid.
         var layouts=new ArrayList<com.faust.core.progression.SkillTrees.Tree>(balance.trees);
         for(var branch:com.faust.core.progression.Skill.values()){
             var tree=layouts.stream().filter(t->t.skill()==branch).findFirst().orElse(null);
             var placed=new ArrayList<com.faust.core.progression.SkillTrees.Node>();
             if(tree!=null)for(var n:tree.nodes()){
+                if(n.ability().startsWith("faust_epic_compat:"))continue;
                 if(balance.abilities.stream().noneMatch(a->a.id().equals(n.ability())&&a.skill()==branch))continue;
                 placed.add(n.ability().startsWith("faust_epic_compat:")?new com.faust.core.progression.SkillTrees.Node(n.ability(),n.x(),n.y(),icon(n.ability())):n);
+            }
+            var left=List.of("faust_epic_compat:epicfight/swordmaster",Combat.SWORD_MASTERY,Combat.FIST_MASTERY,Combat.MASTERY,"faust_epic_compat:epicfight/berserker","faust_epic_compat:epicfight/vengeance","faust_epic_compat:epicfight/forbidden_strength");
+            double leftX=placed.stream().mapToDouble(com.faust.core.progression.SkillTrees.Node::x).min().orElse(0)-48;
+            double leftY=placed.stream().mapToDouble(com.faust.core.progression.SkillTrees.Node::y).min().orElse(0);
+            if(branch==com.faust.core.progression.Skill.strength)for(int i=0;i<left.size();i++){
+                String id=left.get(i);if(balance.abilities.stream().noneMatch(a->a.id().equals(id)&&a.skill()==branch))continue;
+                // Weapon pair in the near column; the three-step damage path farther left.
+                int column=i<2?0:i<4?1:2;int row=i<2?i:i<4?i-2:i-4;
+                placed.add(new com.faust.core.progression.SkillTrees.Node(id,leftX-column*40,leftY+row*40,icon(id)));
             }
             var missing=balance.abilities.stream().filter(a->a.skill()==branch&&a.id().startsWith("faust_epic_compat:")&&placed.stream().noneMatch(n->n.ability().equals(a.id()))).sorted(Comparator.comparing(Balance.Ability::id)).toList();
             double top=placed.stream().mapToDouble(com.faust.core.progression.SkillTrees.Node::y).max().orElse(-36)+36;
             for(int i=0;i<missing.size();i++){
                 placed.add(new com.faust.core.progression.SkillTrees.Node(missing.get(i).id(),(i%4)*32,top+(i/4)*32,icon(missing.get(i).id())));
-            }
-            // Related sword nodes share a column, with the prerequisite above its upgrade.
-            String master="faust_epic_compat:epicfight/swordmaster";
-            if(branch==com.faust.core.progression.Skill.strength&&placed.stream().anyMatch(n->n.ability().equals(master))&&placed.stream().anyMatch(n->n.ability().equals(Combat.SWORD_MASTERY))){
-                placed.removeIf(n->n.ability().equals(master)||n.ability().equals(Combat.SWORD_MASTERY));
-                double bottom=placed.stream().mapToDouble(com.faust.core.progression.SkillTrees.Node::y).max().orElse(-36)+40;
-                placed.add(new com.faust.core.progression.SkillTrees.Node(master,32,bottom,icon(master)));
-                placed.add(new com.faust.core.progression.SkillTrees.Node(Combat.SWORD_MASTERY,32,bottom+40,icon(Combat.SWORD_MASTERY)));
             }
             if(tree!=null)layouts.remove(tree);
             layouts.add(new com.faust.core.progression.SkillTrees.Tree(branch,placed));
