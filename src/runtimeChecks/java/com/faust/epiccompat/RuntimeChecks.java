@@ -40,6 +40,19 @@ public final class RuntimeChecks {
             check(Combat.paid(patch)&&Math.abs(data.stamina-19)<0.0001,"glove mastery");
             data.unlocked.remove(Combat.FIST_MASTERY);Combat.strike(patch,InteractionHand.MAIN_HAND);
             check(Combat.paid(patch)&&Math.abs(data.stamina-18)<0.0001,"gloves without mastery cost stamina");
+            player.setItemInHand(InteractionHand.MAIN_HAND,new ItemStack(Items.MACE));
+            player.setItemInHand(InteractionHand.OFF_HAND,ItemStack.EMPTY);
+            data.unlocked.remove("faustcore:mace_efficiency");data.disabled.remove("faustcore:mace_efficiency");
+            double untrainedMace=Combat.cost(patch,InteractionHand.MAIN_HAND,data,balance);
+            check(untrainedMace>=balance.stamina.get("maceCost"),"Epic mace uses core mace base cost");
+            data.unlocked.add("faustcore:mace_efficiency");
+            double trainedMace=Combat.cost(patch,InteractionHand.MAIN_HAND,data,balance);
+            check(trainedMace<untrainedMace,"core mace skill discounts Epic phases");
+            data.stamina=20;data.exhausted=false;Combat.strike(patch,InteractionHand.MAIN_HAND);
+            check(Combat.paid(patch)&&Math.abs(data.stamina-(20-trainedMace))<0.0001,"discount applied to phase payment");
+            data.disabled.add("faustcore:mace_efficiency");
+            check(Combat.cost(patch,InteractionHand.MAIN_HAND,data,balance)==untrainedMace,"disabled mace skill gives no discount");
+            data.disabled.remove("faustcore:mace_efficiency");data.unlocked.remove("faustcore:mace_efficiency");
             player.setItemInHand(InteractionHand.MAIN_HAND,new ItemStack(yesman.epicfight.registry.entries.EpicFightItems.IRON_GREATSWORD.get()));
             data.stamina=20;Combat.strike(patch,InteractionHand.MAIN_HAND);
             check(Combat.paid(patch)&&Math.abs(data.stamina-18)<0.0001,"greatsword costs double");
@@ -95,6 +108,15 @@ public final class RuntimeChecks {
             var fixedProgress=new com.faust.core.progression.Progress();fixedProgress.max(balance);
             for(var ability:balance.abilities)if(ability.id().startsWith("faust_epic_compat:")){
                 check(ability.toggleable()==Compat.isMastery(ability.id()),"custom masteries toggle, Epic Fight nodes equip");
+            }
+            check(!com.faust.core.progression.TreeGroups.groups(balance).contains("faust_epic_compat"),"compat tab merged by default");
+            for(var a:balance.abilities)if(a.id().startsWith("faust_epic_compat:"))check(com.faust.core.progression.TreeGroups.contains(balance,"faustcore",a.id()),"Epic and addon node visible in core");
+            var separate=balance.edited("integratedTreeNamespaces","[]");
+            check(com.faust.core.progression.TreeGroups.groups(separate).contains("faust_epic_compat"),"separate book restored by config");
+            check(separate.abilities.equals(balance.abilities)&&separate.trees.equals(balance.trees),"group switch preserves ids and layout");
+            for(var tree:balance.trees)for(int i=0;i<tree.nodes().size();i++)for(int j=i+1;j<tree.nodes().size();j++){
+                var first=tree.nodes().get(i);var second=tree.nodes().get(j);
+                check(Math.abs(first.x()-second.x())>=22||Math.abs(first.y()-second.y())>=22,"merged nodes do not overlap: "+first.ability()+" / "+second.ability());
             }
             guardAndRollChecks(balance,player);
             System.out.println("FAUST COMPAT RUNTIME CHECKS PASSED: "+checks);

@@ -37,7 +37,7 @@ public final class Combat {
         var category=cap.getWeaponCategory();
         boolean shield=category!=CapabilityItem.WeaponCategories.NOT_WEAPON&&category!=CapabilityItem.WeaponCategories.SHIELD&&category!=CapabilityItem.WeaponCategories.RANGED
                 &&player.getItemInHand(otherHand).canPerformAction(net.neoforged.neoforge.common.ItemAbilities.SHIELD_BLOCK);
-        double cost=Rules.strikeCost(progress.actionCost("attack",balance),twoHanded,spear,progress.enabled(MASTERY,balance),fist,progress.enabled(FIST_MASTERY,balance),shield,progress.enabled(SHIELD_MASTERY,balance));
+        double cost=Rules.strikeCost(progress.actionCost(player.getItemInHand(hand).is(net.minecraft.world.item.Items.MACE)?"mace":"attack",balance),twoHanded,spear,progress.enabled(MASTERY,balance),fist,progress.enabled(FIST_MASTERY,balance),shield,progress.enabled(SHIELD_MASTERY,balance));
         var other=yesman.epicfight.world.capabilities.EpicFightCapabilities.getItemStackCapability(player.getItemInHand(otherHand)).getWeaponCategory();
         boolean swords=category==CapabilityItem.WeaponCategories.SWORD&&other==category;
         boolean daggers=category==CapabilityItem.WeaponCategories.DAGGER&&other==category;
