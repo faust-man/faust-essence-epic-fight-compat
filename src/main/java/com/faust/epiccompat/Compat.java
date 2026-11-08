@@ -83,12 +83,17 @@ public final class Compat {
         if(a.id().equals("faust_epic_compat:epicfight/parrying")){
             var all=new java.util.LinkedHashSet<>(a.requiresAll());all.add("faust_epic_compat:epicfight/technician");json.add("requiresAll",Balance.JSON.toJsonTree(all));
         }
+        if(a.id().equals("faust_epic_compat:epicfight/roll")){
+            json.addProperty("level",1);json.addProperty("counter","run_metres");json.addProperty("amount",500);
+            json.add("characteristics",new com.google.gson.JsonArray());json.add("conditions",new com.google.gson.JsonArray());
+        }
         if(a.id().equals("faust_epic_compat:epicfight/step")){
             json.addProperty("parent","faust_epic_compat:epicfight/roll");json.addProperty("counter",CombatPractice.ROLLS);json.addProperty("amount",100);json.add("conditions",new com.google.gson.JsonArray());
         }
         if(a.id().equals(Combat.SHIELD_MASTERY))json.addProperty("parent",Combat.SHIELD_EFFICIENCY);
         if(a.id().equals(Combat.SHIELD_EFFICIENCY))json.addProperty("parent","faust_epic_compat:epicfight/guard");
         if(a.id().equals(Combat.SWORD_MASTERY))json.addProperty("parent","faust_epic_compat:epicfight/swordmaster");
+        if(a.id().equals(Combat.DAGGER_MASTERY))json.addProperty("parent","faust_epic_compat:epicfight/technician");
         if(a.id().equals("faustcore:shield_efficiency")){json.addProperty("value",0.5);}
         if(a.id().equals(Combat.FIST_POWER))json.addProperty("parent",Combat.FIST_MASTERY);
         String counter=null;double amount=10;
@@ -157,10 +162,35 @@ public final class Compat {
             for(int i=0;i<missing.size();i++){
                 placed.add(new com.faust.core.progression.SkillTrees.Node(missing.get(i).id(),gridLeft+(i%4)*32,top+(i/4)*32,icon(missing.get(i).id())));
             }
+            if(branch==com.faust.core.progression.Skill.dexterity)alignDexterity(placed);
             if(tree!=null)layouts.remove(tree);
             layouts.add(new com.faust.core.progression.SkillTrees.Tree(branch,placed));
         }
         balance.trees=layouts;
         balance.validate();
+    }
+
+    private static void alignDexterity(List<com.faust.core.progression.SkillTrees.Node> placed){
+        String roll="faust_epic_compat:epicfight/roll",step="faust_epic_compat:epicfight/step",tech="faust_epic_compat:epicfight/technician";
+        var dodge=placed.stream().filter(n->n.ability().equals(roll)).findFirst().orElse(null);
+        var daggers=placed.stream().filter(n->n.ability().equals(Combat.DAGGER_MASTERY)).findFirst().orElse(null);
+        var technician=placed.stream().filter(n->n.ability().equals(tech)).findFirst().orElse(null);
+        boolean hasStep=placed.stream().anyMatch(n->n.ability().equals(step));
+        if(dodge!=null){
+            placed.removeIf(n->n.ability().equals(roll)||n.ability().equals(step));
+            double x=placed.stream().mapToDouble(com.faust.core.progression.SkillTrees.Node::x).min().orElse(0)-48;
+            placed.add(new com.faust.core.progression.SkillTrees.Node(roll,x,dodge.y(),icon(roll)));
+            if(hasStep)placed.add(new com.faust.core.progression.SkillTrees.Node(step,x,dodge.y()+40,icon(step)));
+        }
+        if(daggers!=null&&technician!=null){
+            placed.removeIf(n->n.ability().equals(tech)||n.ability().equals(Combat.DAGGER_MASTERY));
+            double x=daggers.x(),y=daggers.y();
+            while(overlaps(placed,x,y)||overlaps(placed,x,y+40))y+=40;
+            placed.add(new com.faust.core.progression.SkillTrees.Node(tech,x,y,icon(tech)));
+            placed.add(new com.faust.core.progression.SkillTrees.Node(Combat.DAGGER_MASTERY,x,y+40,icon(Combat.DAGGER_MASTERY)));
+        }
+    }
+    private static boolean overlaps(List<com.faust.core.progression.SkillTrees.Node> nodes,double x,double y){
+        return nodes.stream().anyMatch(n->Math.abs(n.x()-x)<22&&Math.abs(n.y()-y)<22);
     }
 }

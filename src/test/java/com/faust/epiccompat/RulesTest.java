@@ -109,6 +109,28 @@ public final class RulesTest {
         check(Compat.relocate(Compat.mastery(Combat.SHIELD_EFFICIENCY)).value()==0.5);
         for(String id:java.util.List.of(Combat.FIST_POWER,Combat.FIST_MASTERY,Combat.SHIELD_EFFICIENCY,Combat.SWORD_MASTERY))check(Compat.relocate(Compat.mastery(id)).toggleable());
         check(Rules.canSpend(0.5,1,false,false));check(!Rules.canSpend(0,1,true,false));
+        var dex=new com.faust.core.progression.Balance();
+        String prefix="faust_epic_compat:epicfight/";
+        for(String name:java.util.List.of("roll","step","technician"))dex.abilities.add(new com.faust.core.progression.Balance.Ability(prefix+name,com.faust.core.progression.Skill.dexterity,5,"hits",0,"","faust_epic_compat:skill",0));
+        dex.abilities.add(Compat.mastery(Combat.DAGGER_MASTERY));Compat.extend(dex);
+        var dexTree=dex.trees.stream().filter(t->t.skill()==com.faust.core.progression.Skill.dexterity).findFirst().orElseThrow();
+        var rollNode=dexTree.nodes().stream().filter(n->n.ability().equals(prefix+"roll")).findFirst().orElseThrow();
+        var stepNode=dexTree.nodes().stream().filter(n->n.ability().equals(prefix+"step")).findFirst().orElseThrow();
+        var techNode=dexTree.nodes().stream().filter(n->n.ability().equals(prefix+"technician")).findFirst().orElseThrow();
+        var daggerNode=dexTree.nodes().stream().filter(n->n.ability().equals(Combat.DAGGER_MASTERY)).findFirst().orElseThrow();
+        check(rollNode.x()==stepNode.x()&&stepNode.y()==rollNode.y()+40);
+        check(rollNode.x()<dexTree.nodes().stream().filter(n->n.ability().startsWith("faustcore:")).mapToDouble(com.faust.core.progression.SkillTrees.Node::x).min().orElseThrow());
+        check(techNode.x()==daggerNode.x()&&daggerNode.y()==techNode.y()+40);
+        check(daggerNode.x()==0); // First alphabetical addon remains in its original grid column.
+        var encoded=com.faust.core.progression.Balance.JSON.toJson(dex.trees);Compat.extend(dex);check(encoded.equals(com.faust.core.progression.Balance.JSON.toJson(dex.trees)));
+        var dagger=dex.abilities.stream().filter(a->a.id().equals(Combat.DAGGER_MASTERY)).findFirst().orElseThrow();
+        check(dagger.all().contains(prefix+"technician"));check(Compat.relocate(dagger).equals(dagger));
+        var dexProgress=new com.faust.core.progression.Progress();dexProgress.track(com.faust.core.progression.Skill.dexterity).level=5;dexProgress.counters.put(CombatPractice.DAGGER_HITS,10.0);
+        check(!dexProgress.canUnlock(dagger,dex));dexProgress.unlocked.add(prefix+"technician");check(dexProgress.unlock(dagger.id(),dex));check(dexProgress.revoke(prefix+"technician",dex).contains(dagger.id()));
+        var rollAbility=dex.abilities.stream().filter(a->a.id().equals(prefix+"roll")).findFirst().orElseThrow();
+        dexProgress=new com.faust.core.progression.Progress();dexProgress.counters.put("run_metres",500.0);check(!dexProgress.canUnlock(rollAbility,dex));
+        dexProgress.track(com.faust.core.progression.Skill.dexterity).level=1;dexProgress.counters.put("run_metres",499.0);check(!dexProgress.canUnlock(rollAbility,dex));dexProgress.counters.put("run_metres",500.0);check(dexProgress.canUnlock(rollAbility,dex));
+        check(Compat.relocate(rollAbility).equals(rollAbility));
         System.out.println("Passed "+checks+" integration policy checks");
     }
 }
