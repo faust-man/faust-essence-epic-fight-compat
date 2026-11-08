@@ -1,0 +1,36 @@
+package com.faust.epiccompat;
+
+import com.faust.core.runtime.CoreRuntime;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
+import yesman.epicfight.skill.*;
+import yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch;
+import yesman.epicfight.world.capabilities.item.CapabilityItem;
+import java.util.*;
+
+/** Server-thread phase payments. Weak keys do not retain disconnected player patches. */
+public final class Combat {
+    public static final String MASTERY="faust_epic_compat:two_handed_mastery";
+    public static final String FIST_MASTERY="faust_epic_compat:fist_mastery";
+    private static final Map<PlayerPatch<?>,Boolean> PAID=new WeakHashMap<>();
+    private static final ThreadLocal<ServerPlayer> COLLISION=new ThreadLocal<>();
+    private Combat(){}
+    public static boolean allowedSlot(SkillSlot slot){return slot.category()!=SkillCategories.PASSIVE||Rules.passiveSlot(slot.toString());}
+    public static boolean prepaid(ServerPlayer player){return COLLISION.get()==player;}
+    public static void collide(ServerPlayer player,Runnable operation){
+        ServerPlayer previous=COLLISION.get();COLLISION.set(player);
+        try{operation.run();}finally{if(previous==null)COLLISION.remove();else COLLISION.set(previous);}
+    }
+    public static boolean paid(PlayerPatch<?> patch){return PAID.getOrDefault(patch,false);}
+    public static void begin(PlayerPatch<?> patch){PAID.remove(patch);}
+    public static void strike(PlayerPatch<?> patch,InteractionHand hand){
+        if(!(patch.getOriginal() instanceof ServerPlayer player))return;
+        var cap=patch.getAdvancedHoldingItemCapability(hand);
+        boolean twoHanded=!cap.getStyle(patch).canUseOffhand();
+        boolean spear=cap.getWeaponCategory()==CapabilityItem.WeaponCategories.SPEAR;
+        var progress=CoreRuntime.data(player);
+        boolean fist=cap.getWeaponCategory()==CapabilityItem.WeaponCategories.FIST||player.getItemInHand(hand).isEmpty();
+        double cost=Rules.strikeCost(progress.actionCost("attack",CoreRuntime.balance),twoHanded,spear,progress.unlocked.contains(MASTERY),fist,progress.unlocked.contains(FIST_MASTERY));
+        PAID.put(patch,CoreRuntime.pay(player,cost));CoreRuntime.sync(player);
+    }
+}

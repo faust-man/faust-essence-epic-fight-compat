@@ -18,6 +18,22 @@ public final class RulesTest {
         check(!Rules.canSpend(20,Float.POSITIVE_INFINITY,false,true));
         check(!Rules.canSpend(20,-1,false,true));
         check(Rules.canSpend(0,0,false,false));
+        for(boolean twoHanded:new boolean[]{false,true})for(boolean spear:new boolean[]{false,true})for(boolean mastery:new boolean[]{false,true}){
+            double cost=Rules.strikeCost(1.5,twoHanded,spear,mastery);
+            check(cost==(twoHanded&&!spear&&!mastery?3:1.5));
+            check(Rules.strikeCost(1.5,twoHanded,spear,mastery,true,true)==0);
+            check(Rules.strikeCost(1.5,twoHanded,spear,mastery,false,true)==cost);
+            check(Rules.strikeCost(1.5,twoHanded,spear,mastery,true,false)==cost);
+        }
+        check(Rules.strikeCost(0,true,false,false)==0);
+        check(!Rules.canSpend(1,(float)Rules.strikeCost(1,true,false,false),false,false));
+        check(Rules.canSpend(1,(float)Rules.strikeCost(1,true,false,true),false,false));
+        check(!Rules.canSpend(0,0,true,false));
+        for(int i=1;i<=16;i++)check(Rules.passiveSlot("PASSIVE"+i)==(i<=3));
+        check(!Rules.passiveSlot("PASSIVE0"));check(!Rules.passiveSlot("CUSTOM_PASSIVE"));
+        for(String id:java.util.List.of(Combat.MASTERY,Combat.FIST_MASTERY)){
+            var node=Compat.mastery(id);check(node.skill()==com.faust.core.progression.Skill.strength);check(node.level()==5);check(node.amount()==0);
+        }
         var balance=new com.faust.core.progression.Balance();
         for(int i=0;i<20;i++)balance.abilities.add(new com.faust.core.progression.Balance.Ability("faust_epic_compat:test/skill_"+i,com.faust.core.progression.Skill.strength,5,"hits",0,"","faust_epic_compat:skill",0));
         var original=java.util.List.copyOf(balance.trees);

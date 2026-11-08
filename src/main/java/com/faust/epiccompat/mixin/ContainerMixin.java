@@ -11,6 +11,7 @@ import yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch;
 public abstract class ContainerMixin {
     @Shadow public abstract PlayerPatch<?> getExecutor();
     @Shadow public abstract Skill getSkill();
+    @Shadow public abstract SkillSlot getSlot();
     @Inject(method="canUse",at=@At("HEAD"),cancellable=true)
     private void mayCast(PlayerPatch<?> executor,yesman.epicfight.api.event.types.player.SkillCastEvent event,CallbackInfoReturnable<Boolean> cir){
         if(executor.getOriginal() instanceof ServerPlayer player){
@@ -20,6 +21,7 @@ public abstract class ContainerMixin {
     }
     @Inject(method="setSkill(Lyesman/epicfight/skill/Skill;Z)Z",at=@At("HEAD"),cancellable=true)
     private void gate(Skill skill,boolean initialize,CallbackInfoReturnable<Boolean> cir){
+        if(skill!=null&&!com.faust.epiccompat.Combat.allowedSlot(getSlot())){cir.setReturnValue(false);return;}
         if(skill!=null&&skill.getCategory().learnable()&&getExecutor()!=null&&getExecutor().getOriginal() instanceof ServerPlayer player&&!CoreRuntime.data(player).unlocked.contains(Compat.nodeId(skill)))cir.setReturnValue(false);
     }
 }

@@ -20,7 +20,7 @@ public interface SkillPacketMixin {
     @Inject(method="handleChangeSkill",at=@At("HEAD"),cancellable=true)
     private static void authorize(CPChangeSkill data,IPayloadContext context,CallbackInfo ci){
         if(!(context.player() instanceof ServerPlayer player)){ci.cancel();return;}
-        if(data.skillBookSlotIndex()!=-1||!data.skillSlot().category().learnable()){ci.cancel();return;}
+        if(data.skillBookSlotIndex()!=-1||!data.skillSlot().category().learnable()||!com.faust.epiccompat.Combat.allowedSlot(data.skillSlot())){ci.cancel();return;}
         if(data.skill()==null)return;
         var skill=data.skill().value();
         if(!skill.getCategory().learnable()||data.skillSlot().category()!=skill.getCategory()||!CoreRuntime.data(player).unlocked.contains(Compat.nodeId(skill)))ci.cancel();

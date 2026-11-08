@@ -3,6 +3,12 @@ import java.util.Locale;
 /** Pure policy shared by integration and automatic checks. */
 public final class Rules {
     private Rules(){}
+    public static double strikeCost(double base,boolean twoHanded,boolean spear,boolean mastery){
+        if(!Double.isFinite(base)||base<0)throw new IllegalArgumentException("Invalid attack cost");
+        return base*(twoHanded&&!spear&&!mastery?2:1);
+    }
+    public static double strikeCost(double base,boolean twoHanded,boolean spear,boolean mastery,boolean fist,boolean fistMastery){return fist&&fistMastery?0:strikeCost(base,twoHanded,spear,mastery);}
+    public static boolean passiveSlot(String slot){return java.util.Set.of("PASSIVE1","PASSIVE2","PASSIVE3").contains(slot);}
     public static String branch(String name,String category){
         String key=(name+" "+category).toLowerCase(Locale.ROOT);
         if(key.matches(".*(guard|parry|block|defen).*"))return "defense";

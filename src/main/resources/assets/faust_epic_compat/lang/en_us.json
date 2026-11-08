@@ -1,0 +1,6 @@
+{
+  "faust_epic_compat.two_handed_mastery": "Two-Handed Grip",
+  "faust_epic_compat.two_handed_mastery.description": "Two-handed strikes cost the same stamina as one-handed strikes. Spears always use the normal cost.",
+  "faust_epic_compat.fist_mastery": "Efficient Fist Fighting",
+  "faust_epic_compat.fist_mastery.description": "Bare-handed and glove strikes cost no stamina. Separate active skill costs still apply."
+}
