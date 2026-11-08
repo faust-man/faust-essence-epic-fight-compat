@@ -3,7 +3,7 @@ loaderVersion="[4,)"
 license="CC0-1.0"
 [[mods]]
 modId="faust_epic_compat"
-version="1.3.0"
+version="1.4.0"
 displayName="epic-fight compat"
 description="Epic Fight skills and stamina integrated with Faust Core."
 [[mixins]]

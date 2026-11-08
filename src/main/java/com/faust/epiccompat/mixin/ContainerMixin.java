@@ -14,6 +14,7 @@ public abstract class ContainerMixin {
     @Shadow public abstract SkillSlot getSlot();
     @Inject(method="canUse",at=@At("HEAD"),cancellable=true)
     private void mayCast(PlayerPatch<?> executor,yesman.epicfight.api.event.types.player.SkillCastEvent event,CallbackInfoReturnable<Boolean> cir){
+        if(getSkill() instanceof yesman.epicfight.skill.common.ComboAttacks&&!com.faust.epiccompat.Combat.canStrike(executor)){cir.setReturnValue(false);return;}
         if(executor.getOriginal() instanceof ServerPlayer player){
             var skill=getSkill();
             if(skill!=null&&((skill.getCategory().learnable()&&!CoreRuntime.data(player).unlocked.contains(Compat.nodeId(skill)))||(!CoreRuntime.canAct(player)&&skill.getCategory()!=SkillCategories.KNOCKDOWN_WAKEUP)))cir.setReturnValue(false);

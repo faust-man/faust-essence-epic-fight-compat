@@ -22,7 +22,7 @@ public final class Rules {
         if(key.matches(".*(stamina|recover|endurance|breath|energy|health|regener|vital|harvest|catharsis).*"))return "constitution";
         return "strength";
     }
-    public static double dualCost(double cost,boolean paired,boolean mastery){return paired&&!mastery?cost*2:cost;}
+    public static double dualCost(double cost,boolean paired,boolean mastery){return paired?cost*(mastery?0.5:1):cost;}
     public static boolean canSpend(double available,float amount,boolean blocked,boolean exempt){
         return Float.isFinite(amount)&&amount>=0&&(exempt||(!blocked&&available>=amount));
     }

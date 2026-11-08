@@ -25,22 +25,32 @@ public final class Combat {
     }
     public static boolean paid(PlayerPatch<?> patch){return PAID.getOrDefault(patch,false);}
     public static void begin(PlayerPatch<?> patch){PAID.remove(patch);}
-    public static void strike(PlayerPatch<?> patch,InteractionHand hand){
-        if(!(patch.getOriginal() instanceof ServerPlayer player))return;
+    public static double cost(PlayerPatch<?> patch,InteractionHand hand,com.faust.core.progression.Progress progress,com.faust.core.progression.Balance balance){
+        var player=patch.getOriginal();
         var cap=patch.getAdvancedHoldingItemCapability(hand);
         boolean twoHanded=!cap.getStyle(patch).canUseOffhand();
         boolean spear=cap.getWeaponCategory()==CapabilityItem.WeaponCategories.SPEAR;
-        var progress=CoreRuntime.data(player);
         boolean fist=cap.getWeaponCategory()==CapabilityItem.WeaponCategories.FIST||player.getItemInHand(hand).isEmpty();
         var otherHand=hand==InteractionHand.MAIN_HAND?InteractionHand.OFF_HAND:InteractionHand.MAIN_HAND;
         var category=cap.getWeaponCategory();
         boolean shield=category!=CapabilityItem.WeaponCategories.NOT_WEAPON&&category!=CapabilityItem.WeaponCategories.SHIELD&&category!=CapabilityItem.WeaponCategories.RANGED
                 &&player.getItemInHand(otherHand).canPerformAction(net.neoforged.neoforge.common.ItemAbilities.SHIELD_BLOCK);
-        double cost=Rules.strikeCost(progress.actionCost("attack",CoreRuntime.balance),twoHanded,spear,progress.unlocked.contains(MASTERY),fist,progress.unlocked.contains(FIST_MASTERY),shield,progress.unlocked.contains(SHIELD_MASTERY));
+        double cost=Rules.strikeCost(progress.actionCost("attack",balance),twoHanded,spear,progress.unlocked.contains(MASTERY),fist,progress.unlocked.contains(FIST_MASTERY),shield,progress.unlocked.contains(SHIELD_MASTERY));
         var other=yesman.epicfight.world.capabilities.EpicFightCapabilities.getItemStackCapability(player.getItemInHand(otherHand)).getWeaponCategory();
         boolean swords=category==CapabilityItem.WeaponCategories.SWORD&&other==category;
         boolean daggers=category==CapabilityItem.WeaponCategories.DAGGER&&other==category;
-        cost=Rules.dualCost(cost,swords||daggers,progress.unlocked.contains(swords?SWORD_MASTERY:DAGGER_MASTERY));
+        return Rules.dualCost(cost,swords||daggers,progress.unlocked.contains(swords?SWORD_MASTERY:DAGGER_MASTERY));
+    }
+    public static boolean canStrike(PlayerPatch<?> patch){
+        if(patch.getOriginal() instanceof ServerPlayer p){
+            double cost=cost(patch,patch.getPrimaryHand(),CoreRuntime.data(p),CoreRuntime.balance);
+            return !CoreRuntime.active(p)||CoreRuntime.balance.stamina.get("enabled")==0||(Forbidden.mode(p)?Forbidden.afford(p,cost):!CoreRuntime.data(p).actionsBlocked(CoreRuntime.balance)&&CoreRuntime.data(p).stamina>=cost);
+        }
+        return com.faust.epiccompat.client.ClientBridge.canStrike(patch);
+    }
+    public static void strike(PlayerPatch<?> patch,InteractionHand hand){
+        if(!(patch.getOriginal() instanceof ServerPlayer player))return;
+        double cost=cost(patch,hand,CoreRuntime.data(player),CoreRuntime.balance);
         PAID.put(patch,CoreRuntime.pay(player,cost));CoreRuntime.sync(player);
     }
 }

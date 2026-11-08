@@ -15,6 +15,6 @@ public final class Forbidden {
         return CoreRuntime.active(player)&&CoreRuntime.balance.stamina.get("enabled")>0&&CoreRuntime.data(player).actionsBlocked(CoreRuntime.balance)
             &&EpicFightCapabilities.getUnparameterizedEntityPatch(player,PlayerPatch.class).filter(Forbidden::equipped).isPresent();
     }
-    public static boolean afford(ServerPlayer player,double cost){return Double.isFinite(cost)&&cost>=0&&player.getHealth()>cost;}
-    public static boolean pay(ServerPlayer player,double cost){if(!afford(player,cost))return false;player.setHealth((float)(player.getHealth()-cost));return true;}
+    public static boolean afford(ServerPlayer player,double cost){return Double.isFinite(cost)&&cost>=0&&player.isAlive()&&player.getHealth()>0;}
+    public static boolean pay(ServerPlayer player,double cost){if(!afford(player,cost))return false;player.setHealth((float)Math.max(0,player.getHealth()-cost));if(player.getHealth()<=0)player.die(player.damageSources().generic());return true;}
 }

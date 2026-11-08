@@ -20,7 +20,7 @@ public class StaminaMixin {
     }
     @Inject(method="hasStamina",at=@At("HEAD"),cancellable=true)
     private void enough(float amount,CallbackInfoReturnable<Boolean> cir){
-        if(patch().getOriginal().level().isClientSide&&com.faust.epiccompat.client.ClientBridge.health()&&com.faust.epiccompat.Forbidden.equipped(patch())){cir.setReturnValue(Float.isFinite(amount)&&amount>=0&&patch().getOriginal().getHealth()>amount);return;}
+        if(patch().getOriginal().level().isClientSide&&com.faust.epiccompat.client.ClientBridge.health()&&com.faust.epiccompat.Forbidden.equipped(patch())){cir.setReturnValue(Float.isFinite(amount)&&amount>=0&&patch().getOriginal().getHealth()>0);return;}
         if(patch().getOriginal() instanceof ServerPlayer p&&com.faust.epiccompat.Forbidden.mode(p)){cir.setReturnValue(com.faust.epiccompat.Forbidden.afford(p,amount));return;}
         if(patch().getOriginal() instanceof ServerPlayer p)cir.setReturnValue(com.faust.epiccompat.Rules.canSpend(CoreRuntime.data(p).stamina,amount,CoreRuntime.data(p).actionsBlocked(CoreRuntime.balance),!CoreRuntime.active(p)||CoreRuntime.balance.stamina.get("enabled")==0));
     }

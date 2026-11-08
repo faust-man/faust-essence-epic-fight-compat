@@ -18,7 +18,7 @@ public final class RulesTest {
         check(!Rules.canSpend(20,Float.POSITIVE_INFINITY,false,true));
         check(!Rules.canSpend(20,-1,false,true));
         check(Rules.canSpend(0,0,false,false));
-        check(Rules.dualCost(1,true,false)==2);check(Rules.dualCost(1,true,true)==1);check(Rules.dualCost(1,false,false)==1);
+        check(Rules.dualCost(1,true,false)==1);check(Rules.dualCost(1,true,true)==0.5);check(Rules.dualCost(1,false,false)==1);
         check(Rules.branch("adaptive_skin","PASSIVE").equals("constitution"));check(Rules.branch("revelation","PASSIVE").equals("intelligence"));
         check(Compat.mastery(Combat.DAGGER_MASTERY).skill()==com.faust.core.progression.Skill.dexterity);
         check(Compat.mastery(Combat.SWORD_MASTERY).skill()==com.faust.core.progression.Skill.strength);
@@ -62,6 +62,24 @@ public final class RulesTest {
         for(var tree:original)check(balance.trees.stream().filter(t->t.skill()==tree.skill()).findFirst().orElseThrow().nodes().containsAll(tree.nodes()));
         var before=com.faust.core.progression.Balance.JSON.toJson(balance.trees);Compat.extend(balance);
         check(before.equals(com.faust.core.progression.Balance.JSON.toJson(balance.trees)));
+        var gates=new com.faust.core.progression.Balance();
+        String tech="faust_epic_compat:epicfight/technician", master="faust_epic_compat:epicfight/swordmaster";
+        gates.abilities.add(new com.faust.core.progression.Balance.Ability(tech,com.faust.core.progression.Skill.dexterity,5,"hits",0,"","faust_epic_compat:skill",0));
+        gates.abilities.add(new com.faust.core.progression.Balance.Ability(master,com.faust.core.progression.Skill.strength,5,"hits",0,"","faust_epic_compat:skill",0));
+        gates.abilities.add(Compat.mastery(Combat.SWORD_MASTERY));Compat.extend(gates);
+        var technician=gates.abilities.stream().filter(a->a.id().equals(tech)).findFirst().orElseThrow();
+        var pair=gates.abilities.stream().filter(a->a.id().equals(Combat.SWORD_MASTERY)).findFirst().orElseThrow();
+        var progress=new com.faust.core.progression.Progress();progress.track(com.faust.core.progression.Skill.dexterity).level=5;
+        progress.track(com.faust.core.progression.Skill.intelligence).level=4;check(!progress.canUnlock(technician,gates));
+        progress.track(com.faust.core.progression.Skill.intelligence).level=5;check(progress.canUnlock(technician,gates));
+        check(technician.skill()==com.faust.core.progression.Skill.dexterity);
+        progress.track(com.faust.core.progression.Skill.strength).level=5;check(!progress.canUnlock(pair,gates));
+        progress.unlocked.add(master);check(progress.canUnlock(pair,gates));
+        var tree=gates.trees.stream().filter(t->t.skill()==com.faust.core.progression.Skill.strength).findFirst().orElseThrow();
+        var first=tree.nodes().stream().filter(n->n.ability().equals(master)).findFirst().orElseThrow();
+        var second=tree.nodes().stream().filter(n->n.ability().equals(pair.id())).findFirst().orElseThrow();
+        check(first.x()==second.x()&&second.y()-first.y()==40);
+        String gateLayout=com.faust.core.progression.Balance.JSON.toJson(gates.trees);Compat.extend(gates);check(gateLayout.equals(com.faust.core.progression.Balance.JSON.toJson(gates.trees)));
         System.out.println("Passed "+checks+" integration policy checks");
     }
 }

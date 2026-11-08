@@ -78,11 +78,11 @@ public final class RuntimeChecks {
             System.out.println("FAUST COMPAT RUNTIME CHECKS PASSED: "+checks);
             data.stamina=20;data.exhausted=false;
             player.setItemInHand(InteractionHand.MAIN_HAND,new ItemStack(Items.IRON_SWORD));player.setItemInHand(InteractionHand.OFF_HAND,new ItemStack(Items.IRON_SWORD));
-            Combat.strike(patch,InteractionHand.MAIN_HAND);check(data.stamina==18,"dual sword surcharge");
-            data.unlocked.add(Combat.SWORD_MASTERY);Combat.strike(patch,InteractionHand.MAIN_HAND);check(data.stamina==17,"dual sword mastery");
+            Combat.strike(patch,InteractionHand.MAIN_HAND);check(data.stamina==19,"dual sword base cost");
+            data.unlocked.add(Combat.SWORD_MASTERY);Combat.strike(patch,InteractionHand.MAIN_HAND);check(data.stamina==18.5,"dual sword mastery");
             player.setItemInHand(InteractionHand.MAIN_HAND,new ItemStack(yesman.epicfight.registry.entries.EpicFightItems.IRON_DAGGER.get()));player.setItemInHand(InteractionHand.OFF_HAND,player.getMainHandItem().copy());
-            Combat.strike(patch,InteractionHand.MAIN_HAND);check(data.stamina==15,"dual dagger surcharge independent of sword mastery");
-            data.unlocked.add(Combat.DAGGER_MASTERY);Combat.strike(patch,InteractionHand.MAIN_HAND);check(data.stamina==14,"dual dagger mastery");
+            Combat.strike(patch,InteractionHand.MAIN_HAND);check(data.stamina==17.5,"dual dagger base cost independent of sword mastery");
+            data.unlocked.add(Combat.DAGGER_MASTERY);Combat.strike(patch,InteractionHand.MAIN_HAND);check(data.stamina==17,"dual dagger mastery");
             var attached=yesman.epicfight.world.capabilities.EpicFightCapabilities.getEntityPatch(player,ServerPlayerPatch.class);
             check(attached!=null,"attached patch available");
             var forbidden=yesman.epicfight.registry.EpicFightRegistries.SKILL.get(net.minecraft.resources.ResourceLocation.parse("epicfight:forbidden_strength"));
@@ -92,7 +92,7 @@ public final class RuntimeChecks {
             check(CoreRuntime.pay(player,2)&&player.getHealth()==18&&data.stamina==2,"full 1:1 health payment without spending residual stamina");
             attached.setStamina(attached.getStamina()-3);check(player.getHealth()==15&&data.stamina==2,"EF skill health payment");
             check(data.fatigue==fatigue,"health payments add no fatigue");
-            check(!CoreRuntime.pay(player,15)&&player.getHealth()==15,"insufficient health rejected without killing");
+            check(Forbidden.afford(player,15),"lethal cost is permitted");
             CoreRuntime.tick(player);check(data.stamina>2,"stamina regenerates while health pays");
             data.stamina=0;data.exhausted=true;player.setOnGround(true);player.setSprinting(true);
             CoreRuntime.stat(player,net.minecraft.stats.Stats.CUSTOM.get(net.minecraft.stats.Stats.SPRINT_ONE_CM),100);
@@ -101,6 +101,13 @@ public final class RuntimeChecks {
             attached.getSkill(SkillSlots.PASSIVE1).setSkill(null);check(!Forbidden.mode(player),"unequipping restores exhaustion block");
             check(balance.abilities.stream().anyMatch(a->a.id().endsWith("/adaptive_skin")&&a.skill()==com.faust.core.progression.Skill.constitution),"adaptive skin relocated");
             check(balance.abilities.stream().anyMatch(a->a.id().endsWith("/revelation")&&a.skill()==com.faust.core.progression.Skill.intelligence),"revelation relocated");
+            data.stamina=0.5;data.exhausted=false;
+            var combo=attached.getSkill(SkillSlots.COMBO_ATTACKS);combo.setSkill(yesman.epicfight.registry.entries.EpicFightSkills.COMBO_ATTACKS.get());
+            for(int i=0;i<8;i++){check(!Combat.canStrike(attached),"fractional stamina cannot start queued attack");check(!combo.canUse(attached,new yesman.epicfight.api.event.types.player.SkillCastEvent(attached,combo,new net.minecraft.nbt.CompoundTag())),"skill container rejects fractional queued attack");Combat.begin(attached);Combat.strike(attached,InteractionHand.MAIN_HAND);check(!Combat.paid(attached)&&data.stamina==0.5,"fractional repeated strike rejected");}
+            check(attached.getSkill(SkillSlots.PASSIVE1).setSkill(forbidden),"re-equip forbidden");player.setHealth(0.5f);data.exhausted=true;
+            double residual=data.stamina;check(CoreRuntime.pay(player,1),"lethal health payment accepted");
+            check(player.isDeadOrDying()&&player.getHealth()==0&&data.stamina==residual,"health payment kills and preserves stamina");
+            check(!Forbidden.pay(player,1),"dead player cannot pay again");
             System.out.println("FAUST COMPAT COMPLETE RUNTIME CHECKS PASSED: "+checks);
         }finally{balance.stamina.put("attackCost",oldAttack);event.getServer().halt(false);}
     }

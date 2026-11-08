@@ -9,5 +9,5 @@ import yesman.epicfight.api.event.types.player.SkillCastEvent;
 @Mixin(value=Skill.class,remap=false)
 public class SkillCostMixin {
     @Inject(method="resourcePredicate",at=@At("HEAD"),cancellable=true)
-    private void phaseCost(PlayerPatch<?> patch,SkillCastEvent event,CallbackInfoReturnable<Boolean> cir){if((Object)this instanceof ComboAttacks)cir.setReturnValue(true);}
+    private void phaseCost(PlayerPatch<?> patch,SkillCastEvent event,CallbackInfoReturnable<Boolean> cir){if((Object)this instanceof ComboAttacks)cir.setReturnValue(com.faust.epiccompat.Combat.canStrike(patch));}
 }

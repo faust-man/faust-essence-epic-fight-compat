@@ -4,6 +4,12 @@ import net.minecraft.client.Minecraft;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch;
 public final class ClientBridge {
+    public static boolean canStrike(PlayerPatch<?> patch){
+        if(CoreClient.progress==null||CoreClient.balance==null)return false;
+        var player=patch.getOriginal();if(player.isCreative()||player.isSpectator()||CoreClient.balance.stamina.get("enabled")==0)return true;
+        if(health())return player.isAlive()&&player.getHealth()>0;
+        return !CoreClient.progress.actionsBlocked(CoreClient.balance)&&CoreClient.progress.stamina>=com.faust.epiccompat.Combat.cost(patch,patch.getPrimaryHand(),CoreClient.progress,CoreClient.balance);
+    }
     public static boolean health(){var player=Minecraft.getInstance().player;return player!=null&&CoreClient.progress!=null&&CoreClient.balance!=null&&CoreClient.progress.actionsBlocked(CoreClient.balance)&&yesman.epicfight.world.capabilities.EpicFightCapabilities.getUnparameterizedEntityPatch(player,yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch.class).filter(com.faust.epiccompat.Forbidden::equipped).isPresent();}
 
     private ClientBridge(){}
