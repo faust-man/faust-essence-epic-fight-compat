@@ -91,6 +91,21 @@ public final class RuntimeChecks {
             var migratedShield=Compat.relocate(com.faust.core.progression.Balance.JSON.fromJson(oldShield,com.faust.core.progression.Balance.Ability.class));
             check(migratedShield.all().contains("faustcore:shield_efficiency"),"existing shield config gains prerequisite");
             check(Compat.relocate(migratedShield).equals(migratedShield),"shield dependency migration idempotent");
+
+            var fixedProgress=new com.faust.core.progression.Progress();fixedProgress.max(balance);
+            for(var ability:balance.abilities)if(ability.id().startsWith("faust_epic_compat:")){
+                check(!ability.toggleable(),"addon skill non-toggleable: "+ability.id());
+                check(!fixedProgress.toggle(ability.id(),balance),"server denies addon toggle: "+ability.id());
+                fixedProgress.disabled.add(ability.id());
+                check(fixedProgress.enabled(ability.id(),balance),"stale addon disabled flag ignored: "+ability.id());
+                var legacy=com.faust.core.progression.Balance.JSON.toJsonTree(ability).getAsJsonObject();legacy.addProperty("toggleable",true);
+                check(!Compat.relocate(com.faust.core.progression.Balance.JSON.fromJson(legacy,com.faust.core.progression.Balance.Ability.class)).toggleable(),"old true migrated to false: "+ability.id());
+            }
+            fixedProgress.reconcileAbilities(balance);check(fixedProgress.disabled.isEmpty(),"all stale addon flags cleared");
+            var coreNode=new com.faust.core.progression.Balance().abilities.getFirst();check(Compat.relocate(coreNode).toggleable(),"ordinary core skill remains toggleable");
+            check(fixedProgress.toggle(coreNode.id(),balance),"core toggle still allowed with addon");
+            for(String id:java.util.List.of(Combat.MASTERY,Combat.FIST_MASTERY,Combat.SHIELD_MASTERY,Combat.SWORD_MASTERY,Combat.DAGGER_MASTERY))check(!Compat.mastery(id).toggleable(),"new mastery defaults false");
+            guardAndRollChecks(balance,player);
             System.out.println("FAUST COMPAT RUNTIME CHECKS PASSED: "+checks);
             data.stamina=20;data.exhausted=false;
             player.setItemInHand(InteractionHand.MAIN_HAND,new ItemStack(Items.IRON_SWORD));player.setItemInHand(InteractionHand.OFF_HAND,new ItemStack(Items.IRON_SWORD));
@@ -149,6 +164,46 @@ public final class RuntimeChecks {
             check(!Forbidden.pay(player,1),"dead player cannot pay again");
             System.out.println("FAUST COMPAT COMPLETE RUNTIME CHECKS PASSED: "+checks);
         }finally{vanillaRule.setRuleValue(player.level(),oldVanilla);balance.stamina.put("attackCost",oldAttack);event.getServer().halt(false);}
+    }
+    private static void guardAndRollChecks(com.faust.core.progression.Balance balance,net.minecraft.server.level.ServerPlayer existing){
+        String prefix="faust_epic_compat:epicfight/";
+        var guard=balance.abilities.stream().filter(a->a.id().equals(prefix+"guard")).findFirst().orElseThrow();
+        var impact=balance.abilities.stream().filter(a->a.id().equals(prefix+"impact_guard")).findFirst().orElseThrow();
+        var parry=balance.abilities.stream().filter(a->a.id().equals(prefix+"parrying")).findFirst().orElseThrow();
+        var step=balance.abilities.stream().filter(a->a.id().equals(prefix+"step")).findFirst().orElseThrow();
+        var progress=new com.faust.core.progression.Progress();for(var skill:com.faust.core.progression.Skill.values())progress.track(skill).level=20;
+        progress.counters.put("blocks",9.0);check(!progress.canUnlock(guard,balance),"guard needs ten shield blocks");progress.counters.put("blocks",10.0);check(progress.unlock(guard.id(),balance),"ten shield blocks unlock guard");
+        progress.counters.put("blocks",99.0);check(!progress.canUnlock(impact,balance),"impact guard needs 100 blocks");progress.counters.put("blocks",100.0);check(progress.canUnlock(impact,balance),"impact guard available at 100 blocks");
+        progress.unlocked.remove(guard.id());check(!progress.canUnlock(impact,balance),"impact guard requires learned guard");check(!progress.canUnlock(parry,balance),"parrying requires learned guard");
+        progress.unlocked.add(guard.id());check(!progress.canUnlock(parry,balance),"parrying requires technician too");progress.unlocked.add(prefix+"technician");check(progress.canUnlock(parry,balance),"parrying requires both learned skills");
+        progress.counters.put(CombatPractice.ROLLS,100.0);check(!progress.canUnlock(step,balance),"step requires learned roll");progress.unlocked.add(prefix+"roll");progress.counters.put(CombatPractice.ROLLS,99.0);check(!progress.canUnlock(step,balance),"step rejects 99 rolls");progress.counters.put(CombatPractice.ROLLS,100.0);check(progress.unlock(step.id(),balance),"step available after 100 rolls");check(progress.revoke(prefix+"roll",balance).contains(step.id()),"revoking roll revokes step");
+        for(var ability:java.util.List.of(guard,impact,parry,step))check(Compat.relocate(ability).equals(ability),"new conditions migration idempotent");
+        var training=FakePlayerFactory.get(existing.serverLevel(),new GameProfile(UUID.fromString("fb27f059-9775-469d-9f2f-a4c852bc4548"),"GuardRollChecks"));
+        var trainingPatch=new ServerPlayerPatch(training);trainingPatch.onConstructed(training);var trainingData=CoreRuntime.data(training);trainingData.max(balance);
+        var registry=yesman.epicfight.registry.EpicFightRegistries.SKILL;
+        var impactSkill=registry.get(net.minecraft.resources.ResourceLocation.parse("epicfight:impact_guard"));var parrySkill=registry.get(net.minecraft.resources.ResourceLocation.parse("epicfight:parrying"));
+        check(impactSkill.getPriorSkill()==null&&parrySkill.getPriorSkill()==null,"equipped guard prior removed for both skills");
+        var guardSlot=trainingPatch.getSkill(SkillSlots.GUARD);guardSlot.setSkill(null);check(guardSlot.setSkill(impactSkill),"equip impact guard without equipping guard first");guardSlot.setSkill(null);check(guardSlot.setSkill(parrySkill),"equip parrying without equipping guard first");guardSlot.setSkill(null);
+        var roll=registry.get(net.minecraft.resources.ResourceLocation.parse("epicfight:roll"));var stepSkill=registry.get(net.minecraft.resources.ResourceLocation.parse("epicfight:step"));var dodgeSlot=trainingPatch.getSkill(SkillSlots.DODGE);check(dodgeSlot.setSkill(roll),"equip roll for practice");
+        var args=new net.minecraft.nbt.CompoundTag();args.putInt("direction",0);args.putFloat("yRot",0);
+        double rolls=trainingData.counters.getOrDefault(CombatPractice.ROLLS,0.0);roll.executeOnServer(dodgeSlot,args);check(trainingData.counters.getOrDefault(CombatPractice.ROLLS,0.0)==rolls+1,"actual roll execution counted once");
+        dodgeSlot.setSkill(stepSkill);stepSkill.executeOnServer(dodgeSlot,args);check(trainingData.counters.getOrDefault(CombatPractice.ROLLS,0.0)==rolls+1,"step execution does not count as roll");
+        dodgeSlot.setSkill(roll);trainingData.unlocked.remove(Compat.nodeId(roll));check(!dodgeSlot.requestCasting(trainingPatch,args),"unlearned roll request denied");
+        check(trainingData.counters.getOrDefault(CombatPractice.ROLLS,0.0)==rolls+1,"denied roll attempt does not count");trainingData.unlocked.add(Compat.nodeId(roll));
+        var zombie=net.minecraft.world.entity.EntityType.ZOMBIE.create(training.serverLevel());var income=new yesman.epicfight.api.event.types.entity.TakeDamageEvent.Income(trainingPatch,training.damageSources().mobAttack(zombie),2);
+        double blocks=trainingData.counters.getOrDefault("blocks",0.0);((yesman.epicfight.skill.guard.GuardSkill)registry.get(net.minecraft.resources.ResourceLocation.parse("epicfight:guard"))).dealEvent(trainingPatch,income,false);
+        check(trainingData.counters.getOrDefault("blocks",0.0)==blocks+1,"successful Epic Fight guard counts block");
+        check(com.faust.core.progression.Progress.parse(trainingData.json(),balance).counters.getOrDefault(CombatPractice.ROLLS,0.0)==rolls+1,"roll practice survives save/load");
+        var attached=yesman.epicfight.world.capabilities.EpicFightCapabilities.getEntityPatch(training,ServerPlayerPatch.class);check(attached!=null,"attached patch for guard recovery");
+        for(String name:java.util.List.of("guard","impact_guard")){
+            var skill=registry.get(net.minecraft.resources.ResourceLocation.parse("epicfight:"+name));attached.getSkill(SkillSlots.GUARD).setSkill(skill);trainingData.stamina=5;trainingData.fatigue=0;trainingData.exhausted=false;
+            check(attached.startSkillHolding((yesman.epicfight.skill.modules.HoldableSkill)skill),"start holding "+name);
+            check(GuardRecovery.blocked(training),"guard recovery suppression detected "+name);CoreRuntime.tick(training);
+            check(trainingData.stamina==5,"holding prevents regeneration and Second Wind: "+name);
+            attached.resetHolding();CoreRuntime.tick(training);check(trainingData.stamina>5,"releasing restores regeneration: "+name);
+        }
+        attached.getSkill(SkillSlots.GUARD).setSkill(parrySkill);attached.startSkillHolding((yesman.epicfight.skill.modules.HoldableSkill)parrySkill);check(!GuardRecovery.blocked(training),"parrying unchanged by guard-only recovery rule");attached.resetHolding();
+
     }
     private static net.minecraft.world.entity.animal.Pig victim(net.minecraft.server.level.ServerPlayer player){var pig=net.minecraft.world.entity.EntityType.PIG.create(player.serverLevel());pig.setHealth(2);return pig;}
 }

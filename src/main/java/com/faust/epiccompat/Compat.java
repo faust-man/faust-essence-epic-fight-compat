@@ -61,14 +61,25 @@ public final class Compat {
         return com.faust.core.progression.Skill.valueOf(Rules.branch(name,category));
     }
     public static boolean isMastery(String id){return List.of(Combat.MASTERY,Combat.FIST_MASTERY,Combat.SHIELD_MASTERY,Combat.SWORD_MASTERY,Combat.DAGGER_MASTERY).contains(id);}
-    public static Balance.Ability mastery(String id){return new Balance.Ability(id,id.equals(Combat.SHIELD_MASTERY)?com.faust.core.progression.Skill.defense:id.equals(Combat.DAGGER_MASTERY)?com.faust.core.progression.Skill.dexterity:com.faust.core.progression.Skill.strength,5,"hits",0,id.equals(Combat.SHIELD_MASTERY)?"faustcore:shield_efficiency":"","faust_epic_compat:mastery",0);}
+    public static Balance.Ability mastery(String id){return new Balance.Ability(id,id.equals(Combat.SHIELD_MASTERY)?com.faust.core.progression.Skill.defense:id.equals(Combat.DAGGER_MASTERY)?com.faust.core.progression.Skill.dexterity:com.faust.core.progression.Skill.strength,5,"hits",0,id.equals(Combat.SHIELD_MASTERY)?"faustcore:shield_efficiency":"","faust_epic_compat:mastery",0,List.of(),List.of(),List.of(),List.of(),List.of(),"all",0,0,false);}
     public static Balance.Ability relocate(Balance.Ability a){
         var branch=a.id().equals("faust_epic_compat:epicfight/adaptive_skin")?com.faust.core.progression.Skill.constitution:a.id().equals("faust_epic_compat:epicfight/revelation")?com.faust.core.progression.Skill.intelligence:a.skill();
         var json=Balance.JSON.toJsonTree(a).getAsJsonObject();
+        if(a.id().startsWith("faust_epic_compat:"))json.addProperty("toggleable",false);
         if(branch!=a.skill())json.addProperty("skill",branch.name());
         if(a.id().equals("faust_epic_compat:epicfight/technician")){
             json.addProperty("skill","dexterity");json.addProperty("level",5);
             json.add("characteristics",com.google.gson.JsonParser.parseString("[{\"skill\":\"dexterity\",\"level\":5},{\"skill\":\"intelligence\",\"level\":5}]"));
+        }
+        if(a.id().equals("faust_epic_compat:epicfight/guard")||a.id().equals("faust_epic_compat:epicfight/impact_guard")){
+            json.addProperty("counter","blocks");json.addProperty("amount",a.id().endsWith("/guard")?10:100);json.add("conditions",new com.google.gson.JsonArray());
+        }
+        if(a.id().equals("faust_epic_compat:epicfight/impact_guard")||a.id().equals("faust_epic_compat:epicfight/parrying"))json.addProperty("parent","faust_epic_compat:epicfight/guard");
+        if(a.id().equals("faust_epic_compat:epicfight/parrying")){
+            var all=new java.util.LinkedHashSet<>(a.requiresAll());all.add("faust_epic_compat:epicfight/technician");json.add("requiresAll",Balance.JSON.toJsonTree(all));
+        }
+        if(a.id().equals("faust_epic_compat:epicfight/step")){
+            json.addProperty("parent","faust_epic_compat:epicfight/roll");json.addProperty("counter",CombatPractice.ROLLS);json.addProperty("amount",100);json.add("conditions",new com.google.gson.JsonArray());
         }
         if(a.id().equals(Combat.SHIELD_MASTERY))json.addProperty("parent","faustcore:shield_efficiency");
         if(a.id().equals(Combat.SWORD_MASTERY))json.addProperty("parent","faust_epic_compat:epicfight/swordmaster");

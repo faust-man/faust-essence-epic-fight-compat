@@ -6,6 +6,7 @@ import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 import yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch;
 import yesman.epicfight.world.capabilities.item.CapabilityItem;
 public final class CombatPractice {
+    public static final String ROLLS="faust_epic_rolls";
     public static final String DAMAGE="faust_epic_damage_taken", FISTS="faust_epic_fist_kills", TWO_HAND="faust_epic_two_hand_kills", SWORDS="faust_epic_sword_kills", DUAL="faust_epic_dual_sword_kills";
     public static void add(ServerPlayer player,String counter,double amount){if(!Double.isFinite(amount)||amount<=0)return;var data=CoreRuntime.data(player);data.counters.merge(counter,amount,Double::sum);data.revision++;CoreRuntime.sync(player);}
     public record Weapon(boolean fists,boolean swords,boolean dual,boolean twoHand){}
