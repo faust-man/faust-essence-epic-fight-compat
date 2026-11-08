@@ -10,6 +10,8 @@ import java.util.*;
 
 /** Server-thread phase payments. Weak keys do not retain disconnected player patches. */
 public final class Combat {
+    public static final String SHIELD_EFFICIENCY="faust_epic_compat:shield_efficiency";
+    public static final String FIST_POWER="faust_epic_compat:fist_power";
     public static final String MASTERY="faust_epic_compat:two_handed_mastery";
     public static final String FIST_MASTERY="faust_epic_compat:fist_mastery";
     public static final String SHIELD_MASTERY="faust_epic_compat:shield_weapon_mastery";
@@ -35,16 +37,16 @@ public final class Combat {
         var category=cap.getWeaponCategory();
         boolean shield=category!=CapabilityItem.WeaponCategories.NOT_WEAPON&&category!=CapabilityItem.WeaponCategories.SHIELD&&category!=CapabilityItem.WeaponCategories.RANGED
                 &&player.getItemInHand(otherHand).canPerformAction(net.neoforged.neoforge.common.ItemAbilities.SHIELD_BLOCK);
-        double cost=Rules.strikeCost(progress.actionCost("attack",balance),twoHanded,spear,progress.unlocked.contains(MASTERY),fist,progress.unlocked.contains(FIST_MASTERY),shield,progress.unlocked.contains(SHIELD_MASTERY));
+        double cost=Rules.strikeCost(progress.actionCost("attack",balance),twoHanded,spear,progress.enabled(MASTERY,balance),fist,progress.enabled(FIST_MASTERY,balance),shield,progress.enabled(SHIELD_MASTERY,balance));
         var other=yesman.epicfight.world.capabilities.EpicFightCapabilities.getItemStackCapability(player.getItemInHand(otherHand)).getWeaponCategory();
         boolean swords=category==CapabilityItem.WeaponCategories.SWORD&&other==category;
         boolean daggers=category==CapabilityItem.WeaponCategories.DAGGER&&other==category;
-        return Rules.dualCost(cost,swords||daggers,progress.unlocked.contains(swords?SWORD_MASTERY:DAGGER_MASTERY));
+        return Rules.dualCost(cost,swords||daggers,progress.enabled(swords?SWORD_MASTERY:DAGGER_MASTERY,balance));
     }
     public static boolean canStrike(PlayerPatch<?> patch){
         if(patch.getOriginal() instanceof ServerPlayer p){
             double cost=cost(patch,patch.getPrimaryHand(),CoreRuntime.data(p),CoreRuntime.balance);
-            return !CoreRuntime.active(p)||CoreRuntime.balance.stamina.get("enabled")==0||(Forbidden.mode(p)?Forbidden.afford(p,cost):!CoreRuntime.data(p).actionsBlocked(CoreRuntime.balance)&&CoreRuntime.data(p).stamina>=cost);
+            return !CoreRuntime.active(p)||CoreRuntime.balance.stamina.get("enabled")==0||(Forbidden.mode(p)?Forbidden.afford(p,cost):!CoreRuntime.data(p).actionsBlocked(CoreRuntime.balance));
         }
         return com.faust.epiccompat.client.ClientBridge.canStrike(patch);
     }

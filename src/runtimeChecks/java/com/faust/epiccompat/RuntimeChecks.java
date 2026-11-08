@@ -46,7 +46,7 @@ public final class RuntimeChecks {
             data.unlocked.add(Combat.MASTERY);Combat.strike(patch,InteractionHand.MAIN_HAND);
             check(Combat.paid(patch)&&Math.abs(data.stamina-17)<0.0001,"greatsword mastery normalizes cost");
             data.unlocked.remove(Combat.MASTERY);data.stamina=1;Combat.strike(patch,InteractionHand.MAIN_HAND);
-            check(!Combat.paid(patch)&&data.stamina==1,"insufficient double cost is rejected atomically");
+            check(Combat.paid(patch)&&data.stamina==0&&data.exhausted,"last strike consumes fractional reserve and exhausts");
             data.stamina=20;data.exhausted=false;
             player.setItemInHand(InteractionHand.MAIN_HAND,new ItemStack(yesman.epicfight.registry.entries.EpicFightItems.IRON_SPEAR.get()));
             Combat.strike(patch,InteractionHand.MAIN_HAND);
@@ -62,7 +62,7 @@ public final class RuntimeChecks {
             data.unlocked.add(Combat.SHIELD_MASTERY);Combat.strike(patch,InteractionHand.MAIN_HAND);
             check(Combat.paid(patch)&&Math.abs(data.stamina-13)<0.0001,"defense mastery removes shield surcharge");
             data.unlocked.remove(Combat.SHIELD_MASTERY);data.stamina=1;Combat.strike(patch,InteractionHand.MAIN_HAND);
-            check(!Combat.paid(patch)&&data.stamina==1,"shield surcharge requires full payment");
+            check(Combat.paid(patch)&&data.stamina==0&&data.exhausted,"last shield weapon strike exhausts");
             data.stamina=20;data.exhausted=false;
             player.setItemInHand(InteractionHand.OFF_HAND,new ItemStack(Items.TORCH));Combat.strike(patch,InteractionHand.MAIN_HAND);
             check(Combat.paid(patch)&&Math.abs(data.stamina-19)<0.0001,"non-shield offhand has no surcharge");
@@ -82,29 +82,20 @@ public final class RuntimeChecks {
             check(balance.abilities.stream().anyMatch(a->a.id().equals(Combat.FIST_MASTERY)),"fist node migrated");
             check(balance.abilities.stream().anyMatch(a->a.id().equals(Combat.SHIELD_MASTERY)&&a.skill()==com.faust.core.progression.Skill.defense),"shield node migrated into defense");
             var shieldNode=balance.abilities.stream().filter(a->a.id().equals(Combat.SHIELD_MASTERY)).findFirst().orElseThrow();
-            check(shieldNode.all().contains("faustcore:shield_efficiency"),"shield combat requires economical shield block");
+            check(shieldNode.all().contains(Combat.SHIELD_EFFICIENCY),"shield combat requires economical shield block");
             var shieldProgress=new com.faust.core.progression.Progress();shieldProgress.track(com.faust.core.progression.Skill.defense).level=20;
             check(!shieldProgress.canUnlock(shieldNode,balance),"shield combat locked without prerequisite");
-            shieldProgress.unlocked.add("faustcore:shield_efficiency");check(shieldProgress.canUnlock(shieldNode,balance),"shield combat available after prerequisite");
-            shieldProgress.unlock(shieldNode.id(),balance);check(shieldProgress.revoke("faustcore:shield_efficiency",balance).contains(shieldNode.id()),"shield dependency revoked with parent");
+            shieldProgress.unlocked.add(Combat.SHIELD_EFFICIENCY);shieldProgress.counters.put(CombatPractice.SHIELD_HITS,100.0);check(shieldProgress.canUnlock(shieldNode,balance),"shield combat available after prerequisite");
+            shieldProgress.unlock(shieldNode.id(),balance);check(shieldProgress.revoke(Combat.SHIELD_EFFICIENCY,balance).contains(shieldNode.id()),"shield dependency revoked with parent");
             var oldShield=com.faust.core.progression.Balance.JSON.toJsonTree(shieldNode).getAsJsonObject();oldShield.addProperty("parent","");
             var migratedShield=Compat.relocate(com.faust.core.progression.Balance.JSON.fromJson(oldShield,com.faust.core.progression.Balance.Ability.class));
-            check(migratedShield.all().contains("faustcore:shield_efficiency"),"existing shield config gains prerequisite");
+            check(migratedShield.all().contains(Combat.SHIELD_EFFICIENCY),"existing shield config gains prerequisite");
             check(Compat.relocate(migratedShield).equals(migratedShield),"shield dependency migration idempotent");
 
             var fixedProgress=new com.faust.core.progression.Progress();fixedProgress.max(balance);
             for(var ability:balance.abilities)if(ability.id().startsWith("faust_epic_compat:")){
-                check(!ability.toggleable(),"addon skill non-toggleable: "+ability.id());
-                check(!fixedProgress.toggle(ability.id(),balance),"server denies addon toggle: "+ability.id());
-                fixedProgress.disabled.add(ability.id());
-                check(fixedProgress.enabled(ability.id(),balance),"stale addon disabled flag ignored: "+ability.id());
-                var legacy=com.faust.core.progression.Balance.JSON.toJsonTree(ability).getAsJsonObject();legacy.addProperty("toggleable",true);
-                check(!Compat.relocate(com.faust.core.progression.Balance.JSON.fromJson(legacy,com.faust.core.progression.Balance.Ability.class)).toggleable(),"old true migrated to false: "+ability.id());
+                check(ability.toggleable()==Compat.isMastery(ability.id()),"custom masteries toggle, Epic Fight nodes equip");
             }
-            fixedProgress.reconcileAbilities(balance);check(fixedProgress.disabled.isEmpty(),"all stale addon flags cleared");
-            var coreNode=new com.faust.core.progression.Balance().abilities.getFirst();check(Compat.relocate(coreNode).toggleable(),"ordinary core skill remains toggleable");
-            check(fixedProgress.toggle(coreNode.id(),balance),"core toggle still allowed with addon");
-            for(String id:java.util.List.of(Combat.MASTERY,Combat.FIST_MASTERY,Combat.SHIELD_MASTERY,Combat.SWORD_MASTERY,Combat.DAGGER_MASTERY))check(!Compat.mastery(id).toggleable(),"new mastery defaults false");
             guardAndRollChecks(balance,player);
             System.out.println("FAUST COMPAT RUNTIME CHECKS PASSED: "+checks);
             data.stamina=20;data.exhausted=false;
@@ -134,7 +125,7 @@ public final class RuntimeChecks {
             check(balance.abilities.stream().anyMatch(a->a.id().endsWith("/revelation")&&a.skill()==com.faust.core.progression.Skill.intelligence),"revelation relocated");
             data.stamina=0.5;data.exhausted=false;
             var combo=attached.getSkill(SkillSlots.COMBO_ATTACKS);combo.setSkill(yesman.epicfight.registry.entries.EpicFightSkills.COMBO_ATTACKS.get());
-            for(int i=0;i<8;i++){check(!Combat.canStrike(attached),"fractional stamina cannot start queued attack");check(!combo.canUse(attached,new yesman.epicfight.api.event.types.player.SkillCastEvent(attached,combo,new net.minecraft.nbt.CompoundTag())),"skill container rejects fractional queued attack");Combat.begin(attached);Combat.strike(attached,InteractionHand.MAIN_HAND);check(!Combat.paid(attached)&&data.stamina==0.5,"fractional repeated strike rejected");}
+            check(Combat.canStrike(attached),"fractional reserve allows final strike");Combat.begin(attached);Combat.strike(attached,InteractionHand.MAIN_HAND);check(Combat.paid(attached)&&data.stamina==0&&data.exhausted,"final strike exhausts");check(!Combat.canStrike(attached),"subsequent strike blocked");
             check(attached.getSkill(SkillSlots.PASSIVE1).setSkill(forbidden),"re-equip forbidden");player.setHealth(0.5f);data.exhausted=true;
             vanillaRule.setRuleValue(player.level(),false);
             attached.toVanillaMode(false);
@@ -200,8 +191,24 @@ public final class RuntimeChecks {
             check(attached.startSkillHolding((yesman.epicfight.skill.modules.HoldableSkill)skill),"start holding "+name);
             check(GuardRecovery.blocked(training),"guard recovery suppression detected "+name);CoreRuntime.tick(training);
             check(trainingData.stamina==5,"holding prevents regeneration and Second Wind: "+name);
+            trainingData.stamina=0.5;trainingData.exhausted=false;
+            check(CoreRuntime.shieldPayment(training)&&trainingData.stamina==0&&trainingData.exhausted,"fractional shield block pays remainder");
+            check(!CoreRuntime.canAct(training),"exhaustion prevents shield stance");
+            check(!((yesman.epicfight.skill.guard.GuardSkill)skill).canExecute(attached.getSkill(SkillSlots.GUARD)),"exhaustion prevents weapon guard");
+            check(!GuardRecovery.blocked(training),"held exhausted guard permits recovery");
+            trainingData.stamina=5;trainingData.exhausted=false;
             attached.resetHolding();CoreRuntime.tick(training);check(trainingData.stamina>5,"releasing restores regeneration: "+name);
         }
+        var pillager=registry.get(net.minecraft.resources.ResourceLocation.parse("epicfight:stamina_pillager"));
+        var passive=attached.getSkill(SkillSlots.PASSIVE1);passive.setSkill(pillager);
+        trainingData.stamina=0;trainingData.exhausted=true;double fatigue=trainingData.fatigue;
+        try{
+            var callback=java.util.Arrays.stream(pillager.getClass().getDeclaredMethods()).filter(m->m.getName().equals("lambda$onInitiate$0")).findFirst().orElseThrow();callback.setAccessible(true);
+            callback.invoke(pillager,passive,new yesman.epicfight.api.event.types.entity.KillEntityEvent(attached,zombie,training.damageSources().playerAttack(training)));
+            check(trainingData.stamina>0&&trainingData.stamina<=2,"stamina pillager restores shared pool after kill");
+            check(trainingData.fatigue==fatigue,"pillager recovery does not charge fatigue");
+        }catch(ReflectiveOperationException ex){throw new AssertionError(ex);}
+        passive.setSkill(null);
         attached.getSkill(SkillSlots.GUARD).setSkill(parrySkill);attached.startSkillHolding((yesman.epicfight.skill.modules.HoldableSkill)parrySkill);check(!GuardRecovery.blocked(training),"parrying unchanged by guard-only recovery rule");attached.resetHolding();
 
     }

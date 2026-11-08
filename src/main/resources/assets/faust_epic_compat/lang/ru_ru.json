@@ -14,5 +14,11 @@
   "faust_epic_compat.two_handed_mastery.description": "Удары двуручным оружием расходуют столько же выносливости, сколько одноручным. Копья всегда имеют обычный расход.",
   "faust_epic_compat.fist_mastery": "Экономный кулачный бой",
   "faust_epic_compat.fist_mastery.description": "Удары голой рукой и перчаткой не расходуют выносливость. Отдельная стоимость активных навыков сохраняется.",
-  "core.counter.faust_epic_rolls": "выполненных перекатов"
+  "core.counter.faust_epic_rolls": "выполненных перекатов",
+  "faust_epic_compat.fist_power": "Сильные кулаки",
+  "faust_epic_compat.fist_power.description": "+1 к урону пустыми кулаками за каждые 10 уровней Силы.",
+  "core.counter.faust_epic_shield_hits": "попаданий оружием со щитом",
+  "core.counter.faust_epic_dagger_hits": "попаданий парными кинжалами",
+  "faust_epic_compat.shield_efficiency": "Экономный блок щитом",
+  "faust_epic_compat.shield_efficiency.description": "Умелый блок щитом: стоимость блока щитом 0,5 вместо 1."
 }

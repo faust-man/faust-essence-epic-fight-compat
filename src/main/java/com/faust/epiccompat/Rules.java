@@ -24,6 +24,6 @@ public final class Rules {
     }
     public static double dualCost(double cost,boolean paired,boolean mastery){return paired?cost*(mastery?0.5:1):cost;}
     public static boolean canSpend(double available,float amount,boolean blocked,boolean exempt){
-        return Float.isFinite(amount)&&amount>=0&&(exempt||(!blocked&&available>=amount));
+        return Float.isFinite(amount)&&amount>=0&&(exempt||(!blocked&&(available>0||amount==0)));
     }
 }

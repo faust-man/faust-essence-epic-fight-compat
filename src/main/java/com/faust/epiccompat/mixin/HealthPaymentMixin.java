@@ -24,6 +24,6 @@ public class HealthPaymentMixin {
     private static boolean blocking(Progress progress,Balance balance){var p=Forbidden.TICK.get();return progress.actionsBlocked(balance)&&(p==null||!Forbidden.mode(p));}
     @Redirect(method="tick",at=@At(value="INVOKE",target="Lcom/faust/core/progression/Progress;spend(DLcom/faust/core/progression/Balance;J)D"))
     private static double spend(Progress progress,double cost,Balance balance,long age){var p=Forbidden.TICK.get();if(p!=null&&Forbidden.mode(p)){if(!Forbidden.pay(p,cost))p.setSprinting(false);return 0;}return progress.spend(cost,balance,age);}
-    @Redirect(method="tick",at=@At(value="INVOKE",target="Lcom/faust/core/progression/Progress;recover(DZZZZZZLcom/faust/core/progression/Balance;)V"))
-    private static void recover(Progress progress,double dt,boolean sleep,boolean campfire,boolean ready,boolean shielding,boolean flying,boolean air,Balance balance){var p=Forbidden.TICK.get();boolean health=p!=null&&Forbidden.mode(p);progress.recover(dt,sleep,campfire,ready||health,shielding&&!health,flying,air,balance);}
+    @Redirect(method="tick",at=@At(value="INVOKE",target="Lcom/faust/core/progression/Progress;recover(DZZZZZZZLcom/faust/core/progression/Balance;)V"))
+    private static void recover(Progress progress,double dt,boolean sleep,boolean campfire,boolean ready,boolean shielding,boolean flying,boolean air,boolean fastSwimming,Balance balance){var p=Forbidden.TICK.get();boolean health=p!=null&&Forbidden.mode(p);progress.recover(dt,sleep,campfire,ready||health,shielding&&!health,flying,air,fastSwimming,balance);}
 }

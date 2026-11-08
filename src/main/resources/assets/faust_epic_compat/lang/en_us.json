@@ -14,5 +14,11 @@
   "faust_epic_compat.two_handed_mastery.description": "Two-handed strikes cost the same stamina as one-handed strikes. Spears always use the normal cost.",
   "faust_epic_compat.fist_mastery": "Efficient Fist Fighting",
   "faust_epic_compat.fist_mastery.description": "Bare-handed and glove strikes cost no stamina. Separate active skill costs still apply.",
-  "core.counter.faust_epic_rolls": "rolls performed"
+  "core.counter.faust_epic_rolls": "rolls performed",
+  "faust_epic_compat.fist_power": "Strong fists",
+  "faust_epic_compat.fist_power.description": "+1 empty-hand damage per 10 Strength levels.",
+  "core.counter.faust_epic_shield_hits": "weapon hits with an offhand shield",
+  "core.counter.faust_epic_dagger_hits": "dual dagger hits",
+  "faust_epic_compat.shield_efficiency": "Economical shield block",
+  "faust_epic_compat.shield_efficiency.description": "Skilled shield blocking: shield blocks cost 0.5 instead of 1."
 }

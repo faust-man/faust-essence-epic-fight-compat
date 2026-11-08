@@ -15,7 +15,16 @@ public class PracticeMixin {
         // Capture the weapon before listeners or death callbacks can change the inventory.
         var weapon=source instanceof yesman.epicfight.world.damagesource.EpicFightDamageSource epic?epic.getUsedItem().copy():source.getEntity() instanceof ServerPlayer player?player.getMainHandItem().copy():net.minecraft.world.item.ItemStack.EMPTY;
         var kind=source.getDirectEntity() instanceof ServerPlayer player&&source.getEntity()==player&&!source.is(DamageTypeTags.IS_PROJECTILE)?CombatPractice.weapon(player,weapon):null;
-        boolean result=original.call(source,amount);double lost=Math.max(0,before-entity.getHealth());
+        if(kind!=null&&source.getEntity() instanceof ServerPlayer attacker&&entity!=attacker&&com.faust.core.runtime.CoreRuntime.active(attacker)){
+            var cat=yesman.epicfight.world.capabilities.EpicFightCapabilities.getItemStackCapability(weapon).getWeaponCategory();
+            if(weapon.isEmpty()&&com.faust.core.runtime.CoreRuntime.data(attacker).enabled(com.faust.epiccompat.Combat.FIST_POWER,com.faust.core.runtime.CoreRuntime.balance))amount+=Math.floor(com.faust.core.runtime.CoreRuntime.data(attacker).track(com.faust.core.progression.Skill.strength).level/10.0);
+        }
+        boolean result=original.call(source,amount);
+        if(result&&kind!=null&&source.getEntity() instanceof ServerPlayer attacker&&entity!=attacker&&com.faust.core.runtime.CoreRuntime.active(attacker)){
+            var cat=yesman.epicfight.world.capabilities.EpicFightCapabilities.getItemStackCapability(weapon).getWeaponCategory();
+            if(!weapon.isEmpty()&&cat!=yesman.epicfight.world.capabilities.item.CapabilityItem.WeaponCategories.NOT_WEAPON&&attacker.getOffhandItem().canPerformAction(net.neoforged.neoforge.common.ItemAbilities.SHIELD_BLOCK))CombatPractice.add(attacker,CombatPractice.SHIELD_HITS,1);
+            if(cat==yesman.epicfight.world.capabilities.item.CapabilityItem.WeaponCategories.DAGGER&&yesman.epicfight.world.capabilities.EpicFightCapabilities.getItemStackCapability(attacker.getOffhandItem()).getWeaponCategory()==cat)CombatPractice.add(attacker,CombatPractice.DAGGER_HITS,1);
+        }double lost=Math.max(0,before-entity.getHealth());
         if(entity instanceof ServerPlayer player&&lost>0&&!player.isCreative()&&!player.isSpectator())CombatPractice.add(player,CombatPractice.DAMAGE,lost);
         if(before>0&&entity.getHealth()<=0&&source.getDirectEntity() instanceof ServerPlayer player&&entity!=player&&kind!=null)CombatPractice.kill(player,kind);
         return result;

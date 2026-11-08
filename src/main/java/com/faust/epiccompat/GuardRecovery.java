@@ -5,6 +5,7 @@ import yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch;
 public final class GuardRecovery {
     private GuardRecovery(){}
     public static boolean holding(PlayerPatch<?> patch){
+        if(patch.getOriginal() instanceof ServerPlayer p&&com.faust.core.runtime.CoreRuntime.data(p).actionsBlocked(com.faust.core.runtime.CoreRuntime.balance))return false;
         if(!patch.isHoldingAny())return false;
         String id=patch.getHoldingSkill().asSkill().getRegistryName().toString();
         return id.equals("epicfight:guard")||id.equals("epicfight:impact_guard");

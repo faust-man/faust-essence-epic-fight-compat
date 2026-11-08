@@ -11,7 +11,7 @@ public final class RulesTest {
         check(Rules.branch("hyper_vitality","PASSIVE").equals("constitution"));
         check(Rules.branch("forbidden_strength","PASSIVE").equals("strength"));
         check(Rules.canSpend(3,3,false,false));
-        check(!Rules.canSpend(2,3,false,false));
+        check(Rules.canSpend(2,3,false,false));
         check(!Rules.canSpend(10,1,true,false));
         check(Rules.canSpend(0,10,true,true));
         check(!Rules.canSpend(20,Float.NaN,false,false));
@@ -41,7 +41,7 @@ public final class RulesTest {
             check(Rules.strikeCost(1.5,twoHanded,spear,mastery,true,false)==cost);
         }
         check(Rules.strikeCost(0,true,false,false)==0);
-        check(!Rules.canSpend(1,(float)Rules.strikeCost(1,true,false,false),false,false));
+        check(Rules.canSpend(1,(float)Rules.strikeCost(1,true,false,false),false,false));
         check(Rules.canSpend(1,(float)Rules.strikeCost(1,true,false,true),false,false));
         check(!Rules.canSpend(0,0,true,false));
         for(int i=1;i<=16;i++)check(Rules.passiveSlot("PASSIVE"+i)==(i<=3));
@@ -100,6 +100,15 @@ public final class RulesTest {
         check(bottom.size()==4&&bottom.stream().map(com.faust.core.progression.SkillTrees.Node::y).distinct().count()==1);
         check(bottom.stream().mapToDouble(com.faust.core.progression.SkillTrees.Node::x).min().orElseThrow()==packed.nodes().stream().mapToDouble(com.faust.core.progression.SkillTrees.Node::x).min().orElseThrow());
         for(var left:packed.nodes())for(var right:packed.nodes())if(!left.ability().equals(right.ability()))check(Math.abs(left.x()-right.x())>=22||Math.abs(left.y()-right.y())>=22);
+        check(Compat.relocate(Compat.mastery(Combat.DAGGER_MASTERY)).counter().equals(CombatPractice.DAGGER_HITS));
+        check(Compat.relocate(Compat.mastery(Combat.DAGGER_MASTERY)).amount()==10);
+        check(Compat.relocate(Compat.mastery(Combat.SHIELD_MASTERY)).counter().equals(CombatPractice.SHIELD_HITS));
+        check(Compat.relocate(Compat.mastery(Combat.SHIELD_MASTERY)).amount()==100);
+        check(Compat.relocate(Compat.mastery(Combat.FIST_POWER)).parent().equals(Combat.FIST_MASTERY));
+        check(Compat.relocate(Compat.mastery(Combat.SHIELD_EFFICIENCY)).parent().equals("faust_epic_compat:epicfight/guard"));
+        check(Compat.relocate(Compat.mastery(Combat.SHIELD_EFFICIENCY)).value()==0.5);
+        for(String id:java.util.List.of(Combat.FIST_POWER,Combat.FIST_MASTERY,Combat.SHIELD_EFFICIENCY,Combat.SWORD_MASTERY))check(Compat.relocate(Compat.mastery(id)).toggleable());
+        check(Rules.canSpend(0.5,1,false,false));check(!Rules.canSpend(0,1,true,false));
         System.out.println("Passed "+checks+" integration policy checks");
     }
 }
