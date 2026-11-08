@@ -1,5 +1,5 @@
 {
-  "core.counter.faust_epic_damage_taken": "damage received (HP; 2 HP = 1 heart)",
+  "core.counter.faust_epic_damage_taken": "damage received (HP)",
   "core.counter.faust_epic_fist_kills": "bare-hand or glove kills",
   "core.counter.faust_epic_two_hand_kills": "two-handed weapon kills",
   "core.counter.faust_epic_sword_kills": "kills with any sword",

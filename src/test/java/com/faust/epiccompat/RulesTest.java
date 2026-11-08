@@ -94,6 +94,12 @@ public final class RulesTest {
             check(practice.amount()==10);progress.unlocked.remove(id);progress.counters.put(practice.counter(),9.0);check(!progress.canUnlock(practice,gates));progress.counters.put(practice.counter(),10.0);check(progress.canUnlock(practice,gates));
         }
         String gateLayout=com.faust.core.progression.Balance.JSON.toJson(gates.trees);Compat.extend(gates);check(gateLayout.equals(com.faust.core.progression.Balance.JSON.toJson(gates.trees)));
+        for(int i=0;i<4;i++)gates.abilities.add(new com.faust.core.progression.Balance.Ability("faust_epic_compat:test/remaining_"+i,com.faust.core.progression.Skill.strength,5,"hits",0,"","faust_epic_compat:skill",0));
+        Compat.extend(gates);var packed=gates.trees.stream().filter(t->t.skill()==com.faust.core.progression.Skill.strength).findFirst().orElseThrow();
+        var bottom=packed.nodes().stream().filter(n->n.ability().startsWith("faust_epic_compat:test/remaining_")).toList();
+        check(bottom.size()==4&&bottom.stream().map(com.faust.core.progression.SkillTrees.Node::y).distinct().count()==1);
+        check(bottom.stream().mapToDouble(com.faust.core.progression.SkillTrees.Node::x).min().orElseThrow()==packed.nodes().stream().mapToDouble(com.faust.core.progression.SkillTrees.Node::x).min().orElseThrow());
+        for(var left:packed.nodes())for(var right:packed.nodes())if(!left.ability().equals(right.ability()))check(Math.abs(left.x()-right.x())>=22||Math.abs(left.y()-right.y())>=22);
         System.out.println("Passed "+checks+" integration policy checks");
     }
 }

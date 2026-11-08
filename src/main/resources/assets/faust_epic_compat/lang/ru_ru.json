@@ -1,5 +1,5 @@
 {
-  "core.counter.faust_epic_damage_taken": "получено урона (HP; 2 HP = 1 сердце)",
+  "core.counter.faust_epic_damage_taken": "получено урона (HP)",
   "core.counter.faust_epic_fist_kills": "убийств кулаками или перчаткой",
   "core.counter.faust_epic_two_hand_kills": "убийств двуручным оружием",
   "core.counter.faust_epic_sword_kills": "убийств любыми мечами",
