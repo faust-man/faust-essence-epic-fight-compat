@@ -14,7 +14,7 @@ public class StaminaPillagerMixin {
         if(patch.getOriginal() instanceof net.minecraft.server.level.ServerPlayer player){
             var data=CoreRuntime.data(player);var balance=CoreRuntime.balance;
             data.stamina=Math.min(data.maxStamina(balance),data.stamina+Math.min(2,Math.max(0,(data.maxStamina(balance)-data.stamina)*regenRate*0.01)));
-            data.updateExhaustion(balance);CoreRuntime.sync(player);
+            data.updateExhaustion(balance);
         }
     }
 }

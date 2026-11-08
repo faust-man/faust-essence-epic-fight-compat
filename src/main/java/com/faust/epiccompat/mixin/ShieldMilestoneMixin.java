@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class ShieldMilestoneMixin {
     @Inject(method="stopSleepInBed",at=@At("HEAD"))
     private void wake(boolean update,boolean setSpawn,CallbackInfo ci){
-        if((Object)this instanceof ServerPlayer player&&player.isSleeping())Milestones.sleep(player,player.getRandom().nextInt(100));
+        if((Object)this instanceof ServerPlayer player&&player.isSleeping()&&com.faust.core.runtime.CoreRuntime.data(player).wantsCounter("faust_epic_sleep_luck",com.faust.core.runtime.CoreRuntime.balance))Milestones.sleep(player,player.getRandom().nextInt(100));
     }
     @Inject(method="hurtCurrentlyUsedShield",at=@At("HEAD"))
     private void shield(float damage,CallbackInfo ci){if(damage>0&&(Object)this instanceof ServerPlayer player)Milestones.blocked(player,true);}

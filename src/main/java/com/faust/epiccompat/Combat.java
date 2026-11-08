@@ -53,6 +53,6 @@ public final class Combat {
     public static void strike(PlayerPatch<?> patch,InteractionHand hand){
         if(!(patch.getOriginal() instanceof ServerPlayer player))return;
         double cost=cost(patch,hand,CoreRuntime.data(player),CoreRuntime.balance);
-        PAID.put(patch,CoreRuntime.pay(player,cost));CoreRuntime.sync(player);
+        PAID.put(patch,CoreRuntime.pay(player,cost));
     }
 }

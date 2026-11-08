@@ -32,8 +32,8 @@ public class StaminaMixin {
         // Epic Fight regeneration is disabled; only Core regenerates the shared pool.
         if(patch().getOriginal() instanceof ServerPlayer p){
             double cost=CoreRuntime.data(p).stamina-value;
-            if(Double.isFinite(cost)&&cost>0.00001){CoreRuntime.pay(p,cost);CoreRuntime.sync(p);}
-            else if(Double.isFinite(cost)&&cost< -0.00001){var data=CoreRuntime.data(p);data.stamina=Math.max(0,Math.min(value,data.maxStamina(CoreRuntime.balance)));data.updateExhaustion(CoreRuntime.balance);CoreRuntime.sync(p);}
+            if(Double.isFinite(cost)&&cost>0.00001){CoreRuntime.pay(p,cost);}
+            else if(Double.isFinite(cost)&&cost< -0.00001){var data=CoreRuntime.data(p);data.stamina=Math.max(0,Math.min(value,data.maxStamina(CoreRuntime.balance)));data.updateExhaustion(CoreRuntime.balance);}
         }
         ci.cancel();
     }

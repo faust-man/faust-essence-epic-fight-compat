@@ -12,16 +12,18 @@ public class PracticeMixin {
     @WrapMethod(method="hurt")
     private boolean practice(DamageSource source,float amount,Operation<Boolean> original){
         LivingEntity entity=(LivingEntity)(Object)this;float before=entity.getHealth();
-        // Capture the weapon before listeners or death callbacks can change the inventory.
-        var weapon=source instanceof yesman.epicfight.world.damagesource.EpicFightDamageSource epic?epic.getUsedItem().copy():source.getEntity() instanceof ServerPlayer player?player.getMainHandItem().copy():net.minecraft.world.item.ItemStack.EMPTY;
-        var kind=source.getDirectEntity() instanceof ServerPlayer player&&source.getEntity()==player&&!source.is(DamageTypeTags.IS_PROJECTILE)?CombatPractice.weapon(player,weapon):null;
-        if(kind!=null&&source.getEntity() instanceof ServerPlayer attacker&&entity!=attacker&&com.faust.core.runtime.CoreRuntime.active(attacker)){
-            var cat=yesman.epicfight.world.capabilities.EpicFightCapabilities.getItemStackCapability(weapon).getWeaponCategory();
-            if(weapon.isEmpty()&&com.faust.core.runtime.CoreRuntime.data(attacker).enabled(com.faust.epiccompat.Combat.FIST_POWER,com.faust.core.runtime.CoreRuntime.balance))amount+=Math.floor(com.faust.core.runtime.CoreRuntime.data(attacker).track(com.faust.core.progression.Skill.strength).level/10.0);
+        var attacker=source.getDirectEntity() instanceof ServerPlayer p&&source.getEntity()==p&&!source.is(DamageTypeTags.IS_PROJECTILE)?p:null;
+        boolean needed=attacker!=null&&CombatPractice.weaponPracticeNeeded(attacker);
+        // Capture only if pending practice needs weapon classification.
+        var used=source instanceof yesman.epicfight.world.damagesource.EpicFightDamageSource epic?epic.getUsedItem():attacker!=null?attacker.getMainHandItem():net.minecraft.world.item.ItemStack.EMPTY;
+        var weapon=needed?used.copy():net.minecraft.world.item.ItemStack.EMPTY;
+        var kind=needed?CombatPractice.weapon(attacker,weapon):null;
+        if(attacker!=null&&entity!=attacker&&com.faust.core.runtime.CoreRuntime.active(attacker)){
+            if(used.isEmpty()&&com.faust.core.runtime.CoreRuntime.data(attacker).enabled(com.faust.epiccompat.Combat.FIST_POWER,com.faust.core.runtime.CoreRuntime.balance))amount+=Math.floor(com.faust.core.runtime.CoreRuntime.data(attacker).track(com.faust.core.progression.Skill.strength).level/10.0);
         }
         boolean exhausted=source.getEntity() instanceof ServerPlayer p&&com.faust.core.runtime.CoreRuntime.data(p).actionsBlocked(com.faust.core.runtime.CoreRuntime.balance);
         boolean result=original.call(source,amount);
-        if(result&&kind!=null&&source.getEntity() instanceof ServerPlayer attacker&&entity!=attacker&&com.faust.core.runtime.CoreRuntime.active(attacker)){
+        if(result&&kind!=null&&attacker!=null&&entity!=attacker&&com.faust.core.runtime.CoreRuntime.active(attacker)){
             var cat=yesman.epicfight.world.capabilities.EpicFightCapabilities.getItemStackCapability(weapon).getWeaponCategory();
             if(!weapon.isEmpty()&&cat!=yesman.epicfight.world.capabilities.item.CapabilityItem.WeaponCategories.NOT_WEAPON&&attacker.getOffhandItem().canPerformAction(net.neoforged.neoforge.common.ItemAbilities.SHIELD_BLOCK))CombatPractice.add(attacker,CombatPractice.SHIELD_HITS,1);
             if(cat==yesman.epicfight.world.capabilities.item.CapabilityItem.WeaponCategories.DAGGER&&yesman.epicfight.world.capabilities.EpicFightCapabilities.getItemStackCapability(attacker.getOffhandItem()).getWeaponCategory()==cat)CombatPractice.add(attacker,CombatPractice.DAGGER_HITS,1);

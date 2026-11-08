@@ -98,7 +98,7 @@ public final class RuntimeChecks {
             check(shieldNode.all().contains(Combat.SHIELD_EFFICIENCY),"shield combat requires economical shield block");
             var shieldProgress=new com.faust.core.progression.Progress();shieldProgress.track(com.faust.core.progression.Skill.defense).level=20;
             check(!shieldProgress.canUnlock(shieldNode,balance),"shield combat locked without prerequisite");
-            shieldProgress.unlocked.add(Combat.SHIELD_EFFICIENCY);shieldProgress.counters.put(CombatPractice.SHIELD_HITS,100.0);check(shieldProgress.canUnlock(shieldNode,balance),"shield combat available after prerequisite");
+            shieldProgress.unlocked.add(Combat.SHIELD_EFFICIENCY);shieldProgress.setCounter(CombatPractice.SHIELD_HITS,100.0,balance);check(shieldProgress.canUnlock(shieldNode,balance),"shield combat available after prerequisite");
             shieldProgress.unlock(shieldNode.id(),balance);check(shieldProgress.revoke(Combat.SHIELD_EFFICIENCY,balance).contains(shieldNode.id()),"shield dependency revoked with parent");
             var oldShield=com.faust.core.progression.Balance.JSON.toJsonTree(shieldNode).getAsJsonObject();oldShield.addProperty("parent","");
             var migratedShield=Compat.relocate(com.faust.core.progression.Balance.JSON.fromJson(oldShield,com.faust.core.progression.Balance.Ability.class));
@@ -159,13 +159,14 @@ public final class RuntimeChecks {
             vanillaRule.setRuleValue(player.level(),true);
             player.setHealth(20);data.exhausted=false;data.stamina=20;player.setSprinting(false);
             player.setItemInHand(InteractionHand.MAIN_HAND,ItemStack.EMPTY);player.setItemInHand(InteractionHand.OFF_HAND,ItemStack.EMPTY);
+            data.unlocked.remove(Combat.FIST_MASTERY);data.unlocked.remove(Combat.SWORD_MASTERY);data.unlocked.remove(Combat.MASTERY);
             double fists=data.counters.getOrDefault(CombatPractice.FISTS,0.0);
             victim(player).hurt(player.damageSources().playerAttack(player),100);check(data.counters.getOrDefault(CombatPractice.FISTS,0.0)==fists+1,"actual fist kill counted");
             player.setItemInHand(InteractionHand.MAIN_HAND,new ItemStack(Items.IRON_SWORD));
             double swords=data.counters.getOrDefault(CombatPractice.SWORDS,0.0);double dual=data.counters.getOrDefault(CombatPractice.DUAL,0.0);
             victim(player).hurt(player.damageSources().playerAttack(player),100);check(data.counters.getOrDefault(CombatPractice.SWORDS,0.0)==swords+1&&data.counters.getOrDefault(CombatPractice.DUAL,0.0)==dual,"single sword kill classified");
             player.setItemInHand(InteractionHand.OFF_HAND,new ItemStack(Items.IRON_SWORD));
-            victim(player).hurt(player.damageSources().playerAttack(player),100);check(data.counters.getOrDefault(CombatPractice.DUAL,0.0)==dual+1,"dual sword kill counted");
+            data.unlocked.add("faust_epic_compat:epicfight/swordmaster");victim(player).hurt(player.damageSources().playerAttack(player),100);check(data.counters.getOrDefault(CombatPractice.DUAL,0.0)==dual+1,"dual sword kill counted");
             player.setItemInHand(InteractionHand.OFF_HAND,ItemStack.EMPTY);player.setItemInHand(InteractionHand.MAIN_HAND,new ItemStack(yesman.epicfight.registry.entries.EpicFightItems.IRON_GREATSWORD.get()));
             double two=data.counters.getOrDefault(CombatPractice.TWO_HAND,0.0);victim(player).hurt(player.damageSources().playerAttack(player),100);check(data.counters.getOrDefault(CombatPractice.TWO_HAND,0.0)==two+1,"two-handed kill counted");
             double prior=data.counters.getOrDefault(CombatPractice.SWORDS,0.0);var survivor=victim(player);survivor.setHealth(10);survivor.hurt(player.damageSources().playerAttack(player),1);check(data.counters.getOrDefault(CombatPractice.SWORDS,0.0)==prior,"non-lethal hits do not count as kills");
@@ -187,14 +188,15 @@ public final class RuntimeChecks {
         var parry=balance.abilities.stream().filter(a->a.id().equals(prefix+"parrying")).findFirst().orElseThrow();
         var step=balance.abilities.stream().filter(a->a.id().equals(prefix+"step")).findFirst().orElseThrow();
         var progress=new com.faust.core.progression.Progress();for(var skill:com.faust.core.progression.Skill.values())progress.track(skill).level=20;
-        progress.counters.put("blocks",9.0);check(!progress.canUnlock(guard,balance),"guard needs ten shield blocks");progress.counters.put("blocks",10.0);check(progress.unlock(guard.id(),balance),"ten shield blocks unlock guard");
-        progress.counters.put("blocks",99.0);check(!progress.canUnlock(impact,balance),"impact guard needs 100 blocks");progress.counters.put("blocks",100.0);check(progress.canUnlock(impact,balance),"impact guard available at 100 blocks");
+        progress.setCounter("blocks",9.0,balance);check(!progress.canUnlock(guard,balance),"guard needs ten shield blocks");progress.setCounter("blocks",10.0,balance);check(progress.unlock(guard.id(),balance),"ten shield blocks unlock guard");
+        progress.setCounter("blocks",99.0,balance);check(!progress.canUnlock(impact,balance),"impact guard needs 100 blocks");progress.setCounter("blocks",100.0,balance);check(progress.canUnlock(impact,balance),"impact guard available at 100 blocks");
         progress.unlocked.remove(guard.id());check(!progress.canUnlock(impact,balance),"impact guard requires learned guard");check(!progress.canUnlock(parry,balance),"parrying requires learned guard");
-        progress.unlocked.add(guard.id());check(!progress.canUnlock(parry,balance),"parrying requires technician too");progress.unlocked.add(prefix+"technician");progress.counters.put("faust_epic_any_blocks",50.0);check(progress.canUnlock(parry,balance),"parrying requires both learned skills");
-        progress.counters.put(CombatPractice.ROLLS,100.0);check(!progress.canUnlock(step,balance),"step requires learned roll");progress.unlocked.add(prefix+"roll");progress.counters.put(CombatPractice.ROLLS,99.0);check(!progress.canUnlock(step,balance),"step rejects 99 rolls");progress.counters.put(CombatPractice.ROLLS,100.0);check(progress.unlock(step.id(),balance),"step available after 100 rolls");check(progress.revoke(prefix+"roll",balance).contains(step.id()),"revoking roll revokes step");
+        progress.unlocked.add(guard.id());check(!progress.canUnlock(parry,balance),"parrying requires technician too");progress.unlocked.add(prefix+"technician");progress.setCounter("faust_epic_any_blocks",50.0,balance);check(progress.canUnlock(parry,balance),"parrying requires both learned skills");
+        progress.setCounter(CombatPractice.ROLLS,100.0,balance);check(!progress.canUnlock(step,balance),"step requires learned roll");progress.unlocked.add(prefix+"roll");progress.setCounter(CombatPractice.ROLLS,99.0,balance);check(!progress.canUnlock(step,balance),"step rejects 99 rolls");progress.setCounter(CombatPractice.ROLLS,100.0,balance);check(progress.unlock(step.id(),balance),"step available after 100 rolls");check(progress.revoke(prefix+"roll",balance).contains(step.id()),"revoking roll revokes step");
         for(var ability:java.util.List.of(guard,impact,parry,step))check(Compat.relocate(ability).equals(ability),"new conditions migration idempotent");
         var training=FakePlayerFactory.get(existing.serverLevel(),new GameProfile(UUID.fromString("fb27f059-9775-469d-9f2f-a4c852bc4548"),"GuardRollChecks"));
         var trainingPatch=new ServerPlayerPatch(training);trainingPatch.onConstructed(training);var trainingData=CoreRuntime.data(training);trainingData.max(balance);
+        for(String id:java.util.List.of(Combat.FIST_MASTERY,Combat.MASTERY,Combat.SWORD_MASTERY,Combat.DAGGER_MASTERY,Combat.SHIELD_MASTERY,"faust_epic_compat:epicfight/swordmaster","faust_epic_compat:epicfight/step","faustcore:shield_care"))trainingData.unlocked.remove(id);
         var registry=yesman.epicfight.registry.EpicFightRegistries.SKILL;
         var impactSkill=registry.get(net.minecraft.resources.ResourceLocation.parse("epicfight:impact_guard"));var parrySkill=registry.get(net.minecraft.resources.ResourceLocation.parse("epicfight:parrying"));
         check(impactSkill.getPriorSkill()==null&&parrySkill.getPriorSkill()==null,"equipped guard prior removed for both skills");
@@ -202,7 +204,7 @@ public final class RuntimeChecks {
         var roll=registry.get(net.minecraft.resources.ResourceLocation.parse("epicfight:roll"));var stepSkill=registry.get(net.minecraft.resources.ResourceLocation.parse("epicfight:step"));var dodgeSlot=trainingPatch.getSkill(SkillSlots.DODGE);check(dodgeSlot.setSkill(roll),"equip roll for practice");
         var args=new net.minecraft.nbt.CompoundTag();args.putInt("direction",0);args.putFloat("yRot",0);
         double rolls=trainingData.counters.getOrDefault(CombatPractice.ROLLS,0.0);roll.executeOnServer(dodgeSlot,args);check(trainingData.counters.getOrDefault(CombatPractice.ROLLS,0.0)==rolls+1,"actual roll execution counted once");
-        dodgeSlot.setSkill(stepSkill);stepSkill.executeOnServer(dodgeSlot,args);check(trainingData.counters.getOrDefault(CombatPractice.ROLLS,0.0)==rolls+1,"step execution does not count as roll");
+        trainingData.unlocked.add(prefix+"step");dodgeSlot.setSkill(stepSkill);stepSkill.executeOnServer(dodgeSlot,args);check(trainingData.counters.getOrDefault(CombatPractice.ROLLS,0.0)==rolls+1,"step execution does not count as roll");
         dodgeSlot.setSkill(roll);trainingData.unlocked.remove(Compat.nodeId(roll));check(!dodgeSlot.requestCasting(trainingPatch,args),"unlearned roll request denied");
         check(trainingData.counters.getOrDefault(CombatPractice.ROLLS,0.0)==rolls+1,"denied roll attempt does not count");trainingData.unlocked.add(Compat.nodeId(roll));
         var zombie=net.minecraft.world.entity.EntityType.ZOMBIE.create(training.serverLevel());var income=new yesman.epicfight.api.event.types.entity.TakeDamageEvent.Income(trainingPatch,training.damageSources().mobAttack(zombie),2);
@@ -247,7 +249,7 @@ public final class RuntimeChecks {
             var ability=balance.abilities.stream().filter(a->a.id().equals(id)).findFirst().orElseThrow();
             check(ability.all().isEmpty(),"jump has no added parent");
             var p=new com.faust.core.progression.Progress();for(var s:com.faust.core.progression.Skill.values())p.track(s).level=20;
-            p.counters.put(CombatPractice.JUMPS,99.0);check(!p.canUnlock(ability,balance),"99 jumps rejected");p.counters.put(CombatPractice.JUMPS,100.0);check(p.canUnlock(ability,balance),"100 jumps accepted");
+            p.setCounter(CombatPractice.JUMPS,99.0,balance);check(!p.canUnlock(ability,balance),"99 jumps rejected");p.setCounter(CombatPractice.JUMPS,100.0,balance);check(p.canUnlock(ability,balance),"100 jumps accepted");
             var node=tree.nodes().stream().filter(n->n.ability().equals(id)).findFirst().orElseThrow();check(node.x()==bow.x()&&node.y()==previous.y()+40,"jump column below bow mastery");previous=node;
             check(Compat.relocate(ability).equals(ability),"jump conditions idempotent");data.unlocked.add(id);
         }
@@ -274,7 +276,7 @@ public final class RuntimeChecks {
         yesman.epicfight.network.EpicFightServerBoundPayloadHandler.handleChangeSkill(new yesman.epicfight.network.client.CPChangeSkill(SkillSlots.DODGE,leap.holder(),-1),context);
         check(patch.getSkill(SkillSlots.DODGE).getSkill()!=leap,"wrong slot rejected");
         mover.setSkill(null);mover.setReplaceCooldown(0);
-        double jumps=data.counters.getOrDefault(CombatPractice.JUMPS,0.0);player.jumpFromGround();check(data.counters.getOrDefault(CombatPractice.JUMPS,0.0)==jumps+1,"actual ground jump counted once");
+        data.unlocked.remove("faust_epic_compat:epicfight/demolition_leap");data.unlocked.remove("faust_epic_compat:epicfight/phantom_ascent");double jumps=data.counters.getOrDefault(CombatPractice.JUMPS,0.0);player.jumpFromGround();check(data.counters.getOrDefault(CombatPractice.JUMPS,0.0)==jumps+1,"actual ground jump counted once");
         check(com.faust.core.progression.Progress.parse(data.json(),balance).counters.get(CombatPractice.JUMPS)==jumps+1,"jump practice persists");
     }
     private static net.minecraft.world.entity.animal.Pig victim(net.minecraft.server.level.ServerPlayer player){var pig=net.minecraft.world.entity.EntityType.PIG.create(player.serverLevel());pig.setHealth(2);return pig;}

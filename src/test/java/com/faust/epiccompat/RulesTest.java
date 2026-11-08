@@ -75,8 +75,8 @@ public final class RulesTest {
         progress.track(com.faust.core.progression.Skill.intelligence).level=4;check(!progress.canUnlock(technician,gates));
         progress.track(com.faust.core.progression.Skill.intelligence).level=5;check(progress.canUnlock(technician,gates));
         check(technician.skill()==com.faust.core.progression.Skill.dexterity);
-        progress.track(com.faust.core.progression.Skill.strength).level=5;progress.counters.put(CombatPractice.DUAL,10.0);check(!progress.canUnlock(pair,gates));
-        progress.unlocked.add(master);check(progress.canUnlock(pair,gates));
+        progress.track(com.faust.core.progression.Skill.strength).level=5;progress.setCounter(CombatPractice.DUAL,10.0,gates);check(!progress.canUnlock(pair,gates));
+        progress.unlocked.add(master);progress.setCounter(CombatPractice.DUAL,10.0,gates);check(progress.canUnlock(pair,gates));
         var tree=gates.trees.stream().filter(t->t.skill()==com.faust.core.progression.Skill.strength).findFirst().orElseThrow();
         var first=tree.nodes().stream().filter(n->n.ability().equals(master)).findFirst().orElseThrow();
         var second=tree.nodes().stream().filter(n->n.ability().equals(pair.id())).findFirst().orElseThrow();
@@ -85,13 +85,13 @@ public final class RulesTest {
         for(var left:tree.nodes())for(var right:tree.nodes())if(!left.ability().equals(right.ability()))check(Math.abs(left.x()-right.x())>=22||Math.abs(left.y()-right.y())>=22);
         var chain=gates.abilities.stream().filter(a->a.counter().equals(CombatPractice.DAMAGE)).sorted(java.util.Comparator.comparingDouble(com.faust.core.progression.Balance.Ability::amount)).toList();
         check(chain.size()==3);check(chain.get(0).amount()==40&&chain.get(1).amount()==80&&chain.get(2).amount()==120);
-        progress.counters.put(CombatPractice.DAMAGE,39.0);check(!progress.canUnlock(chain.get(0),gates));progress.counters.put(CombatPractice.DAMAGE,40.0);check(progress.canUnlock(chain.get(0),gates));
-        progress.counters.put(CombatPractice.DAMAGE,120.0);check(!progress.canUnlock(chain.get(2),gates));
-        progress.unlocked.add(chain.get(0).id());check(progress.canUnlock(chain.get(1),gates));progress.unlocked.add(chain.get(1).id());check(progress.canUnlock(chain.get(2),gates));
-        progress.counters.put(CombatPractice.DUAL,9.0);check(!progress.canUnlock(pair,gates));progress.counters.put(CombatPractice.DUAL,10.0);check(progress.canUnlock(pair,gates));
+        progress.setCounter(CombatPractice.DAMAGE,39.0,gates);check(!progress.canUnlock(chain.get(0),gates));progress.setCounter(CombatPractice.DAMAGE,40.0,gates);check(progress.canUnlock(chain.get(0),gates));
+        progress.setCounter(CombatPractice.DAMAGE,120.0,gates);check(!progress.canUnlock(chain.get(2),gates));
+        progress.unlocked.add(chain.get(0).id());progress.setCounter(CombatPractice.DAMAGE,80,gates);check(progress.canUnlock(chain.get(1),gates));progress.unlocked.add(chain.get(1).id());progress.setCounter(CombatPractice.DAMAGE,120,gates);check(progress.canUnlock(chain.get(2),gates));
+        progress.setCounter(CombatPractice.DUAL,9.0,gates);check(!progress.canUnlock(pair,gates));progress.setCounter(CombatPractice.DUAL,10.0,gates);check(progress.canUnlock(pair,gates));
         for(String id:java.util.List.of(Combat.FIST_MASTERY,Combat.MASTERY,master)){
             var practice=id.equals(master)?gates.abilities.stream().filter(a->a.id().equals(id)).findFirst().orElseThrow():Compat.relocate(Compat.mastery(id));
-            check(practice.amount()==10);progress.unlocked.remove(id);progress.counters.put(practice.counter(),9.0);check(!progress.canUnlock(practice,gates));progress.counters.put(practice.counter(),10.0);check(progress.canUnlock(practice,gates));
+            check(practice.amount()==10);progress.unlocked.remove(id);progress.setCounter(practice.counter(),9.0,gates);check(!progress.canUnlock(practice,gates));progress.setCounter(practice.counter(),10.0,gates);check(progress.canUnlock(practice,gates));
         }
         String gateLayout=com.faust.core.progression.Balance.JSON.toJson(gates.trees);Compat.extend(gates);check(gateLayout.equals(com.faust.core.progression.Balance.JSON.toJson(gates.trees)));
         for(int i=0;i<4;i++)gates.abilities.add(new com.faust.core.progression.Balance.Ability("faust_epic_compat:test/remaining_"+i,com.faust.core.progression.Skill.strength,5,"hits",0,"","faust_epic_compat:skill",0));
@@ -125,11 +125,11 @@ public final class RulesTest {
         var encoded=com.faust.core.progression.Balance.JSON.toJson(dex.trees);Compat.extend(dex);check(encoded.equals(com.faust.core.progression.Balance.JSON.toJson(dex.trees)));
         var dagger=dex.abilities.stream().filter(a->a.id().equals(Combat.DAGGER_MASTERY)).findFirst().orElseThrow();
         check(dagger.all().contains(prefix+"technician"));check(Compat.relocate(dagger).equals(dagger));
-        var dexProgress=new com.faust.core.progression.Progress();dexProgress.track(com.faust.core.progression.Skill.dexterity).level=5;dexProgress.counters.put(CombatPractice.DAGGER_HITS,10.0);
-        check(!dexProgress.canUnlock(dagger,dex));dexProgress.unlocked.add(prefix+"technician");check(dexProgress.unlock(dagger.id(),dex));check(dexProgress.revoke(prefix+"technician",dex).contains(dagger.id()));
+        var dexProgress=new com.faust.core.progression.Progress();dexProgress.track(com.faust.core.progression.Skill.dexterity).level=5;dexProgress.setCounter(CombatPractice.DAGGER_HITS,10.0,dex);
+        check(!dexProgress.canUnlock(dagger,dex));dexProgress.unlocked.add(prefix+"technician");dexProgress.setCounter(CombatPractice.DAGGER_HITS,10,dex);check(dexProgress.unlock(dagger.id(),dex));check(dexProgress.revoke(prefix+"technician",dex).contains(dagger.id()));
         var rollAbility=dex.abilities.stream().filter(a->a.id().equals(prefix+"roll")).findFirst().orElseThrow();
-        dexProgress=new com.faust.core.progression.Progress();dexProgress.counters.put("run_metres",500.0);check(!dexProgress.canUnlock(rollAbility,dex));
-        dexProgress.track(com.faust.core.progression.Skill.dexterity).level=1;dexProgress.counters.put("run_metres",499.0);check(!dexProgress.canUnlock(rollAbility,dex));dexProgress.counters.put("run_metres",500.0);check(dexProgress.canUnlock(rollAbility,dex));
+        dexProgress=new com.faust.core.progression.Progress();dexProgress.setCounter("run_metres",500.0,dex);check(!dexProgress.canUnlock(rollAbility,dex));
+        dexProgress.track(com.faust.core.progression.Skill.dexterity).level=1;dexProgress.setCounter("run_metres",499.0,dex);check(!dexProgress.canUnlock(rollAbility,dex));dexProgress.setCounter("run_metres",500.0,dex);check(dexProgress.canUnlock(rollAbility,dex));
         check(Compat.relocate(rollAbility).equals(rollAbility));
         System.out.println("Passed "+checks+" integration policy checks");
     }
