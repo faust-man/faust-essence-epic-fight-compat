@@ -76,6 +76,32 @@ public final class RuntimeChecks {
             check(balance.abilities.stream().anyMatch(a->a.id().equals(Combat.FIST_MASTERY)),"fist node migrated");
             check(balance.abilities.stream().anyMatch(a->a.id().equals(Combat.SHIELD_MASTERY)&&a.skill()==com.faust.core.progression.Skill.defense),"shield node migrated into defense");
             System.out.println("FAUST COMPAT RUNTIME CHECKS PASSED: "+checks);
+            data.stamina=20;data.exhausted=false;
+            player.setItemInHand(InteractionHand.MAIN_HAND,new ItemStack(Items.IRON_SWORD));player.setItemInHand(InteractionHand.OFF_HAND,new ItemStack(Items.IRON_SWORD));
+            Combat.strike(patch,InteractionHand.MAIN_HAND);check(data.stamina==18,"dual sword surcharge");
+            data.unlocked.add(Combat.SWORD_MASTERY);Combat.strike(patch,InteractionHand.MAIN_HAND);check(data.stamina==17,"dual sword mastery");
+            player.setItemInHand(InteractionHand.MAIN_HAND,new ItemStack(yesman.epicfight.registry.entries.EpicFightItems.IRON_DAGGER.get()));player.setItemInHand(InteractionHand.OFF_HAND,player.getMainHandItem().copy());
+            Combat.strike(patch,InteractionHand.MAIN_HAND);check(data.stamina==15,"dual dagger surcharge independent of sword mastery");
+            data.unlocked.add(Combat.DAGGER_MASTERY);Combat.strike(patch,InteractionHand.MAIN_HAND);check(data.stamina==14,"dual dagger mastery");
+            var attached=yesman.epicfight.world.capabilities.EpicFightCapabilities.getEntityPatch(player,ServerPlayerPatch.class);
+            check(attached!=null,"attached patch available");
+            var forbidden=yesman.epicfight.registry.EpicFightRegistries.SKILL.get(net.minecraft.resources.ResourceLocation.parse("epicfight:forbidden_strength"));
+            data.unlocked.add(Compat.nodeId(forbidden));check(attached.getSkill(SkillSlots.PASSIVE1).setSkill(forbidden),"equip forbidden strength");
+            data.stamina=2;data.exhausted=true;player.setHealth(20);double fatigue=data.fatigue;
+            check(Forbidden.mode(player),"forbidden mode during exhaustion");check(CoreRuntime.canAct(player),"can act during exhaustion");
+            check(CoreRuntime.pay(player,2)&&player.getHealth()==18&&data.stamina==2,"full 1:1 health payment without spending residual stamina");
+            attached.setStamina(attached.getStamina()-3);check(player.getHealth()==15&&data.stamina==2,"EF skill health payment");
+            check(data.fatigue==fatigue,"health payments add no fatigue");
+            check(!CoreRuntime.pay(player,15)&&player.getHealth()==15,"insufficient health rejected without killing");
+            CoreRuntime.tick(player);check(data.stamina>2,"stamina regenerates while health pays");
+            data.stamina=0;data.exhausted=true;player.setOnGround(true);player.setSprinting(true);
+            CoreRuntime.stat(player,net.minecraft.stats.Stats.CUSTOM.get(net.minecraft.stats.Stats.SPRINT_ONE_CM),100);
+            float beforeRun=player.getHealth();CoreRuntime.tick(player);
+            check(player.getHealth()<beforeRun,"sprint at zero stamina pays health");check(data.stamina>0,"sprint at zero stamina still regenerates stamina");
+            attached.getSkill(SkillSlots.PASSIVE1).setSkill(null);check(!Forbidden.mode(player),"unequipping restores exhaustion block");
+            check(balance.abilities.stream().anyMatch(a->a.id().endsWith("/adaptive_skin")&&a.skill()==com.faust.core.progression.Skill.constitution),"adaptive skin relocated");
+            check(balance.abilities.stream().anyMatch(a->a.id().endsWith("/revelation")&&a.skill()==com.faust.core.progression.Skill.intelligence),"revelation relocated");
+            System.out.println("FAUST COMPAT COMPLETE RUNTIME CHECKS PASSED: "+checks);
         }finally{balance.stamina.put("attackCost",oldAttack);event.getServer().halt(false);}
     }
 }

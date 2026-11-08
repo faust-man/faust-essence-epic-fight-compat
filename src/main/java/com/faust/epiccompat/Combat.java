@@ -13,6 +13,7 @@ public final class Combat {
     public static final String MASTERY="faust_epic_compat:two_handed_mastery";
     public static final String FIST_MASTERY="faust_epic_compat:fist_mastery";
     public static final String SHIELD_MASTERY="faust_epic_compat:shield_weapon_mastery";
+    public static final String SWORD_MASTERY="faust_epic_compat:dual_sword_mastery", DAGGER_MASTERY="faust_epic_compat:dual_dagger_mastery";
     private static final Map<PlayerPatch<?>,Boolean> PAID=new WeakHashMap<>();
     private static final ThreadLocal<ServerPlayer> COLLISION=new ThreadLocal<>();
     private Combat(){}
@@ -36,6 +37,10 @@ public final class Combat {
         boolean shield=category!=CapabilityItem.WeaponCategories.NOT_WEAPON&&category!=CapabilityItem.WeaponCategories.SHIELD&&category!=CapabilityItem.WeaponCategories.RANGED
                 &&player.getItemInHand(otherHand).canPerformAction(net.neoforged.neoforge.common.ItemAbilities.SHIELD_BLOCK);
         double cost=Rules.strikeCost(progress.actionCost("attack",CoreRuntime.balance),twoHanded,spear,progress.unlocked.contains(MASTERY),fist,progress.unlocked.contains(FIST_MASTERY),shield,progress.unlocked.contains(SHIELD_MASTERY));
+        var other=yesman.epicfight.world.capabilities.EpicFightCapabilities.getItemStackCapability(player.getItemInHand(otherHand)).getWeaponCategory();
+        boolean swords=category==CapabilityItem.WeaponCategories.SWORD&&other==category;
+        boolean daggers=category==CapabilityItem.WeaponCategories.DAGGER&&other==category;
+        cost=Rules.dualCost(cost,swords||daggers,progress.unlocked.contains(swords?SWORD_MASTERY:DAGGER_MASTERY));
         PAID.put(patch,CoreRuntime.pay(player,cost));CoreRuntime.sync(player);
     }
 }

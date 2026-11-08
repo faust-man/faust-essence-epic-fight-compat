@@ -18,6 +18,11 @@ public final class RulesTest {
         check(!Rules.canSpend(20,Float.POSITIVE_INFINITY,false,true));
         check(!Rules.canSpend(20,-1,false,true));
         check(Rules.canSpend(0,0,false,false));
+        check(Rules.dualCost(1,true,false)==2);check(Rules.dualCost(1,true,true)==1);check(Rules.dualCost(1,false,false)==1);
+        check(Rules.branch("adaptive_skin","PASSIVE").equals("constitution"));check(Rules.branch("revelation","PASSIVE").equals("intelligence"));
+        check(Compat.mastery(Combat.DAGGER_MASTERY).skill()==com.faust.core.progression.Skill.dexterity);
+        check(Compat.mastery(Combat.SWORD_MASTERY).skill()==com.faust.core.progression.Skill.strength);
+        check(Compat.icon(Combat.SWORD_MASTERY).startsWith("minecraft:"));check(Compat.icon("faust_epic_compat:epicfight/roll").equals("faust_epic_compat:epicfight/roll"));
         check(Rules.strikeCost(1,false,false,false,false,false,true,false)==2);
         check(Rules.strikeCost(1,false,false,false,false,false,true,true)==1);
         check(Rules.strikeCost(1,false,false,true,false,false,true,false)==2);

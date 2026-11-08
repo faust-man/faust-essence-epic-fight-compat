@@ -9,6 +9,10 @@ import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(value=CoreScreen.class,remap=false)
 public abstract class TreeMixin {
+    @Inject(method="icon",at=@At("HEAD"),cancellable=true)
+    private static void epicIcon(String id,CallbackInfoReturnable<net.minecraft.world.item.ItemStack> cir){var skill=Compat.skill(id);if(skill!=null){var stack=new net.minecraft.world.item.ItemStack(yesman.epicfight.registry.entries.EpicFightItems.SKILLBOOK.get());yesman.epicfight.world.item.SkillBookItem.setContainingSkill(skill.holder(),stack);cir.setReturnValue(stack);}}
+    @Redirect(method="drawTree",at=@At(value="INVOKE",target="Lnet/minecraft/client/gui/GuiGraphics;renderItem(Lnet/minecraft/world/item/ItemStack;II)V"))
+    private void texture(net.minecraft.client.gui.GuiGraphics graphics,net.minecraft.world.item.ItemStack stack,int x,int y){var skill=yesman.epicfight.world.item.SkillBookItem.getContainSkill(stack);if(skill.isPresent())graphics.blit(skill.get().value().getSkillTexture(),x,y,16,16,0,0,1,1,1,1);else graphics.renderItem(stack,x,y);}
     @Inject(method="abilityName",at=@At("HEAD"),cancellable=true)
     private static void name(com.faust.core.progression.Balance.Ability ability,CallbackInfoReturnable<net.minecraft.network.chat.Component> cir){
         if(Compat.isMastery(ability.id())){cir.setReturnValue(net.minecraft.network.chat.Component.translatable("faust_epic_compat."+ability.id().split(":")[1]));return;}

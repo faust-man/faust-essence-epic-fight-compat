@@ -14,12 +14,15 @@ public final class Rules {
     }
     public static boolean passiveSlot(String slot){return java.util.Set.of("PASSIVE1","PASSIVE2","PASSIVE3").contains(slot);}
     public static String branch(String name,String category){
+        if(name.equals("adaptive_skin"))return "constitution";
+        if(name.equals("revelation"))return "intelligence";
         String key=(name+" "+category).toLowerCase(Locale.ROOT);
         if(key.matches(".*(guard|parry|block|defen).*"))return "defense";
         if(key.matches(".*(roll|step|dodge|mover|jump|sprint|swim|technician).*"))return "dexterity";
         if(key.matches(".*(stamina|recover|endurance|breath|energy|health|regener|vital|harvest|catharsis).*"))return "constitution";
         return "strength";
     }
+    public static double dualCost(double cost,boolean paired,boolean mastery){return paired&&!mastery?cost*2:cost;}
     public static boolean canSpend(double available,float amount,boolean blocked,boolean exempt){
         return Float.isFinite(amount)&&amount>=0&&(exempt||(!blocked&&available>=amount));
     }

@@ -1,4 +1,8 @@
 {
+  "faust_epic_compat.dual_sword_mastery": "Парные мечи",
+  "faust_epic_compat.dual_sword_mastery.description": "Удары с двумя мечами расходуют 1 выносливость вместо 2 при базовых настройках.",
+  "faust_epic_compat.dual_dagger_mastery": "Парные кинжалы",
+  "faust_epic_compat.dual_dagger_mastery.description": "Удары с двумя кинжалами расходуют 1 выносливость вместо 2 при базовых настройках.",
   "faust_epic_compat.shield_weapon_mastery": "Слаженный бой со щитом",
   "faust_epic_compat.shield_weapon_mastery.description": "Удары одноручным оружием со щитом расходуют обычную выносливость: 1 вместо 2 при базовых настройках.",
   "faust_epic_compat.two_handed_mastery": "Двуручный хват",

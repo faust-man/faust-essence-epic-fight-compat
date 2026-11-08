@@ -1,4 +1,8 @@
 {
+  "faust_epic_compat.dual_sword_mastery": "Paired Swords",
+  "faust_epic_compat.dual_sword_mastery.description": "Dual sword strikes cost 1 stamina instead of 2 with default settings.",
+  "faust_epic_compat.dual_dagger_mastery": "Paired Daggers",
+  "faust_epic_compat.dual_dagger_mastery.description": "Dual dagger strikes cost 1 stamina instead of 2 with default settings.",
   "faust_epic_compat.shield_weapon_mastery": "Coordinated Shield Fighting",
   "faust_epic_compat.shield_weapon_mastery.description": "One-handed weapon strikes with a shield use normal stamina: 1 instead of 2 with default settings.",
   "faust_epic_compat.two_handed_mastery": "Two-Handed Grip",
