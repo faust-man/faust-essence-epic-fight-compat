@@ -1,5 +1,5 @@
 plugins { id 'java'; id 'net.neoforged.moddev' version '2.0.49-beta' }
-version = '1.4.0'
+version = '1.4.1'
 group = 'com.faust.epiccompat'
 base.archivesName = 'faust-epic-fight-compat-1.21.1'
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
@@ -15,7 +15,7 @@ repositories {
 neoForge {
     version = '21.1.219'
     parchment { minecraftVersion='1.21'; mappingsVersion='2024.11.10' }
-    runs { client { client() }; server { server(); programArguments.add '--nogui' } }
+    runs { client { client() }; server { server(); programArguments.add '--nogui'; if(project.hasProperty('runtimeChecks'))programArguments.addAll '--port','0' } }
     mods { faust_epic_compat { sourceSet sourceSets.main; if(project.hasProperty('runtimeChecks'))sourceSet sourceSets.runtimeChecks } }
 }
 dependencies {

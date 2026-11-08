@@ -21,11 +21,17 @@ public final class RuntimeChecks {
         var patch=new ServerPlayerPatch(player);
         var data=CoreRuntime.data(player);var balance=CoreRuntime.balance;
         double oldAttack=balance.stamina.get("attackCost");
+        var vanillaRule=yesman.epicfight.world.gamerule.EpicFightGameRules.ALLOW_VANILLA_MELEE;
+        boolean oldVanilla=vanillaRule.getRuleValue(player.level());
         try{
             balance.stamina.put("attackCost",1.0);data.stamina=20;data.fatigue=0;data.exhausted=false;
             player.setItemInHand(InteractionHand.MAIN_HAND,ItemStack.EMPTY);
+            vanillaRule.setRuleValue(player.level(),false);
+            check(CoreRuntime.attack(player,false)&&data.stamina==20,"disabled vanilla melee has no stamina charge");
             Combat.strike(patch,InteractionHand.MAIN_HAND);
             check(Combat.paid(patch)&&Math.abs(data.stamina-19)<0.0001,"bare-hand payment");
+            vanillaRule.setRuleValue(player.level(),true);
+            check(CoreRuntime.attack(player,false)&&data.stamina==18,"enabled vanilla melee keeps normal stamina charge");data.stamina=19;
             data.unlocked.add(Combat.FIST_MASTERY);
             Combat.strike(patch,InteractionHand.MAIN_HAND);
             check(Combat.paid(patch)&&Math.abs(data.stamina-19)<0.0001,"fist mastery");
@@ -105,10 +111,16 @@ public final class RuntimeChecks {
             var combo=attached.getSkill(SkillSlots.COMBO_ATTACKS);combo.setSkill(yesman.epicfight.registry.entries.EpicFightSkills.COMBO_ATTACKS.get());
             for(int i=0;i<8;i++){check(!Combat.canStrike(attached),"fractional stamina cannot start queued attack");check(!combo.canUse(attached,new yesman.epicfight.api.event.types.player.SkillCastEvent(attached,combo,new net.minecraft.nbt.CompoundTag())),"skill container rejects fractional queued attack");Combat.begin(attached);Combat.strike(attached,InteractionHand.MAIN_HAND);check(!Combat.paid(attached)&&data.stamina==0.5,"fractional repeated strike rejected");}
             check(attached.getSkill(SkillSlots.PASSIVE1).setSkill(forbidden),"re-equip forbidden");player.setHealth(0.5f);data.exhausted=true;
+            vanillaRule.setRuleValue(player.level(),false);
+            attached.toVanillaMode(false);
+            double unchanged=data.stamina;float health=player.getHealth();double oldFatigue=data.fatigue;
+            for(boolean air:new boolean[]{false,true})for(int i=0;i<5;i++)check(CoreRuntime.attack(player,air),"disabled vanilla melee is not billed");
+            check(data.stamina==unchanged&&player.getHealth()==health&&data.fatigue==oldFatigue,"disabled vanilla melee never spends stamina health or fatigue");
+            vanillaRule.setRuleValue(player.level(),true);
             double residual=data.stamina;check(CoreRuntime.pay(player,1),"lethal health payment accepted");
             check(player.isDeadOrDying()&&player.getHealth()==0&&data.stamina==residual,"health payment kills and preserves stamina");
             check(!Forbidden.pay(player,1),"dead player cannot pay again");
             System.out.println("FAUST COMPAT COMPLETE RUNTIME CHECKS PASSED: "+checks);
-        }finally{balance.stamina.put("attackCost",oldAttack);event.getServer().halt(false);}
+        }finally{vanillaRule.setRuleValue(player.level(),oldVanilla);balance.stamina.put("attackCost",oldAttack);event.getServer().halt(false);}
     }
 }
