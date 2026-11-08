@@ -118,6 +118,7 @@ public final class RuntimeChecks {
                 var first=tree.nodes().get(i);var second=tree.nodes().get(j);
                 check(Math.abs(first.x()-second.x())>=22||Math.abs(first.y()-second.y())>=22,"merged nodes do not overlap: "+first.ability()+" / "+second.ability());
             }
+            RequirementChecks.run(balance,player);
             jumpChecks(balance,player,patch);
             guardAndRollChecks(balance,player);
             System.out.println("FAUST COMPAT RUNTIME CHECKS PASSED: "+checks);
@@ -189,7 +190,7 @@ public final class RuntimeChecks {
         progress.counters.put("blocks",9.0);check(!progress.canUnlock(guard,balance),"guard needs ten shield blocks");progress.counters.put("blocks",10.0);check(progress.unlock(guard.id(),balance),"ten shield blocks unlock guard");
         progress.counters.put("blocks",99.0);check(!progress.canUnlock(impact,balance),"impact guard needs 100 blocks");progress.counters.put("blocks",100.0);check(progress.canUnlock(impact,balance),"impact guard available at 100 blocks");
         progress.unlocked.remove(guard.id());check(!progress.canUnlock(impact,balance),"impact guard requires learned guard");check(!progress.canUnlock(parry,balance),"parrying requires learned guard");
-        progress.unlocked.add(guard.id());check(!progress.canUnlock(parry,balance),"parrying requires technician too");progress.unlocked.add(prefix+"technician");check(progress.canUnlock(parry,balance),"parrying requires both learned skills");
+        progress.unlocked.add(guard.id());check(!progress.canUnlock(parry,balance),"parrying requires technician too");progress.unlocked.add(prefix+"technician");progress.counters.put("faust_epic_any_blocks",50.0);check(progress.canUnlock(parry,balance),"parrying requires both learned skills");
         progress.counters.put(CombatPractice.ROLLS,100.0);check(!progress.canUnlock(step,balance),"step requires learned roll");progress.unlocked.add(prefix+"roll");progress.counters.put(CombatPractice.ROLLS,99.0);check(!progress.canUnlock(step,balance),"step rejects 99 rolls");progress.counters.put(CombatPractice.ROLLS,100.0);check(progress.unlock(step.id(),balance),"step available after 100 rolls");check(progress.revoke(prefix+"roll",balance).contains(step.id()),"revoking roll revokes step");
         for(var ability:java.util.List.of(guard,impact,parry,step))check(Compat.relocate(ability).equals(ability),"new conditions migration idempotent");
         var training=FakePlayerFactory.get(existing.serverLevel(),new GameProfile(UUID.fromString("fb27f059-9775-469d-9f2f-a4c852bc4548"),"GuardRollChecks"));

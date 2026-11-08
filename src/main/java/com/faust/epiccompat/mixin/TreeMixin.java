@@ -20,6 +20,7 @@ public abstract class TreeMixin {
     }
     @Inject(method="abilityDescription",at=@At("HEAD"),cancellable=true)
     private static void masteryDescription(com.faust.core.progression.Balance.Ability ability,com.faust.core.progression.Progress progress,com.faust.core.progression.Balance balance,CallbackInfoReturnable<java.util.ArrayList<net.minecraft.network.chat.Component>> cir){
+        if(ability.id().equals(com.faust.epiccompat.Combat.SHIELD_EFFICIENCY))return;
         if(Compat.isMastery(ability.id()))cir.setReturnValue(new java.util.ArrayList<>(java.util.List.of(net.minecraft.network.chat.Component.translatable("faust_epic_compat."+ability.id().split(":")[1]+".description"))));
     }
     @Shadow private SkillTrees.Node hovered(double x,double y){throw new AssertionError();}

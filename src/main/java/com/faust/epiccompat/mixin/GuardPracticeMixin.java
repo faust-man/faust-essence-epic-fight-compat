@@ -20,6 +20,7 @@ public class GuardPracticeMixin {
 
     @Inject(method="dealEvent",at=@At("TAIL"))
     private void blocked(PlayerPatch<?> patch,TakeDamageEvent.Income event,boolean advanced,CallbackInfo ci){
+        if(patch.getOriginal() instanceof net.minecraft.server.level.ServerPlayer p)com.faust.epiccompat.Milestones.blocked(p,false);
         if(patch.getOriginal() instanceof net.minecraft.server.level.ServerPlayer player&&CoreRuntime.active(player)&&event.getDamageSource().getEntity() instanceof net.minecraft.world.entity.monster.Enemy enemy&&!player.isAlliedTo((net.minecraft.world.entity.Entity)enemy))CombatPractice.add(player,"blocks",1);
     }
 }

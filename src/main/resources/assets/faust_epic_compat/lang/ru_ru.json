@@ -23,5 +23,22 @@
   "faust_epic_compat.shield_efficiency.description": "Умелый блок щитом: стоимость блока щитом 0,5 вместо 1.",
   "core.counter.faust_epic_jumps":"прыжков",
   "faust_epic_compat.equipped":"Выбран",
-  "faust_epic_compat.select_skill":"Выбрать"
+  "faust_epic_compat.select_skill":"Выбрать",
+  "core.counter.faust_epic_any_blocks": "блокирований любым способом",
+  "core.counter.faust_epic_arrow_damage": "урон от стрел (HP)",
+  "core.counter.faust_epic_exhausted_kills": "убийств мобов во время истощения",
+  "core.counter.faust_epic_fall_damage": "получено урона от падений (HP)",
+  "core.counter.faust_epic_fire_damage": "урон от огня (HP)",
+  "core.counter.faust_epic_heavy_attack": "атак с уроном больше 15 HP",
+  "core.counter.faust_epic_hostile_kills": "убийств враждебных мобов",
+  "core.counter.faust_epic_magic_damage": "урон от магии (HP)",
+  "core.counter.faust_epic_melee_damage": "урон от ближних атак (HP)",
+  "core.counter.faust_epic_peaceful_kills": "убийств мирных мобов",
+  "core.counter.faust_epic_peak_damage": "максимальный урон за один удар (HP)",
+  "core.counter.faust_epic_peak_fatigue": "максимальная усталость за всё время",
+  "core.counter.faust_epic_player_kills": "убийств игроков",
+  "core.counter.faust_epic_shield_blocks": "блокирований щитом",
+  "core.counter.faust_epic_sleep_luck": "удачный сон (шанс 1 к 100)",
+  "core.counter.faust_epic_sweet_food": "съеденных предметов из sweetFoods",
+  "core.counter.faust_epic_visited_end": "посещение Энда"
 }

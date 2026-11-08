@@ -19,6 +19,7 @@ public class PracticeMixin {
             var cat=yesman.epicfight.world.capabilities.EpicFightCapabilities.getItemStackCapability(weapon).getWeaponCategory();
             if(weapon.isEmpty()&&com.faust.core.runtime.CoreRuntime.data(attacker).enabled(com.faust.epiccompat.Combat.FIST_POWER,com.faust.core.runtime.CoreRuntime.balance))amount+=Math.floor(com.faust.core.runtime.CoreRuntime.data(attacker).track(com.faust.core.progression.Skill.strength).level/10.0);
         }
+        boolean exhausted=source.getEntity() instanceof ServerPlayer p&&com.faust.core.runtime.CoreRuntime.data(p).actionsBlocked(com.faust.core.runtime.CoreRuntime.balance);
         boolean result=original.call(source,amount);
         if(result&&kind!=null&&source.getEntity() instanceof ServerPlayer attacker&&entity!=attacker&&com.faust.core.runtime.CoreRuntime.active(attacker)){
             var cat=yesman.epicfight.world.capabilities.EpicFightCapabilities.getItemStackCapability(weapon).getWeaponCategory();
@@ -26,6 +27,7 @@ public class PracticeMixin {
             if(cat==yesman.epicfight.world.capabilities.item.CapabilityItem.WeaponCategories.DAGGER&&yesman.epicfight.world.capabilities.EpicFightCapabilities.getItemStackCapability(attacker.getOffhandItem()).getWeaponCategory()==cat)CombatPractice.add(attacker,CombatPractice.DAGGER_HITS,1);
         }double lost=Math.max(0,before-entity.getHealth());
         if(entity instanceof ServerPlayer player&&lost>0&&!player.isCreative()&&!player.isSpectator())CombatPractice.add(player,CombatPractice.DAMAGE,lost);
+        if(result)com.faust.epiccompat.Milestones.damage(entity,source,lost,before>0&&entity.getHealth()<=0,exhausted);
         if(before>0&&entity.getHealth()<=0&&source.getDirectEntity() instanceof ServerPlayer player&&entity!=player&&kind!=null)CombatPractice.kill(player,kind);
         return result;
     }

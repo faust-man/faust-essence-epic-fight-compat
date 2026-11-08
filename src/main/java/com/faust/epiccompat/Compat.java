@@ -26,7 +26,9 @@ public final class Compat {
         NeoForge.EVENT_BUS.addListener(this::tick);
     }
     private void tick(net.neoforged.neoforge.event.tick.PlayerTickEvent.Post event){
-        if(!(event.getEntity() instanceof net.minecraft.server.level.ServerPlayer player)||player.tickCount%5!=0)return;
+        if(!(event.getEntity() instanceof net.minecraft.server.level.ServerPlayer player))return;
+        if(CoreRuntime.active(player)){Milestones.fatigue(CoreRuntime.data(player));Milestones.visitEnd(player);}
+        if(player.tickCount%5!=0)return;
         yesman.epicfight.world.capabilities.EpicFightCapabilities.getUnparameterizedEntityPatch(player,yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch.class).ifPresent(patch->{
             for(var container:patch.getPlayerSkills().skillContainers){
                 var skill=container.getSkill();
@@ -110,11 +112,11 @@ public final class Compat {
         if(a.id().equals("faust_epic_compat:epicfight/vengeance")){counter=CombatPractice.DAMAGE;amount=80;json.addProperty("parent","faust_epic_compat:epicfight/berserker");}
         if(a.id().equals("faust_epic_compat:epicfight/forbidden_strength")){counter=CombatPractice.DAMAGE;amount=120;json.addProperty("parent","faust_epic_compat:epicfight/vengeance");}
         if(counter!=null){json.addProperty("counter",counter);json.addProperty("amount",amount);json.add("conditions",new com.google.gson.JsonArray());}
-        return Balance.JSON.fromJson(json,Balance.Ability.class);
+        return SkillRequirements.apply(Balance.JSON.fromJson(json,Balance.Ability.class));
     }
     public static String icon(String id){
         if(id.startsWith("faust_epic_compat:epicfight/"))return id;
-        return "minecraft:"+(id.equals(Combat.SHIELD_MASTERY)?"shield":id.equals(Combat.DAGGER_MASTERY)?"flint":id.equals(Combat.FIST_MASTERY)?"leather":id.equals(Combat.SWORD_MASTERY)?"diamond_sword":"iron_sword");
+        return "minecraft:"+(id.equals(Combat.SHIELD_EFFICIENCY)?"iron_ingot":id.equals(Combat.SHIELD_MASTERY)?"shield":id.equals(Combat.DAGGER_MASTERY)?"flint":id.equals(Combat.FIST_MASTERY)?"leather":id.equals(Combat.SWORD_MASTERY)?"diamond_sword":"iron_sword");
     }
     public static String nodeId(Skill skill) {return "faust_epic_compat:"+skill.getRegistryName().getNamespace()+"/"+skill.getRegistryName().getPath();}
     public static Skill skill(String id) {
@@ -151,7 +153,7 @@ public final class Compat {
                     String aid="faust_epic_compat:epicfight/"+id;
                     if(balance.abilities.stream().anyMatch(a->a.id().equals(aid)))placed.add(new com.faust.core.progression.SkillTrees.Node(aid,gx+(id.equals("guard")?0:id.equals("impact_guard")?-32:32),gy+(id.equals("guard")?0:40),icon(aid)));
                 }
-                if(balance.abilities.stream().anyMatch(a->a.id().equals(Combat.SHIELD_EFFICIENCY)))placed.add(new com.faust.core.progression.SkillTrees.Node(Combat.SHIELD_EFFICIENCY,gx,gy+80,"minecraft:shield"));
+                if(balance.abilities.stream().anyMatch(a->a.id().equals(Combat.SHIELD_EFFICIENCY)))placed.add(new com.faust.core.progression.SkillTrees.Node(Combat.SHIELD_EFFICIENCY,gx,gy+40,"minecraft:iron_ingot"));
                 var economy=placed.stream().filter(n->n.ability().equals(Combat.SHIELD_EFFICIENCY)).findFirst().orElse(null);
                 if(economy!=null&&balance.abilities.stream().anyMatch(a->a.id().equals(Combat.SHIELD_MASTERY)))placed.add(new com.faust.core.progression.SkillTrees.Node(Combat.SHIELD_MASTERY,economy.x(),economy.y()+40,icon(Combat.SHIELD_MASTERY)));
             }
@@ -165,6 +167,7 @@ public final class Compat {
             for(int i=0;i<missing.size();i++){
                 placed.add(new com.faust.core.progression.SkillTrees.Node(missing.get(i).id(),gridLeft+(i%4)*32,top+(i/4)*32,icon(missing.get(i).id())));
             }
+            if(branch==com.faust.core.progression.Skill.strength)swapPositions(placed,Combat.MASTERY,Combat.FIST_POWER);
             if(branch==com.faust.core.progression.Skill.dexterity)alignDexterity(placed);
             if(tree!=null)layouts.remove(tree);
             layouts.add(new com.faust.core.progression.SkillTrees.Tree(branch,placed));
@@ -191,7 +194,7 @@ public final class Compat {
         }
         if(daggers!=null&&technician!=null){
             placed.removeIf(n->n.ability().equals(tech)||n.ability().equals(Combat.DAGGER_MASTERY));
-            double x=daggers.x(),y=daggers.y();
+            double x=daggers.x(),y=placed.stream().filter(n->n.ability().equals(roll)).mapToDouble(com.faust.core.progression.SkillTrees.Node::y).findFirst().orElse(daggers.y());
             while(overlaps(placed,x,y)||overlaps(placed,x,y+40))y+=40;
             placed.add(new com.faust.core.progression.SkillTrees.Node(tech,x,y,icon(tech)));
             placed.add(new com.faust.core.progression.SkillTrees.Node(Combat.DAGGER_MASTERY,x,y+40,icon(Combat.DAGGER_MASTERY)));
@@ -199,6 +202,11 @@ public final class Compat {
         var bow=placed.stream().filter(n->n.ability().equals("faustcore:bow_mastery")).findFirst().orElse(null);
         double jumpX=bow==null?52:bow.x(),jumpY=bow==null?80:bow.y()+40;
         for(String id:jumps){while(overlaps(placed,jumpX,jumpY))jumpY+=40;placed.add(new com.faust.core.progression.SkillTrees.Node(id,jumpX,jumpY,icon(id)));jumpY+=40;}
+    }
+    private static void swapPositions(List<com.faust.core.progression.SkillTrees.Node> nodes,String a,String b){
+        int ai=-1,bi=-1;for(int i=0;i<nodes.size();i++){if(nodes.get(i).ability().equals(a))ai=i;if(nodes.get(i).ability().equals(b))bi=i;}
+        if(ai<0||bi<0)return;var first=nodes.get(ai);var second=nodes.get(bi);
+        nodes.set(ai,new com.faust.core.progression.SkillTrees.Node(a,second.x(),second.y(),first.icon()));nodes.set(bi,new com.faust.core.progression.SkillTrees.Node(b,first.x(),first.y(),second.icon()));
     }
     private static boolean overlaps(List<com.faust.core.progression.SkillTrees.Node> nodes,double x,double y){
         return nodes.stream().anyMatch(n->Math.abs(n.x()-x)<22&&Math.abs(n.y()-y)<22);

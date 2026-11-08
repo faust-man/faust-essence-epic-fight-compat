@@ -30,7 +30,7 @@ public final class Combat {
     public static double cost(PlayerPatch<?> patch,InteractionHand hand,com.faust.core.progression.Progress progress,com.faust.core.progression.Balance balance){
         var player=patch.getOriginal();
         var cap=patch.getAdvancedHoldingItemCapability(hand);
-        boolean twoHanded=!cap.getStyle(patch).canUseOffhand();
+        boolean twoHanded=cap.getWeaponCategory()==CapabilityItem.WeaponCategories.GREATSWORD||!cap.getStyle(patch).canUseOffhand();
         boolean spear=cap.getWeaponCategory()==CapabilityItem.WeaponCategories.SPEAR;
         boolean fist=cap.getWeaponCategory()==CapabilityItem.WeaponCategories.FIST||player.getItemInHand(hand).isEmpty();
         var otherHand=hand==InteractionHand.MAIN_HAND?InteractionHand.OFF_HAND:InteractionHand.MAIN_HAND;
