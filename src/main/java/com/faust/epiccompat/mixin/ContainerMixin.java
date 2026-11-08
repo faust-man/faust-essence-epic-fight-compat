@@ -9,6 +9,12 @@ import yesman.epicfight.skill.*;
 import yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch;
 @Mixin(value=SkillContainer.class,remap=false)
 public abstract class ContainerMixin {
+    @Inject(method="onReplaceCooldown",at=@At("HEAD"),cancellable=true)
+    private void noReplaceWait(CallbackInfoReturnable<Boolean> cir){cir.setReturnValue(false);}
+    @Inject(method="getReplaceCooldown",at=@At("HEAD"),cancellable=true)
+    private void noReplaceTimer(CallbackInfoReturnable<Integer> cir){cir.setReturnValue(0);}
+    @ModifyVariable(method="setReplaceCooldown",at=@At("HEAD"),argsOnly=true)
+    private int clearReplaceTimer(int ticks){return 0;}
     @Shadow public abstract PlayerPatch<?> getExecutor();
     @Shadow public abstract Skill getSkill();
     @Shadow public abstract SkillSlot getSlot();

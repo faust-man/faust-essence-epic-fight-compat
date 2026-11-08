@@ -87,6 +87,9 @@ public final class Compat {
             json.addProperty("level",1);json.addProperty("counter","run_metres");json.addProperty("amount",500);
             json.add("characteristics",new com.google.gson.JsonArray());json.add("conditions",new com.google.gson.JsonArray());
         }
+        if(a.id().equals("faust_epic_compat:epicfight/demolition_leap")||a.id().equals("faust_epic_compat:epicfight/phantom_ascent")){
+            json.addProperty("counter",CombatPractice.JUMPS);json.addProperty("amount",100);json.add("conditions",new com.google.gson.JsonArray());
+        }
         if(a.id().equals("faust_epic_compat:epicfight/step")){
             json.addProperty("parent","faust_epic_compat:epicfight/roll");json.addProperty("counter",CombatPractice.ROLLS);json.addProperty("amount",100);json.add("conditions",new com.google.gson.JsonArray());
         }
@@ -175,12 +178,16 @@ public final class Compat {
         var dodge=placed.stream().filter(n->n.ability().equals(roll)).findFirst().orElse(null);
         var daggers=placed.stream().filter(n->n.ability().equals(Combat.DAGGER_MASTERY)).findFirst().orElse(null);
         var technician=placed.stream().filter(n->n.ability().equals(tech)).findFirst().orElse(null);
+        var jumps=List.of("faust_epic_compat:epicfight/demolition_leap","faust_epic_compat:epicfight/phantom_ascent").stream().filter(id->placed.stream().anyMatch(n->n.ability().equals(id))).toList();
+        placed.removeIf(n->jumps.contains(n.ability()));
         boolean hasStep=placed.stream().anyMatch(n->n.ability().equals(step));
         if(dodge!=null){
             placed.removeIf(n->n.ability().equals(roll)||n.ability().equals(step));
-            double x=placed.stream().mapToDouble(com.faust.core.progression.SkillTrees.Node::x).min().orElse(0)-48;
-            placed.add(new com.faust.core.progression.SkillTrees.Node(roll,x,dodge.y(),icon(roll)));
-            if(hasStep)placed.add(new com.faust.core.progression.SkillTrees.Node(step,x,dodge.y()+40,icon(step)));
+            var anchor=placed.stream().filter(n->n.ability().equals("faustcore:cushioned_landing")).findFirst().orElse(null);
+            double x=anchor==null?-52:anchor.x(),y=anchor==null?dodge.y():anchor.y()+40;
+            while(overlaps(placed,x,y)||hasStep&&overlaps(placed,x,y+40))y+=40;
+            placed.add(new com.faust.core.progression.SkillTrees.Node(roll,x,y,icon(roll)));
+            if(hasStep)placed.add(new com.faust.core.progression.SkillTrees.Node(step,x,y+40,icon(step)));
         }
         if(daggers!=null&&technician!=null){
             placed.removeIf(n->n.ability().equals(tech)||n.ability().equals(Combat.DAGGER_MASTERY));
@@ -189,6 +196,9 @@ public final class Compat {
             placed.add(new com.faust.core.progression.SkillTrees.Node(tech,x,y,icon(tech)));
             placed.add(new com.faust.core.progression.SkillTrees.Node(Combat.DAGGER_MASTERY,x,y+40,icon(Combat.DAGGER_MASTERY)));
         }
+        var bow=placed.stream().filter(n->n.ability().equals("faustcore:bow_mastery")).findFirst().orElse(null);
+        double jumpX=bow==null?52:bow.x(),jumpY=bow==null?80:bow.y()+40;
+        for(String id:jumps){while(overlaps(placed,jumpX,jumpY))jumpY+=40;placed.add(new com.faust.core.progression.SkillTrees.Node(id,jumpX,jumpY,icon(id)));jumpY+=40;}
     }
     private static boolean overlaps(List<com.faust.core.progression.SkillTrees.Node> nodes,double x,double y){
         return nodes.stream().anyMatch(n->Math.abs(n.x()-x)<22&&Math.abs(n.y()-y)<22);

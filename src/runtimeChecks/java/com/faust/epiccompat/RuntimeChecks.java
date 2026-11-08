@@ -118,6 +118,7 @@ public final class RuntimeChecks {
                 var first=tree.nodes().get(i);var second=tree.nodes().get(j);
                 check(Math.abs(first.x()-second.x())>=22||Math.abs(first.y()-second.y())>=22,"merged nodes do not overlap: "+first.ability()+" / "+second.ability());
             }
+            jumpChecks(balance,player,patch);
             guardAndRollChecks(balance,player);
             System.out.println("FAUST COMPAT RUNTIME CHECKS PASSED: "+checks);
             data.stamina=20;data.exhausted=false;
@@ -233,6 +234,47 @@ public final class RuntimeChecks {
         passive.setSkill(null);
         attached.getSkill(SkillSlots.GUARD).setSkill(parrySkill);attached.startSkillHolding((yesman.epicfight.skill.modules.HoldableSkill)parrySkill);check(!GuardRecovery.blocked(training),"parrying unchanged by guard-only recovery rule");attached.resetHolding();
 
+    }
+    private static void jumpChecks(com.faust.core.progression.Balance balance,net.minecraft.server.level.ServerPlayer player,ServerPlayerPatch ignored){
+        var patch=yesman.epicfight.world.capabilities.EpicFightCapabilities.getEntityPatch(player,ServerPlayerPatch.class);
+        var data=CoreRuntime.data(player);data.stamina=20;data.exhausted=false;
+        var tree=balance.trees.stream().filter(t->t.skill()==com.faust.core.progression.Skill.dexterity).findFirst().orElseThrow();
+        var bow=tree.nodes().stream().filter(n->n.ability().equals("faustcore:bow_mastery")).findFirst().orElseThrow();
+        var previous=bow;
+        for(String name:java.util.List.of("demolition_leap","phantom_ascent")){
+            String id="faust_epic_compat:epicfight/"+name;
+            var ability=balance.abilities.stream().filter(a->a.id().equals(id)).findFirst().orElseThrow();
+            check(ability.all().isEmpty(),"jump has no added parent");
+            var p=new com.faust.core.progression.Progress();for(var s:com.faust.core.progression.Skill.values())p.track(s).level=20;
+            p.counters.put(CombatPractice.JUMPS,99.0);check(!p.canUnlock(ability,balance),"99 jumps rejected");p.counters.put(CombatPractice.JUMPS,100.0);check(p.canUnlock(ability,balance),"100 jumps accepted");
+            var node=tree.nodes().stream().filter(n->n.ability().equals(id)).findFirst().orElseThrow();check(node.x()==bow.x()&&node.y()==previous.y()+40,"jump column below bow mastery");previous=node;
+            check(Compat.relocate(ability).equals(ability),"jump conditions idempotent");data.unlocked.add(id);
+        }
+        var registry=yesman.epicfight.registry.EpicFightRegistries.SKILL;
+        var phantom=registry.get(net.minecraft.resources.ResourceLocation.parse("epicfight:phantom_ascent"));var leap=registry.get(net.minecraft.resources.ResourceLocation.parse("epicfight:demolition_leap"));
+        var mover=patch.getSkill(SkillSlots.MOVER);
+        check(mover.setSkill(phantom),"equip phantom first");
+        var context=(net.neoforged.neoforge.network.handling.IPayloadContext)java.lang.reflect.Proxy.newProxyInstance(RuntimeChecks.class.getClassLoader(),new Class[]{net.neoforged.neoforge.network.handling.IPayloadContext.class},(proxy,method,args)->{
+            if(method.getName().equals("player"))return player;
+            if(method.getName().equals("enqueueWork")){((Runnable)args[0]).run();return java.util.concurrent.CompletableFuture.completedFuture(null);}return null;
+        });
+        mover.setReplaceCooldown(20);
+        yesman.epicfight.network.EpicFightServerBoundPayloadHandler.handleChangeSkill(new yesman.epicfight.network.client.CPChangeSkill(SkillSlots.MOVER,leap.holder(),-1),context);
+        check(mover.getSkill()==leap&&!mover.onReplaceCooldown()&&mover.getReplaceCooldown()==0,"compat removes replacement delay even with positive timer");
+        mover.setReplaceCooldown(0);
+        yesman.epicfight.network.EpicFightServerBoundPayloadHandler.handleChangeSkill(new yesman.epicfight.network.client.CPChangeSkill(SkillSlots.MOVER,leap.holder(),-1),context);
+        check(mover.getSkill()==leap,"packet switches phantom to leap once ready");
+        mover.setReplaceCooldown(0);
+        yesman.epicfight.network.EpicFightServerBoundPayloadHandler.handleChangeSkill(new yesman.epicfight.network.client.CPChangeSkill(SkillSlots.MOVER,phantom.holder(),-1),context);
+                check(mover.getSkill()==phantom,"packet switches leap to phantom immediately");
+        data.unlocked.remove(Compat.nodeId(leap));
+        yesman.epicfight.network.EpicFightServerBoundPayloadHandler.handleChangeSkill(new yesman.epicfight.network.client.CPChangeSkill(SkillSlots.MOVER,leap.holder(),-1),context);
+        check(mover.getSkill()==phantom,"unlearned jump cannot bypass core ownership");data.unlocked.add(Compat.nodeId(leap));
+        yesman.epicfight.network.EpicFightServerBoundPayloadHandler.handleChangeSkill(new yesman.epicfight.network.client.CPChangeSkill(SkillSlots.DODGE,leap.holder(),-1),context);
+        check(patch.getSkill(SkillSlots.DODGE).getSkill()!=leap,"wrong slot rejected");
+        mover.setSkill(null);mover.setReplaceCooldown(0);
+        double jumps=data.counters.getOrDefault(CombatPractice.JUMPS,0.0);player.jumpFromGround();check(data.counters.getOrDefault(CombatPractice.JUMPS,0.0)==jumps+1,"actual ground jump counted once");
+        check(com.faust.core.progression.Progress.parse(data.json(),balance).counters.get(CombatPractice.JUMPS)==jumps+1,"jump practice persists");
     }
     private static net.minecraft.world.entity.animal.Pig victim(net.minecraft.server.level.ServerPlayer player){var pig=net.minecraft.world.entity.EntityType.PIG.create(player.serverLevel());pig.setHealth(2);return pig;}
 }

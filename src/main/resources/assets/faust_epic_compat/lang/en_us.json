@@ -20,5 +20,8 @@
   "core.counter.faust_epic_shield_hits": "weapon hits with an offhand shield",
   "core.counter.faust_epic_dagger_hits": "dual dagger hits",
   "faust_epic_compat.shield_efficiency": "Economical shield block",
-  "faust_epic_compat.shield_efficiency.description": "Skilled shield blocking: shield blocks cost 0.5 instead of 1."
+  "faust_epic_compat.shield_efficiency.description": "Skilled shield blocking: shield blocks cost 0.5 instead of 1.",
+  "core.counter.faust_epic_jumps":"jumps",
+  "faust_epic_compat.equipped":"Equipped",
+  "faust_epic_compat.select_skill":"Equip"
 }

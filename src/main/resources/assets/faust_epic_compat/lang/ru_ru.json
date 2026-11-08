@@ -20,5 +20,8 @@
   "core.counter.faust_epic_shield_hits": "попаданий оружием со щитом",
   "core.counter.faust_epic_dagger_hits": "попаданий парными кинжалами",
   "faust_epic_compat.shield_efficiency": "Экономный блок щитом",
-  "faust_epic_compat.shield_efficiency.description": "Умелый блок щитом: стоимость блока щитом 0,5 вместо 1."
+  "faust_epic_compat.shield_efficiency.description": "Умелый блок щитом: стоимость блока щитом 0,5 вместо 1.",
+  "core.counter.faust_epic_jumps":"прыжков",
+  "faust_epic_compat.equipped":"Выбран",
+  "faust_epic_compat.select_skill":"Выбрать"
 }

@@ -119,7 +119,7 @@ public final class RulesTest {
         var techNode=dexTree.nodes().stream().filter(n->n.ability().equals(prefix+"technician")).findFirst().orElseThrow();
         var daggerNode=dexTree.nodes().stream().filter(n->n.ability().equals(Combat.DAGGER_MASTERY)).findFirst().orElseThrow();
         check(rollNode.x()==stepNode.x()&&stepNode.y()==rollNode.y()+40);
-        check(rollNode.x()<dexTree.nodes().stream().filter(n->n.ability().startsWith("faustcore:")).mapToDouble(com.faust.core.progression.SkillTrees.Node::x).min().orElseThrow());
+        check(rollNode.x()==dexTree.nodes().stream().filter(n->n.ability().equals("faustcore:cushioned_landing")).findFirst().orElseThrow().x());
         check(techNode.x()==daggerNode.x()&&daggerNode.y()==techNode.y()+40);
         check(daggerNode.x()==0); // First alphabetical addon remains in its original grid column.
         var encoded=com.faust.core.progression.Balance.JSON.toJson(dex.trees);Compat.extend(dex);check(encoded.equals(com.faust.core.progression.Balance.JSON.toJson(dex.trees)));
