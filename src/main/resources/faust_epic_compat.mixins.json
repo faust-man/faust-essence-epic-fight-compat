@@ -1,0 +1,1 @@
+{"required":true,"minVersion":"0.8","package":"com.faust.epiccompat.mixin","compatibilityLevel":"JAVA_21","mixins":["StaminaMixin","SkillPacketMixin","BalanceMixin","BookMixin","ContainerMixin"],"client":["TreeMixin","HudMixin"],"injectors":{"defaultRequire":1}}

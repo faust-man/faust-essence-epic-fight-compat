@@ -1,0 +1,32 @@
+modLoader="javafml"
+loaderVersion="[4,)"
+license="CC0-1.0"
+[[mods]]
+modId="faust_epic_compat"
+version="1.0.0"
+displayName="epic-fight compat"
+description="Epic Fight skills and stamina integrated with Faust Core."
+[[mixins]]
+config="faust_epic_compat.mixins.json"
+[[dependencies.faust_epic_compat]]
+modId="minecraft"
+type="required"
+versionRange="[1.21.1]"
+side="BOTH"
+[[dependencies.faust_epic_compat]]
+modId="neoforge"
+type="required"
+versionRange="[21.1.219,)"
+side="BOTH"
+[[dependencies.faust_epic_compat]]
+modId="faustcore"
+type="required"
+versionRange="[1.5.1,1.6)"
+ordering="AFTER"
+side="BOTH"
+[[dependencies.faust_epic_compat]]
+modId="epicfight"
+type="required"
+versionRange="[21.17.3.1,21.17.3.2)"
+ordering="AFTER"
+side="BOTH"

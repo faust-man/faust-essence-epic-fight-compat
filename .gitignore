@@ -1,0 +1,7 @@
+/.gradle/
+/build/
+/run/
+/work_notes/
+/.idea/
+/.vscode/
+*.iml
