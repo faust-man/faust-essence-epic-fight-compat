@@ -81,6 +81,16 @@ public final class RuntimeChecks {
             check(balance.abilities.stream().anyMatch(a->a.id().equals(Combat.MASTERY)),"two-handed node migrated");
             check(balance.abilities.stream().anyMatch(a->a.id().equals(Combat.FIST_MASTERY)),"fist node migrated");
             check(balance.abilities.stream().anyMatch(a->a.id().equals(Combat.SHIELD_MASTERY)&&a.skill()==com.faust.core.progression.Skill.defense),"shield node migrated into defense");
+            var shieldNode=balance.abilities.stream().filter(a->a.id().equals(Combat.SHIELD_MASTERY)).findFirst().orElseThrow();
+            check(shieldNode.all().contains("faustcore:shield_efficiency"),"shield combat requires economical shield block");
+            var shieldProgress=new com.faust.core.progression.Progress();shieldProgress.track(com.faust.core.progression.Skill.defense).level=20;
+            check(!shieldProgress.canUnlock(shieldNode,balance),"shield combat locked without prerequisite");
+            shieldProgress.unlocked.add("faustcore:shield_efficiency");check(shieldProgress.canUnlock(shieldNode,balance),"shield combat available after prerequisite");
+            shieldProgress.unlock(shieldNode.id(),balance);check(shieldProgress.revoke("faustcore:shield_efficiency",balance).contains(shieldNode.id()),"shield dependency revoked with parent");
+            var oldShield=com.faust.core.progression.Balance.JSON.toJsonTree(shieldNode).getAsJsonObject();oldShield.addProperty("parent","");
+            var migratedShield=Compat.relocate(com.faust.core.progression.Balance.JSON.fromJson(oldShield,com.faust.core.progression.Balance.Ability.class));
+            check(migratedShield.all().contains("faustcore:shield_efficiency"),"existing shield config gains prerequisite");
+            check(Compat.relocate(migratedShield).equals(migratedShield),"shield dependency migration idempotent");
             System.out.println("FAUST COMPAT RUNTIME CHECKS PASSED: "+checks);
             data.stamina=20;data.exhausted=false;
             player.setItemInHand(InteractionHand.MAIN_HAND,new ItemStack(Items.IRON_SWORD));player.setItemInHand(InteractionHand.OFF_HAND,new ItemStack(Items.IRON_SWORD));

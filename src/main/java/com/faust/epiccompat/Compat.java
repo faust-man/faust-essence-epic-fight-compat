@@ -61,7 +61,7 @@ public final class Compat {
         return com.faust.core.progression.Skill.valueOf(Rules.branch(name,category));
     }
     public static boolean isMastery(String id){return List.of(Combat.MASTERY,Combat.FIST_MASTERY,Combat.SHIELD_MASTERY,Combat.SWORD_MASTERY,Combat.DAGGER_MASTERY).contains(id);}
-    public static Balance.Ability mastery(String id){return new Balance.Ability(id,id.equals(Combat.SHIELD_MASTERY)?com.faust.core.progression.Skill.defense:id.equals(Combat.DAGGER_MASTERY)?com.faust.core.progression.Skill.dexterity:com.faust.core.progression.Skill.strength,5,"hits",0,"","faust_epic_compat:mastery",0);}
+    public static Balance.Ability mastery(String id){return new Balance.Ability(id,id.equals(Combat.SHIELD_MASTERY)?com.faust.core.progression.Skill.defense:id.equals(Combat.DAGGER_MASTERY)?com.faust.core.progression.Skill.dexterity:com.faust.core.progression.Skill.strength,5,"hits",0,id.equals(Combat.SHIELD_MASTERY)?"faustcore:shield_efficiency":"","faust_epic_compat:mastery",0);}
     public static Balance.Ability relocate(Balance.Ability a){
         var branch=a.id().equals("faust_epic_compat:epicfight/adaptive_skin")?com.faust.core.progression.Skill.constitution:a.id().equals("faust_epic_compat:epicfight/revelation")?com.faust.core.progression.Skill.intelligence:a.skill();
         var json=Balance.JSON.toJsonTree(a).getAsJsonObject();
@@ -70,6 +70,7 @@ public final class Compat {
             json.addProperty("skill","dexterity");json.addProperty("level",5);
             json.add("characteristics",com.google.gson.JsonParser.parseString("[{\"skill\":\"dexterity\",\"level\":5},{\"skill\":\"intelligence\",\"level\":5}]"));
         }
+        if(a.id().equals(Combat.SHIELD_MASTERY))json.addProperty("parent","faustcore:shield_efficiency");
         if(a.id().equals(Combat.SWORD_MASTERY))json.addProperty("parent","faust_epic_compat:epicfight/swordmaster");
         String counter=null;double amount=10;
         if(a.id().equals(Combat.FIST_MASTERY))counter=CombatPractice.FISTS;
