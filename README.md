@@ -1,3 +1,37 @@
+# Репозитории серии Faust Essence
+
+Текущие версии модов: **1.6.0**, Minecraft **1.21.1**, JDK **21**.
+`main` содержит последнюю версию разработки; `1.21.1` — ветка этой версии Minecraft.
+Mod ID, команды и пути данных сохраняются при смене отображаемых названий.
+
+- [Faust Essence](https://github.com/faust-man/faust-essence-core): Fabric и NeoForge.
+- [Faust Essence: Stamina](https://github.com/faust-man/faust-essence-stamina): Fabric и NeoForge, требует ядро.
+- [Faust Essence: Epic Fight Compat](https://github.com/faust-man/faust-essence-epic-fight-compat): только NeoForge, требует ядро и Epic Fight; Stamina необязателен.
+
+Для разработки клонируйте проекты рядом с указанными локальными именами:
+
+```powershell
+git clone -b 1.21.1 https://github.com/faust-man/faust-essence-core.git core
+git clone -b 1.21.1 https://github.com/faust-man/faust-essence-stamina.git faust-essence-stamina
+git clone -b 1.21.1 https://github.com/faust-man/faust-essence-epic-fight-compat.git "epic-fight compat"
+```
+
+Сначала запустите `./gradlew.bat build` из `core`: он собирает ядро и Stamina из
+соседних исходников и проверяет работу с дополнением и без него. В core остались
+только сборочные мосты `stamina/` и `stamina-fabric/`; исходники дополнения находятся
+в отдельном репозитории. Другой путь можно задать через `-PstaminaProjectDir=<путь>`.
+Затем выполните `./gradlew.bat build` из `faust-essence-stamina` и `epic-fight compat`.
+Stamina использует собранные JAR ядра; его путь меняется через `-PcoreProjectDir=<путь>`.
+Compat использует JAR из `../core/`, включая собранный там Stamina для тестов.
+Первой сборке нужен доступ к Maven; `--offline` работает только с заполненным кэшем.
+
+Из-за зависимости тестов ядра от Stamina для полной сборки ядра нужен соседний
+checkout Stamina. Для пользователей достаточно итоговых JAR нужных модов;
+исходники и соседние каталоги при запуске игры не нужны.
+
+Разделы ниже включают историю изменений; правила из раздела 1.6.0 имеют приоритет
+над прежними описаниями обязательной выносливости.
+
 ## Необязательная выносливость (1.6.0)
 
 Требуется core 1.6.0. Faust Stamina (`fauststamina`) теперь необязателен.
@@ -136,7 +170,7 @@ ID, изучение и зависимости навыков сохраняют
 10 Силы только пустой рукой, без перчаток. Похищение выносливости восстанавливает
 общий запас напрямую, до 2 за убийство по штатному проценту Epic Fight, без усталости.
 
-# epic-fight compat
+# Faust Essence: Epic Fight Compat
 
 Аддон Minecraft Java 1.21.1 для **NeoForge 21.1.219+**, **core 1.5.2**
 и **Epic Fight 21.17.3.1**. Устанавливается на клиент и сервер вместе с обоими модами.
@@ -318,7 +352,7 @@ ID узла: `faust_epic_compat:epicfight/roll`, эффект `faust_epic_compat
 
 ## Сборка и проверки
 
-JDK 21. Сначала соберите соседний `../core` версии 1.5.2 через его Wrapper.
+JDK 21. Сначала соберите соседний `../core` версии 1.6.0 через его Wrapper.
 Зависимость ядра берётся из `../core/neoforge/build/libs/`; Epic Fight — из
 [Modrinth Maven](https://epicfight-docs.readthedocs.io/API/Starting/).
 
@@ -329,7 +363,7 @@ JDK 21. Сначала соберите соседний `../core` версии 
 ./gradlew.bat runServer -PruntimeChecks
 ```
 
-JAR: `build/libs/faust-epic-fight-compat-1.21.1-1.5.1.jar`.
+JAR: `build/libs/faust-epic-fight-compat-1.21.1-1.6.0.jar`.
 `build` запускает 321 проверку распределения, правил оплаты, слотов и компактной раскладки.
 `runServer -PruntimeChecks` дополнительно запускает 270 проверок на игровом сервере:
 настоящие предметы Epic Fight (двуручный меч, копьё, перчатка), оба узла, недостаточный
