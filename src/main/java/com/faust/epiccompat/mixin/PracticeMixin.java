@@ -19,7 +19,7 @@ public class PracticeMixin {
         var weapon=needed?used.copy():net.minecraft.world.item.ItemStack.EMPTY;
         var kind=needed?CombatPractice.weapon(attacker,weapon):null;
         if(attacker!=null&&entity!=attacker&&com.faust.core.runtime.CoreRuntime.active(attacker)){
-            if(used.isEmpty()&&com.faust.core.runtime.CoreRuntime.data(attacker).enabled(com.faust.epiccompat.Combat.FIST_POWER,com.faust.core.runtime.CoreRuntime.balance))amount+=Math.floor(com.faust.core.runtime.CoreRuntime.data(attacker).track(com.faust.core.progression.Skill.strength).level/10.0);
+            if(com.faust.core.progression.StaminaServices.present()&&used.isEmpty()&&com.faust.core.runtime.CoreRuntime.data(attacker).enabled(com.faust.epiccompat.Combat.FIST_POWER,com.faust.core.runtime.CoreRuntime.balance))amount+=Math.floor(com.faust.core.runtime.CoreRuntime.data(attacker).track(com.faust.core.progression.Skill.strength).level/10.0);
         }
         boolean exhausted=source.getEntity() instanceof ServerPlayer p&&com.faust.core.runtime.CoreRuntime.data(p).actionsBlocked(com.faust.core.runtime.CoreRuntime.balance);
         boolean result=original.call(source,amount);

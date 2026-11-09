@@ -20,6 +20,21 @@ public final class RuntimeChecks {
         var player=FakePlayerFactory.get(event.getServer().overworld(),new GameProfile(UUID.fromString("9625401d-3174-4f98-bb52-e8002881a51b"),"CompatChecks"));
         var patch=new ServerPlayerPatch(player);
         var data=CoreRuntime.data(player);var balance=CoreRuntime.balance;
+        if(!com.faust.core.progression.StaminaServices.present()){
+            try{
+                check(balance.abilities.stream().noneMatch(a->Compat.isMastery(a.id())),"no custom combat nodes");
+                check(balance.abilities.stream().anyMatch(a->a.id().equals("faust_epic_compat:epicfight/roll")),"native roll node retained");
+                check(balance.abilities.stream().anyMatch(a->a.id().equals("faustcore:training_constitution_health")),"core health retained");
+                data.stamina=7;data.fatigue=3;data.exhausted=true;
+                patch.setStamina(6);check(Math.abs(patch.getStamina()-6)<0.001,"native Epic Fight resource setter and getter");
+                check(data.stamina==7&&data.fatigue==3,"native resource independent of archived core data");
+                check(CoreRuntime.pay(player,10)&&data.stamina==7,"no core resource payment");
+                check(CoreRuntime.canAct(player),"old exhaustion cannot block actions");
+                balance.validate();
+                System.out.println("Standalone Epic Fight server checks passed: "+checks);
+            }finally{event.getServer().halt(false);}
+            return;
+        }
         double oldAttack=balance.stamina.get("attackCost");
         var vanillaRule=yesman.epicfight.world.gamerule.EpicFightGameRules.ALLOW_VANILLA_MELEE;
         boolean oldVanilla=vanillaRule.getRuleValue(player.level());

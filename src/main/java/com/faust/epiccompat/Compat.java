@@ -27,7 +27,7 @@ public final class Compat {
     }
     private void tick(net.neoforged.neoforge.event.tick.PlayerTickEvent.Post event){
         if(!(event.getEntity() instanceof net.minecraft.server.level.ServerPlayer player))return;
-        if(CoreRuntime.active(player)){Milestones.fatigue(CoreRuntime.data(player));Milestones.visitEnd(player);}
+        if(CoreRuntime.active(player)){if(com.faust.core.progression.StaminaServices.present())Milestones.fatigue(CoreRuntime.data(player));Milestones.visitEnd(player);}
         if(player.tickCount%5!=0)return;
         yesman.epicfight.world.capabilities.EpicFightCapabilities.getUnparameterizedEntityPatch(player,yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch.class).ifPresent(patch->{
             for(var container:patch.getPlayerSkills().skillContainers){
@@ -125,8 +125,22 @@ public final class Compat {
         return parts.length==2?EpicFightRegistries.SKILL.get(ResourceLocation.fromNamespaceAndPath(parts[0],parts[1])):null;
     }
     public static void extend(Balance balance) {
-        for(var node:nodes)if(balance.abilities.stream().noneMatch(a->a.id().equals(node.id())))balance.abilities.add(node);
+        for(var node:nodes)if((com.faust.core.progression.StaminaServices.present()||!isMastery(node.id()))&&balance.abilities.stream().noneMatch(a->a.id().equals(node.id())))balance.abilities.add(node);
         for(int i=0;i<balance.abilities.size();i++)balance.abilities.set(i,relocate(balance.abilities.get(i)));
+        if(!com.faust.core.progression.StaminaServices.present()){
+            var removed=new HashSet<String>();
+            for(var a:balance.abilities)if(isMastery(a.id()))removed.add(a.id());
+            balance.abilities.removeIf(a->removed.contains(a.id()));
+            for(int i=0;i<balance.abilities.size();i++){
+                var a=com.faust.core.progression.StaminaContent.detach(balance.abilities.get(i),removed);
+                // These requirements describe Faust fatigue/exhaustion, absent with native Epic Fight stamina.
+                if(a.id().equals("faust_epic_compat:epicfight/emergency_escape")||a.id().equals("faust_epic_compat:epicfight/adrenaline_fiend")){
+                    var json=Balance.JSON.toJsonTree(a).getAsJsonObject();json.addProperty("counter","");json.addProperty("amount",0);json.add("conditions",new com.google.gson.JsonArray());
+                    a=Balance.JSON.fromJson(json,Balance.Ability.class);
+                }
+                balance.abilities.set(i,a);
+            }
+        }
         // Preserve Core positions; reflow addon nodes into the left branches and compact grid.
         var layouts=new ArrayList<com.faust.core.progression.SkillTrees.Tree>(balance.trees);
         for(var branch:com.faust.core.progression.Skill.values()){
