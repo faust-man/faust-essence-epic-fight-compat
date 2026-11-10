@@ -3,6 +3,14 @@ public final class RulesTest {
     private static int checks;
     private static void check(boolean result){checks++;if(!result)throw new AssertionError("Check "+checks);}
     public static void main(String[] args){
+        var fist=Compat.relocate(Compat.mastery(Combat.FIST_POWER));check(fist.counter().equals(CombatPractice.FIST_DAMAGE)&&fist.amount()==100);
+        for(String name:java.util.List.of("technician","demolition_leap","phantom_ascent","endurance")){
+            var node=Compat.relocate(new com.faust.core.progression.Balance.Ability("faust_epic_compat:epicfight/"+name,com.faust.core.progression.Skill.dexterity,5,"hits",0,"","faust_epic_compat:skill",0));
+            if(name.equals("technician"))check(node.counter().equals("skill_levels")&&node.amount()==0);
+            if(name.equals("demolition_leap"))check(node.skill()==com.faust.core.progression.Skill.strength&&node.level()==5);
+            if(name.equals("phantom_ascent"))check(node.skill()==com.faust.core.progression.Skill.dexterity&&node.level()==10);
+            if(name.equals("endurance"))check(node.counter().equals("faust_epic_peak_stamina")&&node.amount()==30);
+        }
         check(Rules.branch("roll","DODGE").equals("dexterity"));
         check(Rules.branch("technician","PASSIVE").equals("dexterity"));
         check(Rules.branch("new_custom_skill","MOVER").equals("dexterity"));

@@ -27,7 +27,7 @@ public final class Compat {
     }
     private void tick(net.neoforged.neoforge.event.tick.PlayerTickEvent.Post event){
         if(!(event.getEntity() instanceof net.minecraft.server.level.ServerPlayer player))return;
-        if(CoreRuntime.active(player)){if(com.faust.core.progression.StaminaServices.present())Milestones.fatigue(CoreRuntime.data(player));Milestones.visitEnd(player);}
+        if(CoreRuntime.active(player)){if(com.faust.core.progression.StaminaServices.present()){Milestones.fatigue(CoreRuntime.data(player));Milestones.peak(CoreRuntime.data(player),"peak_stamina",CoreRuntime.data(player).maxStamina(CoreRuntime.balance));}Milestones.visitEnd(player);}
         if(player.tickCount%5!=0)return;
         yesman.epicfight.world.capabilities.EpicFightCapabilities.getUnparameterizedEntityPatch(player,yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch.class).ifPresent(patch->{
             for(var container:patch.getPlayerSkills().skillContainers){
@@ -90,6 +90,7 @@ public final class Compat {
             json.add("characteristics",new com.google.gson.JsonArray());json.add("conditions",new com.google.gson.JsonArray());
         }
         if(a.id().equals("faust_epic_compat:epicfight/demolition_leap")||a.id().equals("faust_epic_compat:epicfight/phantom_ascent")){
+            json.addProperty("skill",a.id().endsWith("/demolition_leap")?"strength":"dexterity");json.addProperty("level",a.id().endsWith("/demolition_leap")?5:10);json.add("characteristics",new com.google.gson.JsonArray());
             json.addProperty("counter",CombatPractice.JUMPS);json.addProperty("amount",100);json.add("conditions",new com.google.gson.JsonArray());
         }
         if(a.id().equals("faust_epic_compat:epicfight/step")){
@@ -100,7 +101,7 @@ public final class Compat {
         if(a.id().equals(Combat.SWORD_MASTERY))json.addProperty("parent","faust_epic_compat:epicfight/swordmaster");
         if(a.id().equals(Combat.DAGGER_MASTERY))json.addProperty("parent","faust_epic_compat:epicfight/technician");
         if(a.id().equals("faustcore:shield_efficiency")){json.addProperty("value",0.5);}
-        if(a.id().equals(Combat.FIST_POWER))json.addProperty("parent",Combat.FIST_MASTERY);
+        if(a.id().equals(Combat.FIST_POWER)){json.addProperty("parent",Combat.FIST_MASTERY);json.addProperty("counter",CombatPractice.FIST_DAMAGE);json.addProperty("amount",100);json.add("conditions",new com.google.gson.JsonArray());}
         String counter=null;double amount=10;
         if(a.id().equals(Combat.SHIELD_MASTERY)){counter=CombatPractice.SHIELD_HITS;amount=100;}
         if(a.id().equals(Combat.DAGGER_MASTERY))counter=CombatPractice.DAGGER_HITS;
@@ -131,12 +132,18 @@ public final class Compat {
             var removed=new HashSet<String>();
             for(var a:balance.abilities)if(isMastery(a.id()))removed.add(a.id());
             balance.abilities.removeIf(a->removed.contains(a.id()));
+            var staminaDependent=new HashSet<String>();staminaDependent.add("faust_epic_compat:epicfight/endurance");
+            boolean changed;
+            do{changed=false;for(var node:balance.abilities)if(node.id().startsWith("faust_epic_compat:")&&node.dependencies().stream().anyMatch(id->staminaDependent.contains(id)||removed.contains(id)||id.equals("faustcore:training_constitution_stamina")))changed|=staminaDependent.add(node.id());}while(changed);
             for(int i=0;i<balance.abilities.size();i++){
                 var a=com.faust.core.progression.StaminaContent.detach(balance.abilities.get(i),removed);
                 // These requirements describe Faust fatigue/exhaustion, absent with native Epic Fight stamina.
                 if(a.id().equals("faust_epic_compat:epicfight/emergency_escape")||a.id().equals("faust_epic_compat:epicfight/adrenaline_fiend")){
                     var json=Balance.JSON.toJsonTree(a).getAsJsonObject();json.addProperty("counter","");json.addProperty("amount",0);json.add("conditions",new com.google.gson.JsonArray());
                     a=Balance.JSON.fromJson(json,Balance.Ability.class);
+                }
+                if(staminaDependent.contains(a.id())){
+                    var json=Balance.JSON.toJsonTree(a).getAsJsonObject();json.addProperty("skill","constitution");json.addProperty("level",10);json.add("characteristics",new com.google.gson.JsonArray());json.addProperty("parent","");json.add("requiresAll",new com.google.gson.JsonArray());json.add("requiresAny",new com.google.gson.JsonArray());json.addProperty("requiresCount",0);json.addProperty("counter","skill_levels");json.addProperty("amount",0);json.add("conditions",new com.google.gson.JsonArray());a=Balance.JSON.fromJson(json,Balance.Ability.class);
                 }
                 balance.abilities.set(i,a);
             }
