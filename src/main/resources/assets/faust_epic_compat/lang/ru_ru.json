@@ -42,5 +42,6 @@
   "core.counter.faust_epic_sweet_food": "съеденных предметов из sweetFoods",
   "core.counter.faust_epic_visited_end": "посещение Энда",
   "core.counter.faust_epic_fist_damage": "Урон кулаками",
-  "core.counter.faust_epic_peak_stamina": "Максимальная выносливость"
+  "core.counter.faust_epic_peak_stamina": "Максимальная выносливость",
+  "faust_epic_compat.unlock": "Открыть"
 }

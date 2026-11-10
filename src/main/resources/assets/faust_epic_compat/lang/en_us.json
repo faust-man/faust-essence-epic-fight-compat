@@ -42,5 +42,6 @@
   "core.counter.faust_epic_sweet_food": "foods eaten from sweetFoods",
   "core.counter.faust_epic_visited_end": "visit to the End",
   "core.counter.faust_epic_fist_damage": "Fist damage",
-  "core.counter.faust_epic_peak_stamina": "Maximum stamina"
+  "core.counter.faust_epic_peak_stamina": "Maximum stamina",
+  "faust_epic_compat.unlock": "Unlock"
 }

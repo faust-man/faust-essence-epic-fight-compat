@@ -27,7 +27,7 @@ public abstract class TreeMixin {
     @Inject(method="mouseClicked",at=@At("HEAD"),cancellable=true)
     private void select(double x,double y,int button,CallbackInfoReturnable<Boolean> cir){
         if(button!=0||CoreClient.progress==null)return;
-        var node=hovered(x,y);if(node==null||!CoreClient.progress.unlocked.contains(node.ability()))return;
+        var node=hovered(x,y);if(node==null)return;
         var skill=Compat.skill(node.ability());var mc=Minecraft.getInstance();
         if(skill!=null&&mc.player!=null){mc.setScreen(new SelectSkillScreen(mc.player,skill,(CoreScreen)(Object)this));cir.setReturnValue(true);}
     }

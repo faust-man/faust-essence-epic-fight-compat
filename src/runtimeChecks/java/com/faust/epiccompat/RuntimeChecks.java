@@ -20,6 +20,7 @@ public final class RuntimeChecks {
         var player=FakePlayerFactory.get(event.getServer().overworld(),new GameProfile(UUID.fromString("9625401d-3174-4f98-bb52-e8002881a51b"),"CompatChecks"));
         var patch=new ServerPlayerPatch(player);
         var data=CoreRuntime.data(player);var balance=CoreRuntime.balance;
+        ownershipChecks(player);
         if(!com.faust.core.progression.StaminaServices.present()){
             try{
                 check(balance.abilities.stream().noneMatch(a->Compat.isMastery(a.id())),"no custom combat nodes");
@@ -252,6 +253,27 @@ public final class RuntimeChecks {
         passive.setSkill(null);
         attached.getSkill(SkillSlots.GUARD).setSkill(parrySkill);attached.startSkillHolding((yesman.epicfight.skill.modules.HoldableSkill)parrySkill);check(!GuardRecovery.blocked(training),"parrying unchanged by guard-only recovery rule");attached.resetHolding();
 
+    }
+    private static void ownershipChecks(net.minecraft.server.level.ServerPlayer player){
+        var patch=yesman.epicfight.world.capabilities.EpicFightCapabilities.getEntityPatch(player,ServerPlayerPatch.class);
+        var progress=CoreRuntime.data(player);
+        var context=(net.neoforged.neoforge.network.handling.IPayloadContext)java.lang.reflect.Proxy.newProxyInstance(RuntimeChecks.class.getClassLoader(),new Class[]{net.neoforged.neoforge.network.handling.IPayloadContext.class},(proxy,method,args)->{
+            if(method.getName().equals("player"))return player;
+            if(method.getName().equals("enqueueWork")){((Runnable)args[0]).run();return java.util.concurrent.CompletableFuture.completedFuture(null);}return null;
+        });
+        for(String name:java.util.List.of("roll","impact_guard","parrying")){
+            var skill=yesman.epicfight.registry.EpicFightRegistries.SKILL.get(net.minecraft.resources.ResourceLocation.parse("epicfight:"+name));
+            var slot=name.equals("roll")?SkillSlots.DODGE:SkillSlots.GUARD;
+            var container=patch.getSkill(slot);container.setSkill(null);
+            String id=Compat.nodeId(skill);progress.unlocked.remove(id);
+            check(!container.setSkill(skill),"locked skill rejected by container: "+name);
+            yesman.epicfight.network.EpicFightServerBoundPayloadHandler.handleChangeSkill(new yesman.epicfight.network.client.CPChangeSkill(slot,skill.holder(),-1),context);
+            check(container.getSkill()==null,"forged equip packet rejected: "+name);
+            progress.unlocked.add(id);
+            check(container.setSkill(skill),"learned skill can equip without base guard equipped: "+name);
+            container.setSkill(null);progress.unlocked.remove(id);
+            check(!container.setSkill(skill),"revoked skill cannot equip: "+name);
+        }
     }
     private static void jumpChecks(com.faust.core.progression.Balance balance,net.minecraft.server.level.ServerPlayer player,ServerPlayerPatch ignored){
         var patch=yesman.epicfight.world.capabilities.EpicFightCapabilities.getEntityPatch(player,ServerPlayerPatch.class);
