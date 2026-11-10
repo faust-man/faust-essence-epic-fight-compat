@@ -7,7 +7,16 @@ public final class RulesTest {
         for(String name:java.util.List.of("technician","demolition_leap","phantom_ascent","endurance")){
             var node=Compat.relocate(new com.faust.core.progression.Balance.Ability("faust_epic_compat:epicfight/"+name,com.faust.core.progression.Skill.dexterity,5,"hits",0,"","faust_epic_compat:skill",0));
             if(name.equals("technician"))check(node.counter().equals("skill_levels")&&node.amount()==0);
-            if(name.equals("demolition_leap"))check(node.skill()==com.faust.core.progression.Skill.strength&&node.level()==5);
+            if(name.equals("demolition_leap")){
+                check(node.skill()==com.faust.core.progression.Skill.dexterity&&node.level()==5);
+                check(node.skillRequirements().equals(java.util.List.of(new com.faust.core.progression.Balance.SkillRequirement(com.faust.core.progression.Skill.dexterity,5),new com.faust.core.progression.Balance.SkillRequirement(com.faust.core.progression.Skill.strength,5))));
+                var balance=new com.faust.core.progression.Balance();balance.abilities.add(node);balance.validate();
+                for(int dex:new int[]{4,5})for(int strength:new int[]{4,5}){
+                    var progress=new com.faust.core.progression.Progress();progress.track(com.faust.core.progression.Skill.dexterity).level=dex;progress.track(com.faust.core.progression.Skill.strength).level=strength;progress.setCounter(CombatPractice.JUMPS,100,balance);
+                    check(progress.canUnlock(node,balance)==(dex>=5&&strength>=5));
+                }
+                check(Compat.relocate(node).equals(node));
+            }
             if(name.equals("phantom_ascent"))check(node.skill()==com.faust.core.progression.Skill.dexterity&&node.level()==10);
             if(name.equals("endurance"))check(node.counter().equals("faust_epic_peak_stamina")&&node.amount()==30);
         }

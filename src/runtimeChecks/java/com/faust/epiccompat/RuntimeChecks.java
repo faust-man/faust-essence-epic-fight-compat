@@ -287,7 +287,12 @@ public final class RuntimeChecks {
             check(ability.all().isEmpty(),"jump has no added parent");
             var p=new com.faust.core.progression.Progress();for(var s:com.faust.core.progression.Skill.values())p.track(s).level=20;
             p.setCounter(CombatPractice.JUMPS,99.0,balance);check(!p.canUnlock(ability,balance),"99 jumps rejected");p.setCounter(CombatPractice.JUMPS,100.0,balance);check(p.canUnlock(ability,balance),"100 jumps accepted");
-            var node=balance.trees.stream().filter(t->t.skill()==ability.skill()).flatMap(t->t.nodes().stream()).filter(n->n.ability().equals(id)).findFirst().orElseThrow();if(name.equals("phantom_ascent"))check(node.x()==bow.x()&&node.y()==bow.y()+40,"phantom below bow mastery");check(ability.skill()==(name.equals("demolition_leap")?com.faust.core.progression.Skill.strength:com.faust.core.progression.Skill.dexterity),"jump characteristic");previous=node;
+            var node=tree.nodes().stream().filter(n->n.ability().equals(id)).findFirst().orElseThrow();check(node.x()==bow.x()&&node.y()==previous.y()+40,"jump column below bow mastery");check(ability.skill()==com.faust.core.progression.Skill.dexterity,"both jumps stay in dexterity");previous=node;
+            if(name.equals("demolition_leap")){
+                p.track(com.faust.core.progression.Skill.dexterity).level=4;check(!p.canUnlock(ability,balance),"leap rejects dexterity4");
+                p.track(com.faust.core.progression.Skill.dexterity).level=5;p.track(com.faust.core.progression.Skill.strength).level=4;check(!p.canUnlock(ability,balance),"leap rejects strength4");
+                p.track(com.faust.core.progression.Skill.strength).level=5;check(p.canUnlock(ability,balance),"leap accepts dexterity5 and strength5");
+            }else{p.track(com.faust.core.progression.Skill.dexterity).level=9;check(!p.canUnlock(ability,balance),"phantom rejects dexterity9");p.track(com.faust.core.progression.Skill.dexterity).level=10;check(p.canUnlock(ability,balance),"phantom accepts dexterity10");}
             check(Compat.relocate(ability).equals(ability),"jump conditions idempotent");data.unlocked.add(id);
         }
         var registry=yesman.epicfight.registry.EpicFightRegistries.SKILL;

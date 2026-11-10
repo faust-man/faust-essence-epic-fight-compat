@@ -90,7 +90,8 @@ public final class Compat {
             json.add("characteristics",new com.google.gson.JsonArray());json.add("conditions",new com.google.gson.JsonArray());
         }
         if(a.id().equals("faust_epic_compat:epicfight/demolition_leap")||a.id().equals("faust_epic_compat:epicfight/phantom_ascent")){
-            json.addProperty("skill",a.id().endsWith("/demolition_leap")?"strength":"dexterity");json.addProperty("level",a.id().endsWith("/demolition_leap")?5:10);json.add("characteristics",new com.google.gson.JsonArray());
+            json.addProperty("skill","dexterity");json.addProperty("level",a.id().endsWith("/demolition_leap")?5:10);
+            json.add("characteristics",Balance.JSON.toJsonTree(a.id().endsWith("/demolition_leap")?List.of(new Balance.SkillRequirement(com.faust.core.progression.Skill.dexterity,5),new Balance.SkillRequirement(com.faust.core.progression.Skill.strength,5)):List.of(new Balance.SkillRequirement(com.faust.core.progression.Skill.dexterity,10))));
             json.addProperty("counter",CombatPractice.JUMPS);json.addProperty("amount",100);json.add("conditions",new com.google.gson.JsonArray());
         }
         if(a.id().equals("faust_epic_compat:epicfight/step")){
