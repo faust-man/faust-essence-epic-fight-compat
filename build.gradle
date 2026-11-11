@@ -43,3 +43,10 @@ tasks.register('withoutStaminaTest',JavaExec) {
     mainClass='com.faust.epiccompat.WithoutStaminaTest'
 }
 tasks.named('test') { dependsOn withoutStaminaTest }
+
+sourceSets.create('revisionChecks')
+sourceSets.revisionChecks {
+    compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
+    runtimeClasspath += sourceSets.main.output + sourceSets.main.runtimeClasspath
+}
+if(project.hasProperty('revisionChecks'))neoForge.mods.faust_epic_compat.sourceSet(sourceSets.revisionChecks)

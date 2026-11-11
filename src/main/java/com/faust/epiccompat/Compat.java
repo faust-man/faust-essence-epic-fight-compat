@@ -15,15 +15,38 @@ import java.util.*;
 @Mod("faust_epic_compat")
 public final class Compat {
     private static List<Balance.Ability> nodes = List.of();
-    public Compat(net.neoforged.bus.api.IEventBus bus) {
+    public Compat(net.neoforged.bus.api.IEventBus bus,net.neoforged.fml.ModContainer container) {
+        if(net.neoforged.fml.loading.FMLEnvironment.dist==net.neoforged.api.distmarker.Dist.CLIENT)Client.register(container);
         var modifiers=net.neoforged.neoforge.registries.DeferredRegister.create(net.neoforged.neoforge.registries.NeoForgeRegistries.Keys.GLOBAL_LOOT_MODIFIER_SERIALIZERS,"faust_epic_compat");
         modifiers.register("remove_books",()->RemoveBooks.CODEC);modifiers.register(bus);
         bus.addListener((net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent event)->{
             var entries=new java.util.HashSet<>(event.getParentEntries());entries.addAll(event.getSearchEntries());
             for(var entry:entries)if(entry.getItem() instanceof yesman.epicfight.world.item.SkillBookItem)event.remove(entry,net.minecraft.world.item.CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS);
         });
+        Balance.CONFIG_SAVED=(section,balance)->{
+            if(!section.equals("abilities"))return;
+            var selected=balance.abilities.stream().filter(a->a.id().startsWith("faust_epic_compat:")).toList();
+            try{Path file=FMLPaths.CONFIGDIR.get().resolve("faust-epic-compat/abilities.json");Files.createDirectories(file.getParent());Files.writeString(file,Balance.JSON.toJson(selected)+"\n");nodes=selected;}
+            catch(java.io.IOException e){throw new java.io.UncheckedIOException(e);}
+        };
         NeoForge.EVENT_BUS.addListener(this::start);
         NeoForge.EVENT_BUS.addListener(this::tick);
+    }
+    private static class Client {
+        static void register(net.neoforged.fml.ModContainer container){container.registerExtensionPoint(net.neoforged.neoforge.client.gui.IConfigScreenFactory.class,(net.neoforged.neoforge.client.gui.IConfigScreenFactory)(c,parent)->{prepareConfig();return new com.faust.core.client.CoreConfigScreen(parent,java.util.List.of("abilities","trees","integrations"),"faust_epic_compat");});}
+    }
+    private static void prepareConfig(){
+        if(!nodes.isEmpty())return;
+        Path file=FMLPaths.CONFIGDIR.get().resolve("faust-epic-compat/abilities.json");
+        try{
+            if(Files.exists(file))nodes=Arrays.asList(Balance.JSON.fromJson(Files.readString(file),Balance.Ability[].class));
+            else{
+                var defaults=new ArrayList<Balance.Ability>();
+                for(Skill skill:EpicFightRegistries.SKILL)if(skill.getCategory().learnable())defaults.add(new Balance.Ability(nodeId(skill),branch(skill.getRegistryName().getPath(),skill.getCategory().toString()),5,"hits",0,"","faust_epic_compat:skill",0));
+                for(String id:List.of(Combat.MASTERY,Combat.FIST_MASTERY,Combat.SHIELD_MASTERY,Combat.SWORD_MASTERY,Combat.DAGGER_MASTERY,Combat.FIST_POWER,Combat.SHIELD_EFFICIENCY))defaults.add(mastery(id));
+                nodes=defaults.stream().map(Compat::relocate).toList();
+            }
+        }catch(java.io.IOException e){throw new java.io.UncheckedIOException(e);}
     }
     private void tick(net.neoforged.neoforge.event.tick.PlayerTickEvent.Post event){
         if(!(event.getEntity() instanceof net.minecraft.server.level.ServerPlayer player))return;
@@ -54,8 +77,10 @@ public final class Compat {
             }
             var merged=new ArrayList<>(nodes);
             for(String id:List.of(Combat.MASTERY,Combat.FIST_MASTERY,Combat.SHIELD_MASTERY,Combat.SWORD_MASTERY,Combat.DAGGER_MASTERY,Combat.FIST_POWER,Combat.SHIELD_EFFICIENCY))if(merged.stream().noneMatch(a->a.id().equals(id)))merged.add(mastery(id));
-            for(int i=0;i<merged.size();i++)merged.set(i,relocate(merged.get(i)));
+            Path revision=file.resolveSibling(".requirements-revision");
+            if(!Files.exists(revision))for(int i=0;i<merged.size();i++)merged.set(i,relocate(merged.get(i)));
             if(!merged.equals(nodes)){nodes=merged;Files.writeString(file,Balance.JSON.toJson(nodes)+"\n");}
+            Files.writeString(revision,"1\n");
             extend(CoreRuntime.balance);
         } catch(Exception ex) { throw new IllegalStateException("Invalid Epic Fight compatibility configuration: "+file,ex); }
     }
@@ -101,7 +126,7 @@ public final class Compat {
         if(a.id().equals(Combat.SHIELD_EFFICIENCY))json.addProperty("parent","faust_epic_compat:epicfight/guard");
         if(a.id().equals(Combat.SWORD_MASTERY))json.addProperty("parent","faust_epic_compat:epicfight/swordmaster");
         if(a.id().equals(Combat.DAGGER_MASTERY))json.addProperty("parent","faust_epic_compat:epicfight/technician");
-        if(a.id().equals("faustcore:shield_efficiency")){json.addProperty("value",0.5);}
+        if(a.id().equals("faustcore:shield_efficiency")){json.addProperty("value",2);}
         if(a.id().equals(Combat.FIST_POWER)){json.addProperty("parent",Combat.FIST_MASTERY);json.addProperty("counter",CombatPractice.FIST_DAMAGE);json.addProperty("amount",100);json.add("conditions",new com.google.gson.JsonArray());}
         String counter=null;double amount=10;
         if(a.id().equals(Combat.SHIELD_MASTERY)){counter=CombatPractice.SHIELD_HITS;amount=100;}
@@ -129,6 +154,7 @@ public final class Compat {
     public static void extend(Balance balance) {
         for(var node:nodes)if((com.faust.core.progression.StaminaServices.present()||!isMastery(node.id()))&&balance.abilities.stream().noneMatch(a->a.id().equals(node.id())))balance.abilities.add(node);
         for(int i=0;i<balance.abilities.size();i++)balance.abilities.set(i,relocate(balance.abilities.get(i)));
+        for(var configured:nodes)for(int i=0;i<balance.abilities.size();i++)if(balance.abilities.get(i).id().equals(configured.id()))balance.abilities.set(i,configured);
         if(!com.faust.core.progression.StaminaServices.present()){
             var removed=new HashSet<String>();
             for(var a:balance.abilities)if(isMastery(a.id()))removed.add(a.id());
@@ -144,7 +170,7 @@ public final class Compat {
                     a=Balance.JSON.fromJson(json,Balance.Ability.class);
                 }
                 if(staminaDependent.contains(a.id())){
-                    var json=Balance.JSON.toJsonTree(a).getAsJsonObject();json.addProperty("skill","constitution");json.addProperty("level",10);json.add("characteristics",new com.google.gson.JsonArray());json.addProperty("parent","");json.add("requiresAll",new com.google.gson.JsonArray());json.add("requiresAny",new com.google.gson.JsonArray());json.addProperty("requiresCount",0);json.addProperty("counter","skill_levels");json.addProperty("amount",0);json.add("conditions",new com.google.gson.JsonArray());a=Balance.JSON.fromJson(json,Balance.Ability.class);
+                    var json=Balance.JSON.toJsonTree(a).getAsJsonObject();json.addProperty("skill","constitution");json.addProperty("level",7);json.add("characteristics",new com.google.gson.JsonArray());json.addProperty("parent","");json.add("requiresAll",new com.google.gson.JsonArray());json.add("requiresAny",new com.google.gson.JsonArray());json.addProperty("requiresCount",0);json.addProperty("counter","skill_levels");json.addProperty("amount",0);json.add("conditions",new com.google.gson.JsonArray());a=Balance.JSON.fromJson(json,Balance.Ability.class);
                 }
                 balance.abilities.set(i,a);
             }
@@ -191,6 +217,12 @@ public final class Compat {
             }
             if(branch==com.faust.core.progression.Skill.strength)swapPositions(placed,Combat.MASTERY,Combat.FIST_POWER);
             if(branch==com.faust.core.progression.Skill.dexterity)alignDexterity(placed);
+            if(branch==com.faust.core.progression.Skill.constitution){
+                var health=placed.stream().filter(n->n.ability().equals("faustcore:training_constitution_health")).findFirst().orElse(null);
+                var recovery=placed.stream().filter(n->n.ability().equals("faustcore:resilient_recovery")).findFirst().orElse(null);
+                if(health!=null){move(placed,"faust_epic_compat:epicfight/hypervitality",health.x()-40,health.y());move(placed,"faust_epic_compat:epicfight/hyper_vitality",health.x()-40,health.y());move(placed,"faust_epic_compat:epicfight/endurance",health.x()+40,health.y());move(placed,"faust_epic_compat:epicfight/adaptive_skin",health.x(),health.y()+40);}
+                if(recovery!=null)move(placed,"faust_epic_compat:epicfight/stamina_pillager",recovery.x()+40,recovery.y());
+            }
             if(tree!=null)layouts.remove(tree);
             layouts.add(new com.faust.core.progression.SkillTrees.Tree(branch,placed));
         }
@@ -198,6 +230,9 @@ public final class Compat {
         balance.validate();
     }
 
+    private static void move(List<com.faust.core.progression.SkillTrees.Node> nodes,String id,double x,double y){
+        for(int i=0;i<nodes.size();i++)if(nodes.get(i).ability().equals(id)){var n=nodes.get(i);nodes.set(i,new com.faust.core.progression.SkillTrees.Node(id,x,y,n.icon()));return;}
+    }
     private static void alignDexterity(List<com.faust.core.progression.SkillTrees.Node> placed){
         String roll="faust_epic_compat:epicfight/roll",step="faust_epic_compat:epicfight/step",tech="faust_epic_compat:epicfight/technician";
         var dodge=placed.stream().filter(n->n.ability().equals(roll)).findFirst().orElse(null);
