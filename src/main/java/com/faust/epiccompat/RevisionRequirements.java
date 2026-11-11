@@ -17,7 +17,7 @@ final class RevisionRequirements {
         else if(level!=a.level())j.add("characteristics",Balance.JSON.toJsonTree(List.of(new Balance.SkillRequirement(a.skill(),level))));
         String parent=switch(n){case "swordmaster"->"faust_epic_compat:epicfight/technician";case "endurance","hypervitality","hyper_vitality"->"faustcore:training_constitution_stamina";case "adaptive_skin"->"faustcore:training_constitution_health";case "stamina_pillager"->"faustcore:second_wind";default->null;};
         if(parent!=null)j.addProperty("parent",parent);
-        if(a.id().equals(Combat.SHIELD_EFFICIENCY))j.addProperty("value",2);
+        if(a.id().equals(Combat.SHIELD_EFFICIENCY))j.addProperty("value",1);
         return Balance.JSON.fromJson(j,Balance.Ability.class);
     }
 }

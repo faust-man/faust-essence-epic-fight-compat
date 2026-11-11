@@ -24,7 +24,7 @@ public final class BalanceRevisionRuntime {
             p.stamina=10;p.exhausted=false;p.unlocked.clear();check(CoreRuntime.shieldPayment(player,false)&&p.stamina==8,"full shield segment");
             check(CoreRuntime.shieldPayment(player,true)&&p.stamina==7,"half shield segment for arrow");
             p.unlocked.add("faustcore:shield_efficiency");check(CoreRuntime.shieldPayment(player,true)&&p.stamina==7,"arrow cannot restore stamina");
-            check(CoreRuntime.shieldPayment(player,false)&&p.stamina==7,"melee discount");
+            check(CoreRuntime.shieldPayment(player,false)&&p.stamina==6,"melee discount");
             for(String name:java.util.List.of("roll","guard","impact_guard","swordmaster","endurance","hypervitality","adaptive_skin","stamina_pillager")){
                 var a=b.abilities.stream().filter(x->x.id().equals("faust_epic_compat:epicfight/"+name)).findFirst().orElseThrow();
                 check(a.level()==(name.equals("roll")||name.equals("guard")?3:name.equals("impact_guard")?10:name.equals("endurance")||name.equals("hypervitality")?7:a.level()),"level "+name);
@@ -41,6 +41,12 @@ public final class BalanceRevisionRuntime {
             for(String name:java.util.List.of("endurance","hypervitality")){var n=b.trees.stream().flatMap(t->t.nodes().stream()).filter(x->x.ability().endsWith("/"+name)).findFirst().orElseThrow();check(n.y()==health.y(),"constitution alignment");}
             var pair=b.abilities.stream().filter(x->x.id().equals(Combat.SWORD_MASTERY)).findFirst().orElseThrow();check(pair.skillRequirements().equals(java.util.List.of(new Balance.SkillRequirement(Skill.strength,10),new Balance.SkillRequirement(Skill.dexterity,5))),"paired swords requirements");
             var master=b.abilities.stream().filter(x->x.id().endsWith("/swordmaster")).findFirst().orElseThrow();check(master.parent().endsWith("/technician"),"swordmaster prerequisite");
+            var row=b.trees.stream().filter(t->t.skill()==Skill.constitution).findFirst().orElseThrow().nodes();
+            for(String name:java.util.List.of("faustcore:resilient_recovery","faust_epic_compat:epicfight/stamina_pillager")){var n=row.stream().filter(x->x.ability().equals(name)).findFirst().orElseThrow();check(n.y()==health.y()&&n.x()>health.x()+40,"recovery row separated");}
+            for(String name:java.util.List.of("catharsis","death_harvest")){var n=row.stream().filter(x->x.ability().endsWith("/"+name)).findFirst().orElseThrow();check(n.y()==skin.y(),"skin row aligned");}
+            p.unlocked.add(Combat.SHIELD_EFFICIENCY);double remaining=p.stamina;check(CoreRuntime.shieldPayment(player,false)&&p.stamina==remaining,"combined discounts clamp at zero");
+            for(var left:row)for(var right:row)if(!left.ability().equals(right.ability()))check(Math.abs(left.x()-right.x())>=22||Math.abs(left.y()-right.y())>=22,"constitution nodes do not overlap");
+            double xp=p.track(Skill.building).xp;CoreRuntime.stat(player,net.minecraft.stats.Stats.BLOCK_MINED.get(net.minecraft.world.level.block.Blocks.STONE),1);check(p.track(Skill.building).xp>xp,"mining grants building experience");
             b.validate();System.out.println("Balance revision server checks passed: "+checks);
         }finally{event.getServer().halt(false);}
     }

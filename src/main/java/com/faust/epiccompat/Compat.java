@@ -80,6 +80,11 @@ public final class Compat {
             Path revision=file.resolveSibling(".requirements-revision");
             if(!Files.exists(revision))for(int i=0;i<merged.size();i++)merged.set(i,relocate(merged.get(i)));
             if(!merged.equals(nodes)){nodes=merged;Files.writeString(file,Balance.JSON.toJson(nodes)+"\n");}
+            Path followup=file.resolveSibling(".balance-followup");
+            if(!Files.exists(followup)){
+                for(int i=0;i<nodes.size();i++)if(nodes.get(i).id().equals(Combat.SHIELD_EFFICIENCY)){var j=Balance.JSON.toJsonTree(nodes.get(i)).getAsJsonObject();j.addProperty("value",1);var updated=new ArrayList<>(nodes);updated.set(i,Balance.JSON.fromJson(j,Balance.Ability.class));nodes=updated;}
+                Files.writeString(file,Balance.JSON.toJson(nodes)+"\n");Files.writeString(followup,"1\n");
+            }
             Files.writeString(revision,"1\n");
             extend(CoreRuntime.balance);
         } catch(Exception ex) { throw new IllegalStateException("Invalid Epic Fight compatibility configuration: "+file,ex); }
@@ -126,7 +131,7 @@ public final class Compat {
         if(a.id().equals(Combat.SHIELD_EFFICIENCY))json.addProperty("parent","faust_epic_compat:epicfight/guard");
         if(a.id().equals(Combat.SWORD_MASTERY))json.addProperty("parent","faust_epic_compat:epicfight/swordmaster");
         if(a.id().equals(Combat.DAGGER_MASTERY))json.addProperty("parent","faust_epic_compat:epicfight/technician");
-        if(a.id().equals("faustcore:shield_efficiency")){json.addProperty("value",2);}
+        if(a.id().equals("faustcore:shield_efficiency")){json.addProperty("value",1);}
         if(a.id().equals(Combat.FIST_POWER)){json.addProperty("parent",Combat.FIST_MASTERY);json.addProperty("counter",CombatPractice.FIST_DAMAGE);json.addProperty("amount",100);json.add("conditions",new com.google.gson.JsonArray());}
         String counter=null;double amount=10;
         if(a.id().equals(Combat.SHIELD_MASTERY)){counter=CombatPractice.SHIELD_HITS;amount=100;}
@@ -221,7 +226,7 @@ public final class Compat {
                 var health=placed.stream().filter(n->n.ability().equals("faustcore:training_constitution_health")).findFirst().orElse(null);
                 var recovery=placed.stream().filter(n->n.ability().equals("faustcore:resilient_recovery")).findFirst().orElse(null);
                 if(health!=null){move(placed,"faust_epic_compat:epicfight/hypervitality",health.x()-40,health.y());move(placed,"faust_epic_compat:epicfight/hyper_vitality",health.x()-40,health.y());move(placed,"faust_epic_compat:epicfight/endurance",health.x()+40,health.y());move(placed,"faust_epic_compat:epicfight/adaptive_skin",health.x(),health.y()+40);}
-                if(recovery!=null)move(placed,"faust_epic_compat:epicfight/stamina_pillager",recovery.x()+40,recovery.y());
+                if(health!=null){move(placed,"faustcore:second_wind",health.x()+120,health.y()-40);move(placed,"faustcore:resilient_recovery",health.x()+120,health.y());move(placed,"faust_epic_compat:epicfight/stamina_pillager",health.x()+160,health.y());move(placed,"faust_epic_compat:epicfight/catharsis",health.x()+40,health.y()+40);move(placed,"faust_epic_compat:epicfight/death_harvest",health.x()+80,health.y()+40);}
             }
             if(tree!=null)layouts.remove(tree);
             layouts.add(new com.faust.core.progression.SkillTrees.Tree(branch,placed));

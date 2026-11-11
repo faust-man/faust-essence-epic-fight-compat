@@ -76,7 +76,7 @@ public final class RulesTest {
         check(added.stream().map(com.faust.core.progression.SkillTrees.Node::x).distinct().count()==4);
         check(added.stream().map(com.faust.core.progression.SkillTrees.Node::y).distinct().count()==5);
         check(added.stream().allMatch(n->n.x()>=0&&n.x()+22<=160));
-        for(var tree:original)check(balance.trees.stream().filter(t->t.skill()==tree.skill()).findFirst().orElseThrow().nodes().containsAll(tree.nodes()));
+        for(var tree:original)check(balance.trees.stream().filter(t->t.skill()==tree.skill()).findFirst().orElseThrow().nodes().containsAll(tree.nodes().stream().filter(n->!java.util.Set.of("faustcore:second_wind","faustcore:resilient_recovery").contains(n.ability())).toList()));
         var before=com.faust.core.progression.Balance.JSON.toJson(balance.trees);Compat.extend(balance);
         check(before.equals(com.faust.core.progression.Balance.JSON.toJson(balance.trees)));
         var gates=new com.faust.core.progression.Balance();
@@ -124,7 +124,7 @@ public final class RulesTest {
         check(Compat.relocate(Compat.mastery(Combat.SHIELD_MASTERY)).amount()==100);
         check(Compat.relocate(Compat.mastery(Combat.FIST_POWER)).parent().equals(Combat.FIST_MASTERY));
         check(Compat.relocate(Compat.mastery(Combat.SHIELD_EFFICIENCY)).parent().equals("faust_epic_compat:epicfight/guard"));
-        check(Compat.relocate(Compat.mastery(Combat.SHIELD_EFFICIENCY)).value()==2);
+        check(Compat.relocate(Compat.mastery(Combat.SHIELD_EFFICIENCY)).value()==1);
         for(String id:java.util.List.of(Combat.FIST_POWER,Combat.FIST_MASTERY,Combat.SHIELD_EFFICIENCY,Combat.SWORD_MASTERY))check(Compat.relocate(Compat.mastery(id)).toggleable());
         check(Rules.canSpend(0.5,1,false,false));check(!Rules.canSpend(0,1,true,false));
         var dex=new com.faust.core.progression.Balance();
