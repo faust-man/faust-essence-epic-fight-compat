@@ -1,7 +1,7 @@
 plugins { id 'java'; id 'net.neoforged.moddev' version '2.0.49-beta' }
 version = '1.6.0'
 group = 'com.faust.epiccompat'
-base.archivesName = 'faust-epic-fight-compat-1.21.1'
+base.archivesName = 'essence-compat-epic-fight-1.21.1'
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 sourceSets.create('runtimeChecks')
 sourceSets.runtimeChecks {
@@ -19,11 +19,11 @@ neoForge {
     mods { faust_epic_compat { sourceSet sourceSets.main; if(project.hasProperty('runtimeChecks'))sourceSet sourceSets.runtimeChecks } }
 }
 dependencies {
-    testRuntimeOnly files('../core/stamina/build/libs/fauststamina-neoforge-1.21.1-1.6.0.jar')
+    testRuntimeOnly files('../core/stamina/build/libs/essence-stamina-neoforge-1.21.1-1.6.0.jar')
     testImplementation 'com.google.code.gson:gson:2.10.1'
     implementation 'maven.modrinth:epic-fight:8HHhJt6i'
-    if(project.hasProperty('withStamina')) runtimeOnly files('../core/stamina/build/libs/fauststamina-neoforge-1.21.1-1.6.0.jar')
-    implementation files('../core/neoforge/build/libs/faustcore-neoforge-1.21.1-1.6.0.jar')
+    if(project.hasProperty('withStamina')) runtimeOnly files('../core/stamina/build/libs/essence-stamina-neoforge-1.21.1-1.6.0.jar')
+    implementation files('../core/neoforge/build/libs/essence-core-neoforge-1.21.1-1.6.0.jar')
 }
 sourceSets.test {
     compileClasspath += sourceSets.main.compileClasspath
@@ -39,7 +39,7 @@ tasks.named('test') { dependsOn rulesTest }
 
 tasks.register('withoutStaminaTest',JavaExec) {
     dependsOn testClasses
-    classpath=sourceSets.test.runtimeClasspath.filter { !it.name.startsWith('fauststamina-') }
+    classpath=sourceSets.test.runtimeClasspath.filter { !it.name.startsWith('essence-stamina-') }
     mainClass='com.faust.epiccompat.WithoutStaminaTest'
 }
 tasks.named('test') { dependsOn withoutStaminaTest }
