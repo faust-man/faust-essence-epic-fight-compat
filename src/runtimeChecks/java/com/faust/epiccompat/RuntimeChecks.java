@@ -20,6 +20,7 @@ public final class RuntimeChecks {
         var player=FakePlayerFactory.get(event.getServer().overworld(),new GameProfile(UUID.fromString("9625401d-3174-4f98-bb52-e8002881a51b"),"CompatChecks"));
         var patch=new ServerPlayerPatch(player);
         var data=CoreRuntime.data(player);var balance=CoreRuntime.balance;
+        ownershipChecks(player);
         if(!com.faust.core.progression.StaminaServices.present()){
             try{
                 check(balance.abilities.stream().noneMatch(a->Compat.isMastery(a.id())),"no custom combat nodes");
@@ -253,6 +254,27 @@ public final class RuntimeChecks {
         attached.getSkill(SkillSlots.GUARD).setSkill(parrySkill);attached.startSkillHolding((yesman.epicfight.skill.modules.HoldableSkill)parrySkill);check(!GuardRecovery.blocked(training),"parrying unchanged by guard-only recovery rule");attached.resetHolding();
 
     }
+    private static void ownershipChecks(net.minecraft.server.level.ServerPlayer player){
+        var patch=yesman.epicfight.world.capabilities.EpicFightCapabilities.getEntityPatch(player,ServerPlayerPatch.class);
+        var progress=CoreRuntime.data(player);
+        var context=(net.neoforged.neoforge.network.handling.IPayloadContext)java.lang.reflect.Proxy.newProxyInstance(RuntimeChecks.class.getClassLoader(),new Class[]{net.neoforged.neoforge.network.handling.IPayloadContext.class},(proxy,method,args)->{
+            if(method.getName().equals("player"))return player;
+            if(method.getName().equals("enqueueWork")){((Runnable)args[0]).run();return java.util.concurrent.CompletableFuture.completedFuture(null);}return null;
+        });
+        for(String name:java.util.List.of("roll","impact_guard","parrying")){
+            var skill=yesman.epicfight.registry.EpicFightRegistries.SKILL.get(net.minecraft.resources.ResourceLocation.parse("epicfight:"+name));
+            var slot=name.equals("roll")?SkillSlots.DODGE:SkillSlots.GUARD;
+            var container=patch.getSkill(slot);container.setSkill(null);
+            String id=Compat.nodeId(skill);progress.unlocked.remove(id);
+            check(!container.setSkill(skill),"locked skill rejected by container: "+name);
+            yesman.epicfight.network.EpicFightServerBoundPayloadHandler.handleChangeSkill(new yesman.epicfight.network.client.CPChangeSkill(slot,skill.holder(),-1),context);
+            check(container.getSkill()==null,"forged equip packet rejected: "+name);
+            progress.unlocked.add(id);
+            check(container.setSkill(skill),"learned skill can equip without base guard equipped: "+name);
+            container.setSkill(null);progress.unlocked.remove(id);
+            check(!container.setSkill(skill),"revoked skill cannot equip: "+name);
+        }
+    }
     private static void jumpChecks(com.faust.core.progression.Balance balance,net.minecraft.server.level.ServerPlayer player,ServerPlayerPatch ignored){
         var patch=yesman.epicfight.world.capabilities.EpicFightCapabilities.getEntityPatch(player,ServerPlayerPatch.class);
         var data=CoreRuntime.data(player);data.stamina=20;data.exhausted=false;
@@ -265,7 +287,12 @@ public final class RuntimeChecks {
             check(ability.all().isEmpty(),"jump has no added parent");
             var p=new com.faust.core.progression.Progress();for(var s:com.faust.core.progression.Skill.values())p.track(s).level=20;
             p.setCounter(CombatPractice.JUMPS,99.0,balance);check(!p.canUnlock(ability,balance),"99 jumps rejected");p.setCounter(CombatPractice.JUMPS,100.0,balance);check(p.canUnlock(ability,balance),"100 jumps accepted");
-            var node=tree.nodes().stream().filter(n->n.ability().equals(id)).findFirst().orElseThrow();check(node.x()==bow.x()&&node.y()==previous.y()+40,"jump column below bow mastery");previous=node;
+            var node=tree.nodes().stream().filter(n->n.ability().equals(id)).findFirst().orElseThrow();check(node.x()==bow.x()&&node.y()==previous.y()+40,"jump column below bow mastery");check(ability.skill()==com.faust.core.progression.Skill.dexterity,"both jumps stay in dexterity");previous=node;
+            if(name.equals("demolition_leap")){
+                p.track(com.faust.core.progression.Skill.dexterity).level=4;check(!p.canUnlock(ability,balance),"leap rejects dexterity4");
+                p.track(com.faust.core.progression.Skill.dexterity).level=5;p.track(com.faust.core.progression.Skill.strength).level=4;check(!p.canUnlock(ability,balance),"leap rejects strength4");
+                p.track(com.faust.core.progression.Skill.strength).level=5;check(p.canUnlock(ability,balance),"leap accepts dexterity5 and strength5");
+            }else{p.track(com.faust.core.progression.Skill.dexterity).level=9;check(!p.canUnlock(ability,balance),"phantom rejects dexterity9");p.track(com.faust.core.progression.Skill.dexterity).level=10;check(p.canUnlock(ability,balance),"phantom accepts dexterity10");}
             check(Compat.relocate(ability).equals(ability),"jump conditions idempotent");data.unlocked.add(id);
         }
         var registry=yesman.epicfight.registry.EpicFightRegistries.SKILL;

@@ -21,9 +21,9 @@
   "core.counter.faust_epic_dagger_hits": "dual dagger hits",
   "faust_epic_compat.shield_efficiency": "Economical shield block",
   "faust_epic_compat.shield_efficiency.description": "Skilled shield blocking: shield blocks cost 0.5 instead of 1.",
-  "core.counter.faust_epic_jumps":"jumps",
-  "faust_epic_compat.equipped":"Equipped",
-  "faust_epic_compat.select_skill":"Equip",
+  "core.counter.faust_epic_jumps": "jumps",
+  "faust_epic_compat.equipped": "Equipped",
+  "faust_epic_compat.select_skill": "Equip",
   "core.counter.faust_epic_any_blocks": "blocks with any weapon",
   "core.counter.faust_epic_arrow_damage": "arrow damage taken",
   "core.counter.faust_epic_exhausted_kills": "mob kills while exhausted",
@@ -40,5 +40,8 @@
   "core.counter.faust_epic_shield_blocks": "shield blocks",
   "core.counter.faust_epic_sleep_luck": "lucky sleep (1 in 100 chance)",
   "core.counter.faust_epic_sweet_food": "foods eaten from sweetFoods",
-  "core.counter.faust_epic_visited_end": "visit to the End"
+  "core.counter.faust_epic_visited_end": "visit to the End",
+  "core.counter.faust_epic_fist_damage": "Fist damage",
+  "core.counter.faust_epic_peak_stamina": "Maximum stamina",
+  "faust_epic_compat.unlock": "Unlock"
 }

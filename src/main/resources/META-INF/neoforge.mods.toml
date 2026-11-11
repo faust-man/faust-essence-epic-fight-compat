@@ -4,8 +4,8 @@ license="CC0-1.0"
 [[mods]]
 modId="faust_epic_compat"
 version="1.6.0"
-displayName="Faust Essence: Epic Fight Compat"
-description="Epic Fight skills and stamina integrated with Faust Essence."
+displayName="essence_epic_fight_compat"
+description="Epic Fight skills and stamina integrated with essence_core."
 [[mixins]]
 config="faust_epic_compat.mixins.json"
 [[dependencies.faust_epic_compat]]

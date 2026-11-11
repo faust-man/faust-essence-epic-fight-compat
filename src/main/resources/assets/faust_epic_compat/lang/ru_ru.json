@@ -21,9 +21,9 @@
   "core.counter.faust_epic_dagger_hits": "попаданий парными кинжалами",
   "faust_epic_compat.shield_efficiency": "Экономный блок щитом",
   "faust_epic_compat.shield_efficiency.description": "Умелый блок щитом: стоимость блока щитом 0,5 вместо 1.",
-  "core.counter.faust_epic_jumps":"прыжков",
-  "faust_epic_compat.equipped":"Выбран",
-  "faust_epic_compat.select_skill":"Выбрать",
+  "core.counter.faust_epic_jumps": "прыжков",
+  "faust_epic_compat.equipped": "Выбран",
+  "faust_epic_compat.select_skill": "Выбрать",
   "core.counter.faust_epic_any_blocks": "блокирований любым способом",
   "core.counter.faust_epic_arrow_damage": "урон от стрел",
   "core.counter.faust_epic_exhausted_kills": "убийств мобов во время истощения",
@@ -40,5 +40,8 @@
   "core.counter.faust_epic_shield_blocks": "блокирований щитом",
   "core.counter.faust_epic_sleep_luck": "удачный сон (шанс 1 к 100)",
   "core.counter.faust_epic_sweet_food": "съеденных предметов из sweetFoods",
-  "core.counter.faust_epic_visited_end": "посещение Энда"
+  "core.counter.faust_epic_visited_end": "посещение Энда",
+  "core.counter.faust_epic_fist_damage": "Урон кулаками",
+  "core.counter.faust_epic_peak_stamina": "Максимальная выносливость",
+  "faust_epic_compat.unlock": "Открыть"
 }
