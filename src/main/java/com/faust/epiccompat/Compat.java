@@ -222,6 +222,13 @@ public final class Compat {
             }
             if(branch==com.faust.core.progression.Skill.strength)swapPositions(placed,Combat.MASTERY,Combat.FIST_POWER);
             if(branch==com.faust.core.progression.Skill.dexterity)alignDexterity(placed);
+            if(branch==com.faust.core.progression.Skill.strength){
+                for(var pair:List.of(new String[]{"bonebreaker",Combat.FIST_MASTERY},new String[]{"adrenaline_fiend","faust_epic_compat:epicfight/swordmaster"},new String[]{"meteor_slam","faustcore:training_strength_damage"})){
+                    var anchor=placed.stream().filter(n->n.ability().equals(pair[1])).findFirst().orElse(null);
+                    var node=placed.stream().filter(n->n.ability().equals("faust_epic_compat:epicfight/"+pair[0])).findFirst().orElse(null);
+                    if(anchor!=null&&node!=null)move(placed,node.ability(),anchor.x(),node.y());
+                }
+            }
             if(branch==com.faust.core.progression.Skill.intelligence){
                 var cat=placed.stream().filter(n->n.ability().equals("faustcore:cat_scent")).findFirst().orElse(null);
                 var enchant=placed.stream().filter(n->n.ability().equals("faustcore:enchanting_power")).findFirst().orElse(null);
@@ -231,10 +238,10 @@ public final class Compat {
                 var health=placed.stream().filter(n->n.ability().equals("faustcore:training_constitution_health")).findFirst().orElse(null);
                 var recovery=placed.stream().filter(n->n.ability().equals("faustcore:resilient_recovery")).findFirst().orElse(null);
                 if(health!=null){move(placed,"faust_epic_compat:epicfight/hypervitality",health.x()-40,health.y());move(placed,"faust_epic_compat:epicfight/hyper_vitality",health.x()-40,health.y());move(placed,"faust_epic_compat:epicfight/endurance",health.x()+40,health.y());move(placed,"faust_epic_compat:epicfight/adaptive_skin",health.x(),health.y()+40);}
-                if(health!=null){move(placed,"faustcore:second_wind",health.x()+80,health.y()-40);move(placed,"faustcore:resilient_recovery",health.x()+80,health.y());move(placed,"faust_epic_compat:epicfight/stamina_pillager",health.x()+120,health.y());move(placed,"faust_epic_compat:epicfight/catharsis",health.x()+40,health.y()+40);move(placed,"faust_epic_compat:epicfight/death_harvest",health.x()+80,health.y()+40);}
+                if(health!=null){move(placed,"faustcore:metabolism",health.x()+40,health.y()-40);move(placed,"faustcore:second_wind",health.x()+80,health.y()-40);move(placed,"faustcore:resilient_recovery",health.x()+80,health.y());move(placed,"faust_epic_compat:epicfight/stamina_pillager",health.x()+120,health.y());move(placed,"faust_epic_compat:epicfight/catharsis",health.x()+40,health.y()+40);move(placed,"faust_epic_compat:epicfight/death_harvest",health.x()+80,health.y()+40);}
             }
             if(tree!=null)layouts.remove(tree);
-            layouts.add(new com.faust.core.progression.SkillTrees.Tree(branch,placed));
+            layouts.add(new com.faust.core.progression.SkillTrees.Tree(branch,com.faust.core.progression.SkillTrees.spaced(placed)));
         }
         balance.trees=layouts;
         balance.validate();
@@ -276,6 +283,6 @@ public final class Compat {
         nodes.set(ai,new com.faust.core.progression.SkillTrees.Node(a,second.x(),second.y(),first.icon()));nodes.set(bi,new com.faust.core.progression.SkillTrees.Node(b,first.x(),first.y(),second.icon()));
     }
     private static boolean overlaps(List<com.faust.core.progression.SkillTrees.Node> nodes,double x,double y){
-        return nodes.stream().anyMatch(n->Math.abs(n.x()-x)<22&&Math.abs(n.y()-y)<22);
+        return !com.faust.core.progression.SkillTrees.validPosition(new com.faust.core.progression.SkillTrees.Node("faust_epic_compat:layout_probe",x,y,"minecraft:book"),nodes);
     }
 }

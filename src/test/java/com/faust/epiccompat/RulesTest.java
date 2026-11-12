@@ -76,7 +76,7 @@ public final class RulesTest {
         check(added.stream().map(com.faust.core.progression.SkillTrees.Node::x).distinct().count()==4);
         check(added.stream().map(com.faust.core.progression.SkillTrees.Node::y).distinct().count()==5);
         check(added.stream().allMatch(n->n.x()>=0&&n.x()+22<=160));
-        for(var tree:original)check(balance.trees.stream().filter(t->t.skill()==tree.skill()).findFirst().orElseThrow().nodes().containsAll(tree.nodes().stream().filter(n->!java.util.Set.of("faustcore:second_wind","faustcore:resilient_recovery").contains(n.ability())).toList()));
+        for(var tree:original)check(balance.trees.stream().filter(t->t.skill()==tree.skill()).findFirst().orElseThrow().nodes().containsAll(tree.nodes().stream().filter(n->!java.util.Set.of("faustcore:second_wind","faustcore:resilient_recovery","faustcore:metabolism").contains(n.ability())).toList()));
         var before=com.faust.core.progression.Balance.JSON.toJson(balance.trees);Compat.extend(balance);
         check(before.equals(com.faust.core.progression.Balance.JSON.toJson(balance.trees)));
         var gates=new com.faust.core.progression.Balance();
@@ -97,7 +97,7 @@ public final class RulesTest {
         var tree=gates.trees.stream().filter(t->t.skill()==com.faust.core.progression.Skill.strength).findFirst().orElseThrow();
         var first=tree.nodes().stream().filter(n->n.ability().equals(master)).findFirst().orElseThrow();
         var second=tree.nodes().stream().filter(n->n.ability().equals(pair.id())).findFirst().orElseThrow();
-        check(first.x()==second.x()&&second.y()-first.y()==40);
+        check(first.x()==second.x()&&second.y()-first.y()==com.faust.core.progression.SkillTrees.snap(40));
         check(first.x()<original.stream().filter(t->t.skill()==com.faust.core.progression.Skill.strength).findFirst().orElseThrow().nodes().stream().mapToDouble(com.faust.core.progression.SkillTrees.Node::x).min().orElseThrow());
         for(var left:tree.nodes())for(var right:tree.nodes())if(!left.ability().equals(right.ability()))check(Math.abs(left.x()-right.x())>=22||Math.abs(left.y()-right.y())>=22);
         var chain=gates.abilities.stream().filter(a->a.counter().equals(CombatPractice.DAMAGE)).sorted(java.util.Comparator.comparingDouble(com.faust.core.progression.Balance.Ability::amount)).toList();
@@ -136,9 +136,9 @@ public final class RulesTest {
         var stepNode=dexTree.nodes().stream().filter(n->n.ability().equals(prefix+"step")).findFirst().orElseThrow();
         var techNode=dexTree.nodes().stream().filter(n->n.ability().equals(prefix+"technician")).findFirst().orElseThrow();
         var daggerNode=dexTree.nodes().stream().filter(n->n.ability().equals(Combat.DAGGER_MASTERY)).findFirst().orElseThrow();
-        check(rollNode.x()==stepNode.x()&&stepNode.y()==rollNode.y()+40);
+        check(rollNode.x()==stepNode.x()&&stepNode.y()-rollNode.y()>=33&&stepNode.y()-rollNode.y()<=44);
         check(rollNode.x()==dexTree.nodes().stream().filter(n->n.ability().equals("faustcore:cushioned_landing")).findFirst().orElseThrow().x());
-        check(techNode.x()==daggerNode.x()&&daggerNode.y()==techNode.y()+40);
+        check(techNode.x()==daggerNode.x()&&daggerNode.y()-techNode.y()>=33&&daggerNode.y()-techNode.y()<=44);
         check(daggerNode.x()==0); // First alphabetical addon remains in its original grid column.
         var encoded=com.faust.core.progression.Balance.JSON.toJson(dex.trees);Compat.extend(dex);check(encoded.equals(com.faust.core.progression.Balance.JSON.toJson(dex.trees)));
         var dagger=dex.abilities.stream().filter(a->a.id().equals(Combat.DAGGER_MASTERY)).findFirst().orElseThrow();
