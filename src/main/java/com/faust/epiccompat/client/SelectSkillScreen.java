@@ -22,6 +22,7 @@ public final class SelectSkillScreen extends SkillBookScreen {
     @Override public void tick(){super.tick();refreshMoverButton();}
     private void refreshMoverButton(){
         if(getLearnButton()==null||unlockButton==null)return;
+        getLearnButton().setTooltip(null);
         boolean learned=learned();
         unlockButton.visible=!learned;
         var progress=com.faust.core.client.CoreClient.progress;var balance=com.faust.core.client.CoreClient.balance;

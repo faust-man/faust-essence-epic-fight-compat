@@ -17,7 +17,7 @@ public final class SkillRequirements {
             case "parrying" -> conditions(json,"all",0,c("any_blocks",50));
             case "meteor_slam" -> conditions(json,"all",0,c("fall_damage",100));
             case "emergency_escape" -> conditions(json,"all",0,c("peak_fatigue",15));
-            case "bonebreaker" -> conditions(json,"all",0,c("heavy_attack",1));
+            case "bonebreaker" -> conditions(json,"all",0,c("heavy_attack",10));
             case "adrenaline_fiend" -> conditions(json,"all",0,c("exhausted_kills",1));
             case "death_harvest" -> conditions(json,"at_least",2,c("player_kills",1),c("peaceful_kills",10),c("hostile_kills",100));
             case "endurance" -> {

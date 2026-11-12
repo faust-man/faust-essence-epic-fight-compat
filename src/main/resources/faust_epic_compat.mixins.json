@@ -27,7 +27,8 @@
     "ShieldMilestoneMixin",
     "GuardPracticeMixin",
     "GuardRecoveryMixin",
-    "HealthStaminaTickMixin"
+    "HealthStaminaTickMixin",
+    "KeepSkillsMixin"
   ],
   "client": [
     "TreeMixin",

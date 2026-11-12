@@ -50,6 +50,7 @@ public final class Compat {
     }
     private void tick(net.neoforged.neoforge.event.tick.PlayerTickEvent.Post event){
         if(!(event.getEntity() instanceof net.minecraft.server.level.ServerPlayer player))return;
+        SharedStaminaBonus.refresh(player);
         if(CoreRuntime.active(player)){if(com.faust.core.progression.StaminaServices.present()){Milestones.fatigue(CoreRuntime.data(player));Milestones.peak(CoreRuntime.data(player),"peak_stamina",CoreRuntime.data(player).maxStamina(CoreRuntime.balance));}Milestones.visitEnd(player);}
         if(player.tickCount%5!=0)return;
         yesman.epicfight.world.capabilities.EpicFightCapabilities.getUnparameterizedEntityPatch(player,yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch.class).ifPresent(patch->{
@@ -79,7 +80,13 @@ public final class Compat {
             for(String id:List.of(Combat.MASTERY,Combat.FIST_MASTERY,Combat.SHIELD_MASTERY,Combat.SWORD_MASTERY,Combat.DAGGER_MASTERY,Combat.FIST_POWER,Combat.SHIELD_EFFICIENCY))if(merged.stream().noneMatch(a->a.id().equals(id)))merged.add(mastery(id));
             Path revision=file.resolveSibling(".requirements-revision");
             if(!Files.exists(revision))for(int i=0;i<merged.size();i++)merged.set(i,relocate(merged.get(i)));
+            Path polish=file.resolveSibling(".tree-polish");
+            if(!Files.exists(polish)){
+                Files.copy(file,file.resolveSibling("abilities-before-tree-polish.json"),StandardCopyOption.REPLACE_EXISTING);
+                for(int i=0;i<merged.size();i++)if(merged.get(i).id().endsWith("/bonebreaker"))merged.set(i,relocate(merged.get(i)));
+            }
             if(!merged.equals(nodes)){nodes=merged;Files.writeString(file,Balance.JSON.toJson(nodes)+"\n");}
+            Files.writeString(polish,"1\n");
             Path followup=file.resolveSibling(".balance-followup");
             if(!Files.exists(followup)){
                 for(int i=0;i<nodes.size();i++)if(nodes.get(i).id().equals(Combat.SHIELD_EFFICIENCY)){var j=Balance.JSON.toJsonTree(nodes.get(i)).getAsJsonObject();j.addProperty("value",1);var updated=new ArrayList<>(nodes);updated.set(i,Balance.JSON.fromJson(j,Balance.Ability.class));nodes=updated;}
@@ -191,54 +198,75 @@ public final class Compat {
                 placed.add(n.ability().startsWith("faust_epic_compat:")?new com.faust.core.progression.SkillTrees.Node(n.ability(),n.x(),n.y(),icon(n.ability())):n);
             }
             var left=List.of("faust_epic_compat:epicfight/swordmaster",Combat.SWORD_MASTERY,Combat.FIST_MASTERY,Combat.MASTERY,"faust_epic_compat:epicfight/berserker","faust_epic_compat:epicfight/vengeance","faust_epic_compat:epicfight/forbidden_strength");
-            double leftX=placed.stream().mapToDouble(com.faust.core.progression.SkillTrees.Node::x).min().orElse(0)-48;
+            double leftX=placed.stream().mapToDouble(com.faust.core.progression.SkillTrees.Node::x).min().orElse(0)-4;
             double leftY=placed.stream().mapToDouble(com.faust.core.progression.SkillTrees.Node::y).min().orElse(0);
             if(branch==com.faust.core.progression.Skill.strength)for(int i=0;i<left.size();i++){
                 String id=left.get(i);if(balance.abilities.stream().noneMatch(a->a.id().equals(id)&&a.skill()==branch))continue;
                 // Weapon pair in the near column; the three-step damage path farther left.
                 int column=i<2?0:i<4?1:2;int row=i<2?i:i<4?i-2:i-4;
-                placed.add(new com.faust.core.progression.SkillTrees.Node(id,leftX-column*40,leftY+row*40,icon(id)));
+                placed.add(new com.faust.core.progression.SkillTrees.Node(id,leftX-column*4,leftY+(row==2?7:row*4),icon(id)));
             }
             if(branch==com.faust.core.progression.Skill.defense){
                 var guard=(tree==null?placed:tree.nodes()).stream().filter(n->n.ability().equals("faust_epic_compat:epicfight/guard")).findFirst().orElse(null);
-                double gx=guard==null?32:guard.x(),gy=guard==null?80:guard.y();
+                double gx=guard==null?3:guard.x(),gy=guard==null?7:guard.y();
                 for(String id:List.of("guard","impact_guard","parrying")){
                     String aid="faust_epic_compat:epicfight/"+id;
-                    if(balance.abilities.stream().anyMatch(a->a.id().equals(aid)))placed.add(new com.faust.core.progression.SkillTrees.Node(aid,gx+(id.equals("guard")?0:id.equals("impact_guard")?-32:32),gy+(id.equals("guard")?0:40),icon(aid)));
+                    if(balance.abilities.stream().anyMatch(a->a.id().equals(aid)))placed.add(new com.faust.core.progression.SkillTrees.Node(aid,gx+(id.equals("guard")?0:id.equals("impact_guard")?-3:3),gy+(id.equals("guard")?0:4),icon(aid)));
                 }
-                if(balance.abilities.stream().anyMatch(a->a.id().equals(Combat.SHIELD_EFFICIENCY)))placed.add(new com.faust.core.progression.SkillTrees.Node(Combat.SHIELD_EFFICIENCY,gx,gy+40,"minecraft:iron_ingot"));
+                if(balance.abilities.stream().anyMatch(a->a.id().equals(Combat.SHIELD_EFFICIENCY)))placed.add(new com.faust.core.progression.SkillTrees.Node(Combat.SHIELD_EFFICIENCY,gx,gy+4,"minecraft:iron_ingot"));
                 var economy=placed.stream().filter(n->n.ability().equals(Combat.SHIELD_EFFICIENCY)).findFirst().orElse(null);
-                if(economy!=null&&balance.abilities.stream().anyMatch(a->a.id().equals(Combat.SHIELD_MASTERY)))placed.add(new com.faust.core.progression.SkillTrees.Node(Combat.SHIELD_MASTERY,economy.x(),economy.y()+40,icon(Combat.SHIELD_MASTERY)));
+                if(economy!=null&&balance.abilities.stream().anyMatch(a->a.id().equals(Combat.SHIELD_MASTERY)))placed.add(new com.faust.core.progression.SkillTrees.Node(Combat.SHIELD_MASTERY,economy.x(),economy.y()+4,icon(Combat.SHIELD_MASTERY)));
             }
             if(branch==com.faust.core.progression.Skill.strength){
                 var fist=placed.stream().filter(n->n.ability().equals(Combat.FIST_MASTERY)).findFirst().orElse(null);
-                if(fist!=null&&balance.abilities.stream().anyMatch(a->a.id().equals(Combat.FIST_POWER)))placed.add(new com.faust.core.progression.SkillTrees.Node(Combat.FIST_POWER,fist.x(),fist.y()+80,icon(Combat.FIST_POWER)));
+                if(fist!=null&&balance.abilities.stream().anyMatch(a->a.id().equals(Combat.FIST_POWER)))placed.add(new com.faust.core.progression.SkillTrees.Node(Combat.FIST_POWER,fist.x(),fist.y()+7,icon(Combat.FIST_POWER)));
             }
             var missing=balance.abilities.stream().filter(a->a.skill()==branch&&a.id().startsWith("faust_epic_compat:")&&placed.stream().noneMatch(n->n.ability().equals(a.id()))).sorted(Comparator.comparing(Balance.Ability::id)).toList();
-            double top=placed.stream().mapToDouble(com.faust.core.progression.SkillTrees.Node::y).max().orElse(-36)+36;
+            double top=placed.stream().mapToDouble(com.faust.core.progression.SkillTrees.Node::y).max().orElse(-3)+3;
             double gridLeft=branch==com.faust.core.progression.Skill.strength?placed.stream().mapToDouble(com.faust.core.progression.SkillTrees.Node::x).min().orElse(0):0;
             for(int i=0;i<missing.size();i++){
-                placed.add(new com.faust.core.progression.SkillTrees.Node(missing.get(i).id(),gridLeft+(i%4)*32,top+(i/4)*32,icon(missing.get(i).id())));
+                placed.add(new com.faust.core.progression.SkillTrees.Node(missing.get(i).id(),gridLeft+(i%4)*3,top+(i/4)*3,icon(missing.get(i).id())));
             }
             if(branch==com.faust.core.progression.Skill.strength)swapPositions(placed,Combat.MASTERY,Combat.FIST_POWER);
             if(branch==com.faust.core.progression.Skill.dexterity)alignDexterity(placed);
             if(branch==com.faust.core.progression.Skill.strength){
-                for(var pair:List.of(new String[]{"bonebreaker",Combat.FIST_MASTERY},new String[]{"adrenaline_fiend","faust_epic_compat:epicfight/swordmaster"},new String[]{"meteor_slam","faustcore:training_strength_damage"})){
+                for(var pair:List.of(new String[]{"bonebreaker",Combat.FIST_MASTERY},new String[]{"meteor_slam","faustcore:training_strength_damage"})){
                     var anchor=placed.stream().filter(n->n.ability().equals(pair[1])).findFirst().orElse(null);
                     var node=placed.stream().filter(n->n.ability().equals("faust_epic_compat:epicfight/"+pair[0])).findFirst().orElse(null);
                     if(anchor!=null&&node!=null)move(placed,node.ability(),anchor.x(),node.y());
                 }
             }
+            if(branch==com.faust.core.progression.Skill.strength){
+                for(int i=0;i<placed.size();i++){var n=placed.get(i);if(n.ability().endsWith("/vengeance")||n.ability().endsWith("/forbidden_strength"))placed.set(i,new com.faust.core.progression.SkillTrees.Node(n.ability(),n.x(),n.y()-1,n.icon()));}
+                var forbidden=placed.stream().filter(n->n.ability().endsWith("/forbidden_strength")).findFirst().orElse(null);
+                if(forbidden!=null)move(placed,"faust_epic_compat:epicfight/adrenaline_fiend",forbidden.x(),forbidden.y()+4);
+            }
+            if(branch==com.faust.core.progression.Skill.defense){
+                var parry=placed.stream().filter(n->n.ability().endsWith("/parrying")).findFirst().orElse(null);
+                var armor=placed.stream().filter(n->n.ability().equals("faustcore:armor_mastery")).findFirst().orElse(null);
+                if(parry!=null&&armor!=null){
+                    var group=new java.util.HashSet<String>();group.add("faust_epic_compat:epicfight/guard");boolean changed;
+                    do{changed=false;for(var a:balance.abilities)if(a.skill()==branch&&a.dependencies().stream().anyMatch(group::contains))changed|=group.add(a.id());}while(changed);
+                    double delta=armor.x()-com.faust.core.progression.SkillTrees.NODE_SIZE-com.faust.core.progression.SkillTrees.GRID-parry.x();
+                    for(int i=0;i<placed.size();i++){var n=placed.get(i);if(group.contains(n.ability()))placed.set(i,new com.faust.core.progression.SkillTrees.Node(n.ability(),n.x()+delta,n.y(),n.icon()));}
+                }
+            }
             if(branch==com.faust.core.progression.Skill.intelligence){
                 var cat=placed.stream().filter(n->n.ability().equals("faustcore:cat_scent")).findFirst().orElse(null);
                 var enchant=placed.stream().filter(n->n.ability().equals("faustcore:enchanting_power")).findFirst().orElse(null);
-                if(cat!=null&&enchant!=null){move(placed,cat.ability(),enchant.x(),enchant.y()+40);move(placed,"faust_epic_compat:epicfight/revelation",0,enchant.y()+40);}
+                if(cat!=null&&enchant!=null){move(placed,cat.ability(),enchant.x(),enchant.y()+4);move(placed,"faust_epic_compat:epicfight/revelation",-1,enchant.y()+4);}
             }
             if(branch==com.faust.core.progression.Skill.constitution){
                 var health=placed.stream().filter(n->n.ability().equals("faustcore:training_constitution_health")).findFirst().orElse(null);
                 var recovery=placed.stream().filter(n->n.ability().equals("faustcore:resilient_recovery")).findFirst().orElse(null);
-                if(health!=null){move(placed,"faust_epic_compat:epicfight/hypervitality",health.x()-40,health.y());move(placed,"faust_epic_compat:epicfight/hyper_vitality",health.x()-40,health.y());move(placed,"faust_epic_compat:epicfight/endurance",health.x()+40,health.y());move(placed,"faust_epic_compat:epicfight/adaptive_skin",health.x(),health.y()+40);}
-                if(health!=null){move(placed,"faustcore:metabolism",health.x()+40,health.y()-40);move(placed,"faustcore:second_wind",health.x()+80,health.y()-40);move(placed,"faustcore:resilient_recovery",health.x()+80,health.y());move(placed,"faust_epic_compat:epicfight/stamina_pillager",health.x()+120,health.y());move(placed,"faust_epic_compat:epicfight/catharsis",health.x()+40,health.y()+40);move(placed,"faust_epic_compat:epicfight/death_harvest",health.x()+80,health.y()+40);}
+                if(health!=null){move(placed,"faust_epic_compat:epicfight/hypervitality",health.x()-4,health.y());move(placed,"faust_epic_compat:epicfight/hyper_vitality",health.x()-4,health.y());move(placed,"faust_epic_compat:epicfight/endurance",health.x()+4,health.y());move(placed,"faust_epic_compat:epicfight/adaptive_skin",health.x(),health.y()+4);}
+                if(health!=null){move(placed,"faustcore:metabolism",health.x()+4,health.y()-4);move(placed,"faustcore:second_wind",health.x()+7,health.y()-4);move(placed,"faustcore:resilient_recovery",health.x()+7,health.y());move(placed,"faust_epic_compat:epicfight/stamina_pillager",health.x()+11,health.y());move(placed,"faust_epic_compat:epicfight/catharsis",health.x()+4,health.y()+4);move(placed,"faust_epic_compat:epicfight/death_harvest",health.x()+7,health.y()+4);}
+            }
+            if(branch==com.faust.core.progression.Skill.dexterity){
+                for(int i=0;i<placed.size();i++){var n=placed.get(i);if(n.ability().equals(Combat.DAGGER_MASTERY))placed.set(i,new com.faust.core.progression.SkillTrees.Node(n.ability(),n.x(),n.y()-1,n.icon()));}
+            }
+            if(branch==com.faust.core.progression.Skill.constitution){
+                for(int i=0;i<placed.size();i++){var n=placed.get(i);if(java.util.Set.of("faustcore:second_wind","faustcore:resilient_recovery","faust_epic_compat:epicfight/stamina_pillager","faust_epic_compat:epicfight/death_harvest").contains(n.ability()))placed.set(i,new com.faust.core.progression.SkillTrees.Node(n.ability(),n.x()+1,n.y(),n.icon()));}
             }
             if(tree!=null)layouts.remove(tree);
             layouts.add(new com.faust.core.progression.SkillTrees.Tree(branch,com.faust.core.progression.SkillTrees.spaced(placed)));
@@ -261,21 +289,21 @@ public final class Compat {
         if(dodge!=null){
             placed.removeIf(n->n.ability().equals(roll)||n.ability().equals(step));
             var anchor=placed.stream().filter(n->n.ability().equals("faustcore:cushioned_landing")).findFirst().orElse(null);
-            double x=anchor==null?-52:anchor.x(),y=anchor==null?dodge.y():anchor.y()+40;
-            while(overlaps(placed,x,y)||hasStep&&overlaps(placed,x,y+40))y+=40;
+            double x=anchor==null?-5:anchor.x(),y=anchor==null?dodge.y():anchor.y()+4;
+            while(overlaps(placed,x,y)||hasStep&&overlaps(placed,x,y+3))y+=4;
             placed.add(new com.faust.core.progression.SkillTrees.Node(roll,x,y,icon(roll)));
-            if(hasStep)placed.add(new com.faust.core.progression.SkillTrees.Node(step,x,y+40,icon(step)));
+            if(hasStep)placed.add(new com.faust.core.progression.SkillTrees.Node(step,x,y+3,icon(step)));
         }
         if(daggers!=null&&technician!=null){
             placed.removeIf(n->n.ability().equals(tech)||n.ability().equals(Combat.DAGGER_MASTERY));
             double x=daggers.x(),y=placed.stream().filter(n->n.ability().equals(roll)).mapToDouble(com.faust.core.progression.SkillTrees.Node::y).findFirst().orElse(daggers.y());
-            while(overlaps(placed,x,y)||overlaps(placed,x,y+40))y+=40;
+            while(overlaps(placed,x,y)||overlaps(placed,x,y+4))y+=4;
             placed.add(new com.faust.core.progression.SkillTrees.Node(tech,x,y,icon(tech)));
-            placed.add(new com.faust.core.progression.SkillTrees.Node(Combat.DAGGER_MASTERY,x,y+40,icon(Combat.DAGGER_MASTERY)));
+            placed.add(new com.faust.core.progression.SkillTrees.Node(Combat.DAGGER_MASTERY,x,y+4,icon(Combat.DAGGER_MASTERY)));
         }
         var bow=placed.stream().filter(n->n.ability().equals("faustcore:bow_mastery")).findFirst().orElse(null);
-        double jumpX=bow==null?52:bow.x(),jumpY=bow==null?80:bow.y()+40;
-        for(String id:jumps){while(overlaps(placed,jumpX,jumpY))jumpY+=40;placed.add(new com.faust.core.progression.SkillTrees.Node(id,jumpX,jumpY,icon(id)));jumpY+=40;}
+        double jumpX=bow==null?5:bow.x(),jumpY=bow==null?7:bow.y()+4;
+        for(String id:jumps){while(overlaps(placed,jumpX,jumpY))jumpY+=4;placed.add(new com.faust.core.progression.SkillTrees.Node(id,jumpX,jumpY,icon(id)));jumpY+=4;}
     }
     private static void swapPositions(List<com.faust.core.progression.SkillTrees.Node> nodes,String a,String b){
         int ai=-1,bi=-1;for(int i=0;i<nodes.size();i++){if(nodes.get(i).ability().equals(a))ai=i;if(nodes.get(i).ability().equals(b))bi=i;}

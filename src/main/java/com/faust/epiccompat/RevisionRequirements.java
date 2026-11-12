@@ -5,7 +5,7 @@ final class RevisionRequirements {
     static Balance.Ability apply(Balance.Ability a){
         var j=Balance.JSON.toJsonTree(a).getAsJsonObject();
         String n=a.id().replace("faust_epic_compat:epicfight/", "");
-        int level=switch(n){case "roll","guard"->3;case "impact_guard"->10;case "endurance","hypervitality","hyper_vitality"->7;case "berserker"->5;case "vengeance"->7;case "forbidden_strength"->10;default->a.level();};
+        int level=switch(n){case "roll","guard"->3;case "bonebreaker"->7;case "impact_guard"->10;case "endurance","hypervitality","hyper_vitality"->7;case "berserker"->5;case "vengeance"->7;case "forbidden_strength"->10;default->a.level();};
         List<Balance.SkillRequirement> req=null;
         if(n.equals("swordmaster")||a.id().equals(Combat.SWORD_MASTERY))req=List.of(new Balance.SkillRequirement(Skill.strength,n.equals("swordmaster")?5:10),new Balance.SkillRequirement(Skill.dexterity,5));
         if(Set.of("berserker","vengeance","forbidden_strength").contains(n))req=List.of(new Balance.SkillRequirement(Skill.strength,level),new Balance.SkillRequirement(Skill.constitution,level));

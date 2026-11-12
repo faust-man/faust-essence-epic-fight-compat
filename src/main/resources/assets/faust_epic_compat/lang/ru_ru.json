@@ -29,7 +29,7 @@
   "core.counter.faust_epic_exhausted_kills": "убийств мобов во время истощения",
   "core.counter.faust_epic_fall_damage": "получено урона от падений",
   "core.counter.faust_epic_fire_damage": "урон от огня",
-  "core.counter.faust_epic_heavy_attack": "атак с уроном больше 15 HP",
+  "core.counter.faust_epic_heavy_attack": "атаки с уроном более 15 HP",
   "core.counter.faust_epic_hostile_kills": "убийств враждебных мобов",
   "core.counter.faust_epic_magic_damage": "урон от магии",
   "core.counter.faust_epic_melee_damage": "урон от ближних атак",
