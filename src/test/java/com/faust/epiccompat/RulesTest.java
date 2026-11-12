@@ -119,7 +119,7 @@ public final class RulesTest {
         check(bottom.stream().mapToDouble(com.faust.core.progression.SkillTrees.Node::x).min().orElseThrow()==packed.nodes().stream().mapToDouble(com.faust.core.progression.SkillTrees.Node::x).min().orElseThrow());
         for(var left:packed.nodes())for(var right:packed.nodes())if(!left.ability().equals(right.ability()))check(Math.abs(left.x()-right.x())>=22||Math.abs(left.y()-right.y())>=22);
         check(Compat.relocate(Compat.mastery(Combat.DAGGER_MASTERY)).counter().equals(CombatPractice.DAGGER_HITS));
-        check(Compat.relocate(Compat.mastery(Combat.DAGGER_MASTERY)).amount()==10);
+        check(Compat.relocate(Compat.mastery(Combat.DAGGER_MASTERY)).amount()==100);
         check(Compat.relocate(Compat.mastery(Combat.SHIELD_MASTERY)).counter().equals(CombatPractice.SHIELD_HITS));
         check(Compat.relocate(Compat.mastery(Combat.SHIELD_MASTERY)).amount()==100);
         check(Compat.relocate(Compat.mastery(Combat.FIST_POWER)).parent().equals(Combat.FIST_MASTERY));
@@ -144,7 +144,7 @@ public final class RulesTest {
         var dagger=dex.abilities.stream().filter(a->a.id().equals(Combat.DAGGER_MASTERY)).findFirst().orElseThrow();
         check(dagger.all().contains(prefix+"technician"));check(Compat.relocate(dagger).equals(dagger));
         var dexProgress=new com.faust.core.progression.Progress();dexProgress.track(com.faust.core.progression.Skill.dexterity).level=5;dexProgress.setCounter(CombatPractice.DAGGER_HITS,10.0,dex);
-        check(!dexProgress.canUnlock(dagger,dex));dexProgress.unlocked.add(prefix+"technician");dexProgress.setCounter(CombatPractice.DAGGER_HITS,10,dex);check(dexProgress.unlock(dagger.id(),dex));check(dexProgress.revoke(prefix+"technician",dex).contains(dagger.id()));
+        check(!dexProgress.canUnlock(dagger,dex));dexProgress.unlocked.add(prefix+"technician");dexProgress.setCounter(CombatPractice.DAGGER_HITS,99,dex);check(!dexProgress.canUnlock(dagger,dex));dexProgress.setCounter(CombatPractice.DAGGER_HITS,100,dex);check(dexProgress.unlock(dagger.id(),dex));check(dexProgress.revoke(prefix+"technician",dex).contains(dagger.id()));
         var rollAbility=dex.abilities.stream().filter(a->a.id().equals(prefix+"roll")).findFirst().orElseThrow();
         dexProgress=new com.faust.core.progression.Progress();dexProgress.setCounter("run_metres",500.0,dex);check(!dexProgress.canUnlock(rollAbility,dex));
         dexProgress.track(com.faust.core.progression.Skill.dexterity).level=3;dexProgress.setCounter("run_metres",499.0,dex);check(!dexProgress.canUnlock(rollAbility,dex));dexProgress.setCounter("run_metres",500.0,dex);check(dexProgress.canUnlock(rollAbility,dex));

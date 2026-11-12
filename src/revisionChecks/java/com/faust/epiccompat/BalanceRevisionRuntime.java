@@ -44,9 +44,19 @@ public final class BalanceRevisionRuntime {
             var row=b.trees.stream().filter(t->t.skill()==Skill.constitution).findFirst().orElseThrow().nodes();
             for(String name:java.util.List.of("faustcore:resilient_recovery","faust_epic_compat:epicfight/stamina_pillager")){var n=row.stream().filter(x->x.ability().equals(name)).findFirst().orElseThrow();check(n.y()==health.y()&&n.x()>health.x()+40,"recovery row separated");}
             for(String name:java.util.List.of("catharsis","death_harvest")){var n=row.stream().filter(x->x.ability().endsWith("/"+name)).findFirst().orElseThrow();check(n.y()==skin.y(),"skin row aligned");}
+            var harvest=row.stream().filter(n->n.ability().endsWith("/death_harvest")).findFirst().orElseThrow();
+            var wind=row.stream().filter(n->n.ability().equals("faustcore:second_wind")).findFirst().orElseThrow();
+            var recovery=row.stream().filter(n->n.ability().equals("faustcore:resilient_recovery")).findFirst().orElseThrow();
+            var pillager=row.stream().filter(n->n.ability().endsWith("/stamina_pillager")).findFirst().orElseThrow();
+            check(wind.x()==harvest.x()&&recovery.x()==harvest.x()&&pillager.x()==harvest.x()+40,"recovery column aligned");
             p.unlocked.add(Combat.SHIELD_EFFICIENCY);double remaining=p.stamina;check(CoreRuntime.shieldPayment(player,false)&&p.stamina==remaining,"combined discounts clamp at zero");
             for(var left:row)for(var right:row)if(!left.ability().equals(right.ability()))check(Math.abs(left.x()-right.x())>=22||Math.abs(left.y()-right.y())>=22,"constitution nodes do not overlap");
             double xp=p.track(Skill.building).xp;CoreRuntime.stat(player,net.minecraft.stats.Stats.BLOCK_MINED.get(net.minecraft.world.level.block.Blocks.STONE),1);check(p.track(Skill.building).xp>xp,"mining grants building experience");
+            var intelligence=b.trees.stream().filter(t->t.skill()==Skill.intelligence).findFirst().orElseThrow().nodes();
+            var cat=intelligence.stream().filter(n->n.ability().equals("faustcore:cat_scent")).findFirst().orElseThrow();
+            var enchant=intelligence.stream().filter(n->n.ability().equals("faustcore:enchanting_power")).findFirst().orElseThrow();
+            var revelation=intelligence.stream().filter(n->n.ability().endsWith("/revelation")).findFirst().orElseThrow();
+            check(cat.x()==enchant.x()&&cat.y()==enchant.y()+40&&cat.y()==revelation.y(),"cat scent alignment");
             b.validate();System.out.println("Balance revision server checks passed: "+checks);
         }finally{event.getServer().halt(false);}
     }

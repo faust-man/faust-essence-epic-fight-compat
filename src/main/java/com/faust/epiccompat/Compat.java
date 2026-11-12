@@ -135,7 +135,7 @@ public final class Compat {
         if(a.id().equals(Combat.FIST_POWER)){json.addProperty("parent",Combat.FIST_MASTERY);json.addProperty("counter",CombatPractice.FIST_DAMAGE);json.addProperty("amount",100);json.add("conditions",new com.google.gson.JsonArray());}
         String counter=null;double amount=10;
         if(a.id().equals(Combat.SHIELD_MASTERY)){counter=CombatPractice.SHIELD_HITS;amount=100;}
-        if(a.id().equals(Combat.DAGGER_MASTERY))counter=CombatPractice.DAGGER_HITS;
+        if(a.id().equals(Combat.DAGGER_MASTERY)){counter=CombatPractice.DAGGER_HITS;amount=100;}
         if(a.id().equals(Combat.FIST_MASTERY))counter=CombatPractice.FISTS;
         if(a.id().equals(Combat.MASTERY))counter=CombatPractice.TWO_HAND;
         if(a.id().equals("faust_epic_compat:epicfight/swordmaster"))counter=CombatPractice.SWORDS;
@@ -222,11 +222,16 @@ public final class Compat {
             }
             if(branch==com.faust.core.progression.Skill.strength)swapPositions(placed,Combat.MASTERY,Combat.FIST_POWER);
             if(branch==com.faust.core.progression.Skill.dexterity)alignDexterity(placed);
+            if(branch==com.faust.core.progression.Skill.intelligence){
+                var cat=placed.stream().filter(n->n.ability().equals("faustcore:cat_scent")).findFirst().orElse(null);
+                var enchant=placed.stream().filter(n->n.ability().equals("faustcore:enchanting_power")).findFirst().orElse(null);
+                if(cat!=null&&enchant!=null){move(placed,cat.ability(),enchant.x(),enchant.y()+40);move(placed,"faust_epic_compat:epicfight/revelation",0,enchant.y()+40);}
+            }
             if(branch==com.faust.core.progression.Skill.constitution){
                 var health=placed.stream().filter(n->n.ability().equals("faustcore:training_constitution_health")).findFirst().orElse(null);
                 var recovery=placed.stream().filter(n->n.ability().equals("faustcore:resilient_recovery")).findFirst().orElse(null);
                 if(health!=null){move(placed,"faust_epic_compat:epicfight/hypervitality",health.x()-40,health.y());move(placed,"faust_epic_compat:epicfight/hyper_vitality",health.x()-40,health.y());move(placed,"faust_epic_compat:epicfight/endurance",health.x()+40,health.y());move(placed,"faust_epic_compat:epicfight/adaptive_skin",health.x(),health.y()+40);}
-                if(health!=null){move(placed,"faustcore:second_wind",health.x()+120,health.y()-40);move(placed,"faustcore:resilient_recovery",health.x()+120,health.y());move(placed,"faust_epic_compat:epicfight/stamina_pillager",health.x()+160,health.y());move(placed,"faust_epic_compat:epicfight/catharsis",health.x()+40,health.y()+40);move(placed,"faust_epic_compat:epicfight/death_harvest",health.x()+80,health.y()+40);}
+                if(health!=null){move(placed,"faustcore:second_wind",health.x()+80,health.y()-40);move(placed,"faustcore:resilient_recovery",health.x()+80,health.y());move(placed,"faust_epic_compat:epicfight/stamina_pillager",health.x()+120,health.y());move(placed,"faust_epic_compat:epicfight/catharsis",health.x()+40,health.y()+40);move(placed,"faust_epic_compat:epicfight/death_harvest",health.x()+80,health.y()+40);}
             }
             if(tree!=null)layouts.remove(tree);
             layouts.add(new com.faust.core.progression.SkillTrees.Tree(branch,placed));
