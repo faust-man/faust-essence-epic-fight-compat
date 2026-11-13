@@ -43,5 +43,12 @@
   "core.counter.faust_epic_visited_end": "посещение Энда",
   "core.counter.faust_epic_fist_damage": "Урон кулаками",
   "core.counter.faust_epic_peak_stamina": "Максимальная выносливость",
-  "faust_epic_compat.unlock": "Открыть"
+  "faust_epic_compat.unlock": "Открыть",
+  "faust_epic_compat.longsword_mastery": "Мастер боя с длинным мечом",
+  "faust_epic_compat.longsword_mastery.description": "Позволяет бежать во время Лихтенауэра и удваивает окно отражения атаки через ЛКМ.",
+  "faust_epic_compat.greatsword_mastery": "Мастер боя двуручным мечом",
+  "faust_epic_compat.greatsword_mastery.description": "Большие мечи наносят двойной урон щитам и вдвое больше пробивают броню. Способность большого меча игнорирует щиты и блоки, кроме Усиленного блока.",
+  "core.counter.faust_epic_longsword_uses": "применений способности длинного меча",
+  "core.counter.faust_epic_greatsword_swings": "взмахов большим двуручным мечом",
+  "core.counter.faust_epic_technician_hits": "ударов"
 }

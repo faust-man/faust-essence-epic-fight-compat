@@ -15,13 +15,13 @@ public abstract class TreeMixin {
     private void texture(net.minecraft.client.gui.GuiGraphics graphics,net.minecraft.world.item.ItemStack stack,int x,int y){var skill=yesman.epicfight.world.item.SkillBookItem.getContainSkill(stack);if(skill.isPresent())graphics.blit(skill.get().value().getSkillTexture(),x,y,16,16,0,0,1,1,1,1);else graphics.renderItem(stack,x,y);}
     @Inject(method="abilityName",at=@At("HEAD"),cancellable=true)
     private static void name(com.faust.core.progression.Balance.Ability ability,CallbackInfoReturnable<net.minecraft.network.chat.Component> cir){
-        if(Compat.isMastery(ability.id())){cir.setReturnValue(net.minecraft.network.chat.Component.translatable("faust_epic_compat."+ability.id().split(":")[1]));return;}
+        if((Compat.isMastery(ability.id())||com.faust.epiccompat.WeaponMastery.custom(ability.id()))){cir.setReturnValue(net.minecraft.network.chat.Component.translatable("faust_epic_compat."+ability.id().split(":")[1]));return;}
         var skill=Compat.skill(ability.id());if(skill!=null)cir.setReturnValue(net.minecraft.network.chat.Component.translatable(skill.getTranslationKey()));
     }
     @Inject(method="abilityDescription",at=@At("HEAD"),cancellable=true)
     private static void masteryDescription(com.faust.core.progression.Balance.Ability ability,com.faust.core.progression.Progress progress,com.faust.core.progression.Balance balance,CallbackInfoReturnable<java.util.ArrayList<net.minecraft.network.chat.Component>> cir){
         if(ability.id().equals(com.faust.epiccompat.Combat.SHIELD_EFFICIENCY))return;
-        if(Compat.isMastery(ability.id()))cir.setReturnValue(new java.util.ArrayList<>(java.util.List.of(net.minecraft.network.chat.Component.translatable("faust_epic_compat."+ability.id().split(":")[1]+".description"))));
+        if((Compat.isMastery(ability.id())||com.faust.epiccompat.WeaponMastery.custom(ability.id())))cir.setReturnValue(new java.util.ArrayList<>(java.util.List.of(net.minecraft.network.chat.Component.translatable("faust_epic_compat."+ability.id().split(":")[1]+".description"))));
     }
     @Shadow private SkillTrees.Node hovered(double x,double y){throw new AssertionError();}
     @Inject(method="mouseClicked",at=@At("HEAD"),cancellable=true)

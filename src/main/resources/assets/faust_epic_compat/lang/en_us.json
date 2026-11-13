@@ -43,5 +43,12 @@
   "core.counter.faust_epic_visited_end": "visit to the End",
   "core.counter.faust_epic_fist_damage": "Fist damage",
   "core.counter.faust_epic_peak_stamina": "Maximum stamina",
-  "faust_epic_compat.unlock": "Unlock"
+  "faust_epic_compat.unlock": "Unlock",
+  "faust_epic_compat.longsword_mastery": "Longsword Master",
+  "faust_epic_compat.longsword_mastery.description": "Allows sprinting during Liechtenauer and doubles its attack parry window.",
+  "faust_epic_compat.greatsword_mastery": "Greatsword Master",
+  "faust_epic_compat.greatsword_mastery.description": "Greatswords deal double shield damage and double armor negation. Their innate skill bypasses shields and guards, except Impact Guard.",
+  "core.counter.faust_epic_longsword_uses": "longsword innate skill uses",
+  "core.counter.faust_epic_greatsword_swings": "greatsword swings",
+  "core.counter.faust_epic_technician_hits": "hits"
 }

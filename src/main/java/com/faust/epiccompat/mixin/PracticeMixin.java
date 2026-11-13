@@ -30,6 +30,7 @@ public class PracticeMixin {
         }double lost=Math.max(0,before-entity.getHealth());
         if(entity instanceof ServerPlayer player&&lost>0&&!player.isCreative()&&!player.isSpectator())CombatPractice.add(player,CombatPractice.DAMAGE,lost);
         if(result&&attacker!=null&&kind!=null&&kind.fists()&&entity!=attacker)CombatPractice.add(attacker,CombatPractice.FIST_DAMAGE,lost);
+        if(result&&lost>0&&attacker!=null&&entity!=attacker&&com.faust.core.runtime.CoreRuntime.active(attacker))CombatPractice.add(attacker,com.faust.epiccompat.WeaponMastery.HITS,1);
         if(result)com.faust.epiccompat.Milestones.damage(entity,source,lost,before>0&&entity.getHealth()<=0,exhausted);
         if(before>0&&entity.getHealth()<=0&&source.getDirectEntity() instanceof ServerPlayer player&&entity!=player&&kind!=null)CombatPractice.kill(player,kind);
         return result;

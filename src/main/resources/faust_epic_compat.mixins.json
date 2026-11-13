@@ -28,14 +28,22 @@
     "GuardPracticeMixin",
     "GuardRecoveryMixin",
     "HealthStaminaTickMixin",
-    "KeepSkillsMixin"
+    "KeepSkillsMixin",
+    "DeathSkillsMixin",
+    "WeaponPracticeMixin",
+    "WeaponSwingMixin",
+    "GreatswordDamageMixin",
+    "GreatswordGuardMixin",
+    "GreatswordShieldMixin",
+    "LongswordMasteryMixin"
   ],
   "client": [
     "TreeMixin",
     "HudMixin",
     "SkillEditMixin",
     "HealthClientMixin",
-    "VersionNoticeMixin"
+    "VersionNoticeMixin",
+    "LongswordSprintMixin"
   ],
   "injectors": {
     "defaultRequire": 1

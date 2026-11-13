@@ -6,7 +6,7 @@ public final class RulesTest {
         var fist=Compat.relocate(Compat.mastery(Combat.FIST_POWER));check(fist.counter().equals(CombatPractice.FIST_DAMAGE)&&fist.amount()==100);
         for(String name:java.util.List.of("technician","demolition_leap","phantom_ascent","endurance")){
             var node=Compat.relocate(new com.faust.core.progression.Balance.Ability("faust_epic_compat:epicfight/"+name,com.faust.core.progression.Skill.dexterity,5,"hits",0,"","faust_epic_compat:skill",0));
-            if(name.equals("technician"))check(node.counter().equals("skill_levels")&&node.amount()==0);
+            if(name.equals("technician"))check(node.counter().equals(WeaponMastery.HITS)&&node.amount()==200);
             if(name.equals("demolition_leap")){
                 check(node.skill()==com.faust.core.progression.Skill.dexterity&&node.level()==5);
                 check(node.skillRequirements().equals(java.util.List.of(new com.faust.core.progression.Balance.SkillRequirement(com.faust.core.progression.Skill.dexterity,5),new com.faust.core.progression.Balance.SkillRequirement(com.faust.core.progression.Skill.strength,5))));
@@ -71,7 +71,7 @@ public final class RulesTest {
         var original=java.util.List.copyOf(balance.trees);
         Compat.extend(balance);
         var layout=balance.trees.stream().filter(t->t.skill()==com.faust.core.progression.Skill.strength).findFirst().orElseThrow();
-        var added=layout.nodes().stream().filter(n->n.ability().startsWith("faust_epic_compat:")).toList();
+        var added=layout.nodes().stream().filter(n->n.ability().startsWith("faust_epic_compat:test/")).toList();
         check(added.size()==20);
         check(added.stream().map(com.faust.core.progression.SkillTrees.Node::x).distinct().count()==4);
         check(added.stream().map(com.faust.core.progression.SkillTrees.Node::y).distinct().count()==5);
@@ -89,8 +89,8 @@ public final class RulesTest {
         var technician=gates.abilities.stream().filter(a->a.id().equals(tech)).findFirst().orElseThrow();
         var pair=gates.abilities.stream().filter(a->a.id().equals(Combat.SWORD_MASTERY)).findFirst().orElseThrow();
         var progress=new com.faust.core.progression.Progress();progress.track(com.faust.core.progression.Skill.dexterity).level=5;
-        progress.track(com.faust.core.progression.Skill.intelligence).level=4;check(!progress.canUnlock(technician,gates));
-        progress.track(com.faust.core.progression.Skill.intelligence).level=5;check(progress.canUnlock(technician,gates));
+        progress.setCounter(WeaponMastery.HITS,199,gates);check(!progress.canUnlock(technician,gates));
+        progress.setCounter(WeaponMastery.HITS,200,gates);check(progress.canUnlock(technician,gates));
         check(technician.skill()==com.faust.core.progression.Skill.dexterity);
         progress.track(com.faust.core.progression.Skill.strength).level=5;progress.setCounter(CombatPractice.DUAL,10.0,gates);check(!progress.canUnlock(pair,gates));
         progress.track(com.faust.core.progression.Skill.strength).level=10;progress.unlocked.add(master);progress.setCounter(CombatPractice.DUAL,10.0,gates);check(progress.canUnlock(pair,gates));
