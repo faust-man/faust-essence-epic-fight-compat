@@ -27,14 +27,28 @@
     "ShieldMilestoneMixin",
     "GuardPracticeMixin",
     "GuardRecoveryMixin",
-    "HealthStaminaTickMixin"
+    "HealthStaminaTickMixin",
+    "KeepSkillsMixin",
+    "DeathSkillsMixin",
+    "WeaponPracticeMixin",
+    "WeaponSwingMixin",
+    "GreatswordDamageMixin",
+    "GreatswordGuardMixin",
+    "GreatswordShieldMixin",
+    "LongswordMasteryMixin",
+    "GuardStartCostMixin",
+    "SecondWindAttackMixin",
+    "GuardHoldingCostMixin",
+    "GuardRequestResultMixin",
+    "EmergencyDodgeMixin"
   ],
   "client": [
     "TreeMixin",
     "HudMixin",
     "SkillEditMixin",
     "HealthClientMixin",
-    "VersionNoticeMixin"
+    "VersionNoticeMixin",
+    "LongswordSprintMixin"
   ],
   "injectors": {
     "defaultRequire": 1

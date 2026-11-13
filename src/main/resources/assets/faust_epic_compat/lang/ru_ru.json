@@ -29,7 +29,7 @@
   "core.counter.faust_epic_exhausted_kills": "убийств мобов во время истощения",
   "core.counter.faust_epic_fall_damage": "получено урона от падений",
   "core.counter.faust_epic_fire_damage": "урон от огня",
-  "core.counter.faust_epic_heavy_attack": "атак с уроном больше 15 HP",
+  "core.counter.faust_epic_heavy_attack": "атаки с уроном более 15 HP",
   "core.counter.faust_epic_hostile_kills": "убийств враждебных мобов",
   "core.counter.faust_epic_magic_damage": "урон от магии",
   "core.counter.faust_epic_melee_damage": "урон от ближних атак",
@@ -43,5 +43,12 @@
   "core.counter.faust_epic_visited_end": "посещение Энда",
   "core.counter.faust_epic_fist_damage": "Урон кулаками",
   "core.counter.faust_epic_peak_stamina": "Максимальная выносливость",
-  "faust_epic_compat.unlock": "Открыть"
+  "faust_epic_compat.unlock": "Открыть",
+  "faust_epic_compat.longsword_mastery": "Мастер боя с длинным мечом",
+  "faust_epic_compat.longsword_mastery.description": "Оружие со способностью длинного меча вдвое пробивает броню. Разрешает бег в стойке и удваивает окно отражения через ЛКМ. С щитом способность Sharp Stab наносит тройной урон, имеет тройную силу оглушения и пробивает 50% брони.",
+  "faust_epic_compat.greatsword_mastery": "Мастер боя двуручным мечом",
+  "faust_epic_compat.greatsword_mastery.description": "Оружие со способностью большого меча не замедляет владельца, наносит двойной урон щитам и в 1,5 раза пробивает броню. Способность игнорирует блоки, кроме Усиленного блока.",
+  "core.counter.faust_epic_longsword_uses": "применений способности длинного меча",
+  "core.counter.faust_epic_greatsword_swings": "взмахов большим двуручным мечом",
+  "core.counter.faust_epic_technician_hits": "ударов"
 }

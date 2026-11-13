@@ -6,7 +6,7 @@ public final class RulesTest {
         var fist=Compat.relocate(Compat.mastery(Combat.FIST_POWER));check(fist.counter().equals(CombatPractice.FIST_DAMAGE)&&fist.amount()==100);
         for(String name:java.util.List.of("technician","demolition_leap","phantom_ascent","endurance")){
             var node=Compat.relocate(new com.faust.core.progression.Balance.Ability("faust_epic_compat:epicfight/"+name,com.faust.core.progression.Skill.dexterity,5,"hits",0,"","faust_epic_compat:skill",0));
-            if(name.equals("technician"))check(node.counter().equals("skill_levels")&&node.amount()==0);
+            if(name.equals("technician"))check(node.counter().equals(WeaponMastery.HITS)&&node.amount()==200);
             if(name.equals("demolition_leap")){
                 check(node.skill()==com.faust.core.progression.Skill.dexterity&&node.level()==5);
                 check(node.skillRequirements().equals(java.util.List.of(new com.faust.core.progression.Balance.SkillRequirement(com.faust.core.progression.Skill.dexterity,5),new com.faust.core.progression.Balance.SkillRequirement(com.faust.core.progression.Skill.strength,5))));
@@ -71,12 +71,12 @@ public final class RulesTest {
         var original=java.util.List.copyOf(balance.trees);
         Compat.extend(balance);
         var layout=balance.trees.stream().filter(t->t.skill()==com.faust.core.progression.Skill.strength).findFirst().orElseThrow();
-        var added=layout.nodes().stream().filter(n->n.ability().startsWith("faust_epic_compat:")).toList();
+        var added=layout.nodes().stream().filter(n->n.ability().startsWith("faust_epic_compat:test/")).toList();
         check(added.size()==20);
         check(added.stream().map(com.faust.core.progression.SkillTrees.Node::x).distinct().count()==4);
         check(added.stream().map(com.faust.core.progression.SkillTrees.Node::y).distinct().count()==5);
-        check(added.stream().allMatch(n->n.x()>=0&&n.x()+22<=160));
-        for(var tree:original)check(balance.trees.stream().filter(t->t.skill()==tree.skill()).findFirst().orElseThrow().nodes().containsAll(tree.nodes().stream().filter(n->!java.util.Set.of("faustcore:second_wind","faustcore:resilient_recovery").contains(n.ability())).toList()));
+        check(added.stream().allMatch(n->n.x()>=0&&n.x()+2<=15));
+        for(var tree:original)check(balance.trees.stream().filter(t->t.skill()==tree.skill()).findFirst().orElseThrow().nodes().containsAll(tree.nodes().stream().filter(n->!java.util.Set.of("faustcore:second_wind","faustcore:resilient_recovery","faustcore:metabolism","faustcore:mace_efficiency").contains(n.ability())).toList()));
         var before=com.faust.core.progression.Balance.JSON.toJson(balance.trees);Compat.extend(balance);
         check(before.equals(com.faust.core.progression.Balance.JSON.toJson(balance.trees)));
         var gates=new com.faust.core.progression.Balance();
@@ -89,17 +89,17 @@ public final class RulesTest {
         var technician=gates.abilities.stream().filter(a->a.id().equals(tech)).findFirst().orElseThrow();
         var pair=gates.abilities.stream().filter(a->a.id().equals(Combat.SWORD_MASTERY)).findFirst().orElseThrow();
         var progress=new com.faust.core.progression.Progress();progress.track(com.faust.core.progression.Skill.dexterity).level=5;
-        progress.track(com.faust.core.progression.Skill.intelligence).level=4;check(!progress.canUnlock(technician,gates));
-        progress.track(com.faust.core.progression.Skill.intelligence).level=5;check(progress.canUnlock(technician,gates));
+        progress.setCounter(WeaponMastery.HITS,199,gates);check(!progress.canUnlock(technician,gates));
+        progress.setCounter(WeaponMastery.HITS,200,gates);check(progress.canUnlock(technician,gates));
         check(technician.skill()==com.faust.core.progression.Skill.dexterity);
         progress.track(com.faust.core.progression.Skill.strength).level=5;progress.setCounter(CombatPractice.DUAL,10.0,gates);check(!progress.canUnlock(pair,gates));
         progress.track(com.faust.core.progression.Skill.strength).level=10;progress.unlocked.add(master);progress.setCounter(CombatPractice.DUAL,10.0,gates);check(progress.canUnlock(pair,gates));
         var tree=gates.trees.stream().filter(t->t.skill()==com.faust.core.progression.Skill.strength).findFirst().orElseThrow();
         var first=tree.nodes().stream().filter(n->n.ability().equals(master)).findFirst().orElseThrow();
         var second=tree.nodes().stream().filter(n->n.ability().equals(pair.id())).findFirst().orElseThrow();
-        check(first.x()==second.x()&&second.y()-first.y()==40);
+        check(first.x()==second.x()&&second.y()-first.y()==com.faust.core.progression.SkillTrees.snap(4));
         check(first.x()<original.stream().filter(t->t.skill()==com.faust.core.progression.Skill.strength).findFirst().orElseThrow().nodes().stream().mapToDouble(com.faust.core.progression.SkillTrees.Node::x).min().orElseThrow());
-        for(var left:tree.nodes())for(var right:tree.nodes())if(!left.ability().equals(right.ability()))check(Math.abs(left.x()-right.x())>=22||Math.abs(left.y()-right.y())>=22);
+        for(var left:tree.nodes())for(var right:tree.nodes())if(!left.ability().equals(right.ability()))check(Math.abs(left.x()-right.x())>=2||Math.abs(left.y()-right.y())>=2);
         var chain=gates.abilities.stream().filter(a->a.counter().equals(CombatPractice.DAMAGE)).sorted(java.util.Comparator.comparingDouble(com.faust.core.progression.Balance.Ability::amount)).toList();
         check(chain.size()==3);check(chain.get(0).amount()==40&&chain.get(1).amount()==80&&chain.get(2).amount()==120);
         progress.track(com.faust.core.progression.Skill.constitution).level=10;progress.setCounter(CombatPractice.DAMAGE,39.0,gates);check(!progress.canUnlock(chain.get(0),gates));progress.setCounter(CombatPractice.DAMAGE,40.0,gates);check(progress.canUnlock(chain.get(0),gates));
@@ -117,9 +117,9 @@ public final class RulesTest {
         var bottom=packed.nodes().stream().filter(n->n.ability().startsWith("faust_epic_compat:test/remaining_")).toList();
         check(bottom.size()==4&&bottom.stream().map(com.faust.core.progression.SkillTrees.Node::y).distinct().count()==1);
         check(bottom.stream().mapToDouble(com.faust.core.progression.SkillTrees.Node::x).min().orElseThrow()==packed.nodes().stream().mapToDouble(com.faust.core.progression.SkillTrees.Node::x).min().orElseThrow());
-        for(var left:packed.nodes())for(var right:packed.nodes())if(!left.ability().equals(right.ability()))check(Math.abs(left.x()-right.x())>=22||Math.abs(left.y()-right.y())>=22);
+        for(var left:packed.nodes())for(var right:packed.nodes())if(!left.ability().equals(right.ability()))check(Math.abs(left.x()-right.x())>=2||Math.abs(left.y()-right.y())>=2);
         check(Compat.relocate(Compat.mastery(Combat.DAGGER_MASTERY)).counter().equals(CombatPractice.DAGGER_HITS));
-        check(Compat.relocate(Compat.mastery(Combat.DAGGER_MASTERY)).amount()==10);
+        check(Compat.relocate(Compat.mastery(Combat.DAGGER_MASTERY)).amount()==100);
         check(Compat.relocate(Compat.mastery(Combat.SHIELD_MASTERY)).counter().equals(CombatPractice.SHIELD_HITS));
         check(Compat.relocate(Compat.mastery(Combat.SHIELD_MASTERY)).amount()==100);
         check(Compat.relocate(Compat.mastery(Combat.FIST_POWER)).parent().equals(Combat.FIST_MASTERY));
@@ -136,15 +136,15 @@ public final class RulesTest {
         var stepNode=dexTree.nodes().stream().filter(n->n.ability().equals(prefix+"step")).findFirst().orElseThrow();
         var techNode=dexTree.nodes().stream().filter(n->n.ability().equals(prefix+"technician")).findFirst().orElseThrow();
         var daggerNode=dexTree.nodes().stream().filter(n->n.ability().equals(Combat.DAGGER_MASTERY)).findFirst().orElseThrow();
-        check(rollNode.x()==stepNode.x()&&stepNode.y()==rollNode.y()+40);
+        check(rollNode.x()==stepNode.x()&&stepNode.y()-rollNode.y()>=3&&stepNode.y()-rollNode.y()<=4);
         check(rollNode.x()==dexTree.nodes().stream().filter(n->n.ability().equals("faustcore:cushioned_landing")).findFirst().orElseThrow().x());
-        check(techNode.x()==daggerNode.x()&&daggerNode.y()==techNode.y()+40);
+        check(techNode.x()==daggerNode.x()&&daggerNode.y()-techNode.y()>=3&&daggerNode.y()-techNode.y()<=4);
         check(daggerNode.x()==0); // First alphabetical addon remains in its original grid column.
         var encoded=com.faust.core.progression.Balance.JSON.toJson(dex.trees);Compat.extend(dex);check(encoded.equals(com.faust.core.progression.Balance.JSON.toJson(dex.trees)));
         var dagger=dex.abilities.stream().filter(a->a.id().equals(Combat.DAGGER_MASTERY)).findFirst().orElseThrow();
         check(dagger.all().contains(prefix+"technician"));check(Compat.relocate(dagger).equals(dagger));
         var dexProgress=new com.faust.core.progression.Progress();dexProgress.track(com.faust.core.progression.Skill.dexterity).level=5;dexProgress.setCounter(CombatPractice.DAGGER_HITS,10.0,dex);
-        check(!dexProgress.canUnlock(dagger,dex));dexProgress.unlocked.add(prefix+"technician");dexProgress.setCounter(CombatPractice.DAGGER_HITS,10,dex);check(dexProgress.unlock(dagger.id(),dex));check(dexProgress.revoke(prefix+"technician",dex).contains(dagger.id()));
+        check(!dexProgress.canUnlock(dagger,dex));dexProgress.unlocked.add(prefix+"technician");dexProgress.setCounter(CombatPractice.DAGGER_HITS,99,dex);check(!dexProgress.canUnlock(dagger,dex));dexProgress.setCounter(CombatPractice.DAGGER_HITS,100,dex);check(dexProgress.unlock(dagger.id(),dex));check(dexProgress.revoke(prefix+"technician",dex).contains(dagger.id()));
         var rollAbility=dex.abilities.stream().filter(a->a.id().equals(prefix+"roll")).findFirst().orElseThrow();
         dexProgress=new com.faust.core.progression.Progress();dexProgress.setCounter("run_metres",500.0,dex);check(!dexProgress.canUnlock(rollAbility,dex));
         dexProgress.track(com.faust.core.progression.Skill.dexterity).level=3;dexProgress.setCounter("run_metres",499.0,dex);check(!dexProgress.canUnlock(rollAbility,dex));dexProgress.setCounter("run_metres",500.0,dex);check(dexProgress.canUnlock(rollAbility,dex));

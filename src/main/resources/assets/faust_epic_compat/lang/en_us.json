@@ -43,5 +43,12 @@
   "core.counter.faust_epic_visited_end": "visit to the End",
   "core.counter.faust_epic_fist_damage": "Fist damage",
   "core.counter.faust_epic_peak_stamina": "Maximum stamina",
-  "faust_epic_compat.unlock": "Unlock"
+  "faust_epic_compat.unlock": "Unlock",
+  "faust_epic_compat.longsword_mastery": "Longsword Master",
+  "faust_epic_compat.longsword_mastery.description": "Weapons with the longsword ability gain twice the armor negation. Allows sprinting in stance and doubles the left-click deflection window. With a shield, Sharp Stab deals triple damage, has triple impact and ignores 50% armor.",
+  "faust_epic_compat.greatsword_mastery": "Greatsword Master",
+  "faust_epic_compat.greatsword_mastery.description": "Weapons with a greatsword innate skill have no item movement penalty, double shield damage and 1.5x armor negation. The innate skill bypasses guards except Impact Guard.",
+  "core.counter.faust_epic_longsword_uses": "longsword innate skill uses",
+  "core.counter.faust_epic_greatsword_swings": "greatsword swings",
+  "core.counter.faust_epic_technician_hits": "hits"
 }
