@@ -86,6 +86,7 @@ public final class Compat {
             }
             Path combatRevision=file.resolveSibling(".combat-refinement");
             if(!Files.exists(combatRevision)){Files.copy(file,file.resolveSibling("abilities-before-combat-refinement.json"),StandardCopyOption.REPLACE_EXISTING);for(int i=0;i<merged.size();i++)if(merged.get(i).id().equals(WeaponMastery.GREAT)){var json=Balance.JSON.toJsonTree(merged.get(i)).getAsJsonObject();json.addProperty("parent",com.faust.core.progression.StaminaServices.present()?Combat.MASTERY:"");json.addProperty("counter",WeaponMastery.SWINGS);json.addProperty("amount",250);json.add("conditions",new com.google.gson.JsonArray());merged.set(i,Balance.JSON.fromJson(json,Balance.Ability.class));}}
+            Path shieldLongRevision=file.resolveSibling(".longsword-shield");if(!Files.exists(shieldLongRevision)){Files.copy(file,file.resolveSibling("abilities-before-longsword-shield.json"),StandardCopyOption.REPLACE_EXISTING);for(int i=0;i<merged.size();i++)if(merged.get(i).id().equals(WeaponMastery.LONG))merged.set(i,RevisionRequirements.apply(merged.get(i)));}
             Path constitutionRevision=file.resolveSibling(".constitution-tune");if(!Files.exists(constitutionRevision)){Files.copy(file,file.resolveSibling("abilities-before-constitution-tune.json"),StandardCopyOption.REPLACE_EXISTING);for(int i=0;i<merged.size();i++)if(java.util.Set.of("faust_epic_compat:epicfight/adaptive_skin","faust_epic_compat:epicfight/catharsis","faust_epic_compat:epicfight/death_harvest").contains(merged.get(i).id()))merged.set(i,relocate(merged.get(i)));}
             Path revision=file.resolveSibling(".requirements-revision");
             if(!Files.exists(revision))for(int i=0;i<merged.size();i++)merged.set(i,relocate(merged.get(i)));
@@ -95,7 +96,7 @@ public final class Compat {
                 for(int i=0;i<merged.size();i++)if(merged.get(i).id().endsWith("/bonebreaker"))merged.set(i,relocate(merged.get(i)));
             }
             if(!merged.equals(nodes)){nodes=merged;Files.writeString(file,Balance.JSON.toJson(nodes)+"\n");}
-            Files.writeString(polish,"1\n");Files.writeString(masteryRevision,"1\n");Files.writeString(combatRevision,"1\n");Files.writeString(constitutionRevision,"1\n");
+            Files.writeString(polish,"1\n");Files.writeString(masteryRevision,"1\n");Files.writeString(combatRevision,"1\n");Files.writeString(constitutionRevision,"1\n");Files.writeString(shieldLongRevision,"1\n");
             Path followup=file.resolveSibling(".balance-followup");
             if(!Files.exists(followup)){
                 for(int i=0;i<nodes.size();i++)if(nodes.get(i).id().equals(Combat.SHIELD_EFFICIENCY)){var j=Balance.JSON.toJsonTree(nodes.get(i)).getAsJsonObject();j.addProperty("value",1);var updated=new ArrayList<>(nodes);updated.set(i,Balance.JSON.fromJson(j,Balance.Ability.class));nodes=updated;}

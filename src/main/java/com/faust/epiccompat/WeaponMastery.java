@@ -16,12 +16,18 @@ public final class WeaponMastery {
  public static java.util.function.BooleanSupplier CLIENT_LONG=()->false;
  private WeaponMastery(){}
  public static boolean custom(String id){return id.equals(LONG)||id.equals(GREAT);}
- public static java.util.List<Balance.Ability> defaults(){return java.util.List.of(new Balance.Ability(LONG,com.faust.core.progression.Skill.defense,15,USES,50,"faust_epic_compat:epicfight/parrying","faust_epic_compat:weapon_mastery",0),new Balance.Ability(GREAT,com.faust.core.progression.Skill.strength,15,SWINGS,250,StaminaServices.present()?Combat.MASTERY:"","faust_epic_compat:weapon_mastery",0));}
+ public static java.util.List<Balance.Ability> defaults(){return java.util.List.of(RevisionRequirements.apply(new Balance.Ability(LONG,com.faust.core.progression.Skill.defense,15,USES,50,"faust_epic_compat:epicfight/parrying","faust_epic_compat:weapon_mastery",0)),new Balance.Ability(GREAT,com.faust.core.progression.Skill.strength,15,SWINGS,250,StaminaServices.present()?Combat.MASTERY:"","faust_epic_compat:weapon_mastery",0));}
  public static boolean enabled(Player player,String id){return player instanceof ServerPlayer p?CoreRuntime.active(p)&&CoreRuntime.data(p).enabled(id,CoreRuntime.balance):player.level().isClientSide&&id.equals(LONG)&&CLIENT_LONG.getAsBoolean();}
  public static yesman.epicfight.skill.Skill innate(Player player,ItemStack stack){return EpicFightCapabilities.getUnparameterizedEntityPatch(player,yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch.class).map(patch->EpicFightCapabilities.getItemStackCapability(stack).getInnateSkill(patch,stack)).orElse(null);}
  public static boolean great(Player player,ItemStack stack){return !stack.isEmpty()&&innate(player,stack) instanceof yesman.epicfight.skill.weaponinnate.SteelWhirlwindSkill;}
- public static boolean longSword(Player player,ItemStack stack){return !stack.isEmpty()&&innate(player,stack) instanceof yesman.epicfight.skill.weaponinnate.LiechtenauerSkill;}
+ public static boolean longSword(Player player,ItemStack stack){if(stack.isEmpty())return false;var skill=innate(player,stack);return (skill instanceof yesman.epicfight.skill.weaponinnate.LiechtenauerSkill||skill==yesman.epicfight.registry.entries.EpicFightSkills.SHARP_STAB.get());}
  public static float armorMultiplier(DamageSource source){if(!(source instanceof EpicFightDamageSource epic)||!(source.getEntity() instanceof ServerPlayer player))return 1;var stack=epic.getUsedItem().isEmpty()?player.getMainHandItem():epic.getUsedItem();return great(player,stack)&&enabled(player,GREAT)?1.5F:longSword(player,stack)&&enabled(player,LONG)?2:1;}
+ public static boolean shieldSpecial(DamageSource source){
+  if(!(source instanceof EpicFightDamageSource epic)||!(source.getEntity() instanceof ServerPlayer player)||!enabled(player,LONG)||!source.is(EpicFightDamageTypeTags.WEAPON_INNATE)||!player.getOffhandItem().canPerformAction(net.neoforged.neoforge.common.ItemAbilities.SHIELD_BLOCK))return false;
+  var stack=epic.getUsedItem().isEmpty()?player.getMainHandItem():epic.getUsedItem();
+  return innate(player,stack)==yesman.epicfight.registry.entries.EpicFightSkills.SHARP_STAB.get();
+ }
+ public static float armorNegation(DamageSource source,float original){return shieldSpecial(source)?50:Math.min(100,original*armorMultiplier(source));}
  private static final java.util.Map<ServerPlayer,Long> LAST_ATTACK=new java.util.WeakHashMap<>();
  public static void markAttack(ServerPlayer player){LAST_ATTACK.put(player,player.serverLevel().getGameTime());}
  public static boolean windBlocked(ServerPlayer player){long tick=player.serverLevel().getGameTime();if(attacking(player)){LAST_ATTACK.put(player,tick);return true;}var last=LAST_ATTACK.get(player);return last!=null&&tick-last<20;}

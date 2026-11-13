@@ -12,6 +12,7 @@ final class RevisionRequirements {
         if(a.id().equals(Combat.FIST_POWER)||a.id().equals(Combat.MASTERY))level=10;
         if(a.id().equals(Combat.SHIELD_EFFICIENCY))level=7;
         if(a.id().equals(Combat.SHIELD_MASTERY)){level=7;req=List.of(new Balance.SkillRequirement(Skill.defense,7),new Balance.SkillRequirement(Skill.strength,5));}
+        if(a.id().equals(WeaponMastery.LONG))req=List.of(new Balance.SkillRequirement(Skill.defense,15),new Balance.SkillRequirement(Skill.strength,10));
         if(n.equals("catharsis")){req=List.of(new Balance.SkillRequirement(Skill.constitution,1),new Balance.SkillRequirement(Skill.strength,1),new Balance.SkillRequirement(Skill.dexterity,1),new Balance.SkillRequirement(Skill.defense,1),new Balance.SkillRequirement(Skill.intelligence,1),new Balance.SkillRequirement(Skill.building,1));j.addProperty("skill","constitution");}
         if(n.equals("death_harvest")||n.equals("adaptive_skin")){req=List.of(new Balance.SkillRequirement(Skill.constitution,level));j.addProperty("skill","constitution");}
         j.addProperty("level",level);
