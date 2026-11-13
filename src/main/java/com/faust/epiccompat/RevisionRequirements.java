@@ -5,13 +5,15 @@ final class RevisionRequirements {
     static Balance.Ability apply(Balance.Ability a){
         var j=Balance.JSON.toJsonTree(a).getAsJsonObject();
         String n=a.id().replace("faust_epic_compat:epicfight/", "");
-        int level=switch(n){case "roll","guard"->3;case "bonebreaker"->7;case "impact_guard"->10;case "endurance","hypervitality","hyper_vitality"->7;case "berserker"->5;case "vengeance"->7;case "forbidden_strength"->10;default->a.level();};
+        int level=switch(n){case "roll","guard"->3;case "bonebreaker","death_harvest"->7;case "adaptive_skin"->12;case "catharsis"->1;case "impact_guard"->10;case "endurance","hypervitality","hyper_vitality"->7;case "berserker"->5;case "vengeance"->7;case "forbidden_strength"->10;default->a.level();};
         List<Balance.SkillRequirement> req=null;
         if(n.equals("swordmaster")||a.id().equals(Combat.SWORD_MASTERY))req=List.of(new Balance.SkillRequirement(Skill.strength,n.equals("swordmaster")?5:10),new Balance.SkillRequirement(Skill.dexterity,5));
         if(Set.of("berserker","vengeance","forbidden_strength").contains(n))req=List.of(new Balance.SkillRequirement(Skill.strength,level),new Balance.SkillRequirement(Skill.constitution,level));
         if(a.id().equals(Combat.FIST_POWER)||a.id().equals(Combat.MASTERY))level=10;
         if(a.id().equals(Combat.SHIELD_EFFICIENCY))level=7;
         if(a.id().equals(Combat.SHIELD_MASTERY)){level=7;req=List.of(new Balance.SkillRequirement(Skill.defense,7),new Balance.SkillRequirement(Skill.strength,5));}
+        if(n.equals("catharsis")){req=List.of(new Balance.SkillRequirement(Skill.constitution,1),new Balance.SkillRequirement(Skill.strength,1),new Balance.SkillRequirement(Skill.dexterity,1),new Balance.SkillRequirement(Skill.defense,1),new Balance.SkillRequirement(Skill.intelligence,1),new Balance.SkillRequirement(Skill.building,1));j.addProperty("skill","constitution");}
+        if(n.equals("death_harvest")||n.equals("adaptive_skin")){req=List.of(new Balance.SkillRequirement(Skill.constitution,level));j.addProperty("skill","constitution");}
         j.addProperty("level",level);
         if(req!=null)j.add("characteristics",Balance.JSON.toJsonTree(req));
         else if(level!=a.level())j.add("characteristics",Balance.JSON.toJsonTree(List.of(new Balance.SkillRequirement(a.skill(),level))));

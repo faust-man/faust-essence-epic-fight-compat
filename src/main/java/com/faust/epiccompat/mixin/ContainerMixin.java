@@ -23,7 +23,7 @@ public abstract class ContainerMixin {
         if(getSkill() instanceof yesman.epicfight.skill.common.ComboAttacks&&!com.faust.epiccompat.Combat.canStrike(executor)){cir.setReturnValue(false);return;}
         if(executor.getOriginal() instanceof ServerPlayer player){
             var skill=getSkill();
-            if(skill!=null&&((skill.getCategory().learnable()&&!CoreRuntime.data(player).unlocked.contains(Compat.nodeId(skill)))||(!CoreRuntime.canAct(player)&&skill.getCategory()!=SkillCategories.KNOCKDOWN_WAKEUP)))cir.setReturnValue(false);
+            if(skill!=null&&((skill.getCategory().learnable()&&!CoreRuntime.data(player).unlocked.contains(Compat.nodeId(skill)))||(!CoreRuntime.canAct(player)&&skill.getCategory()!=SkillCategories.KNOCKDOWN_WAKEUP&&!(skill.getCategory()==SkillCategories.DODGE&&com.faust.epiccompat.EmergencyDodge.available(executor)))))cir.setReturnValue(false);
         }
     }
     @Inject(method="setSkill(Lyesman/epicfight/skill/Skill;Z)Z",at=@At("HEAD"),cancellable=true)

@@ -39,7 +39,8 @@
     "GuardStartCostMixin",
     "SecondWindAttackMixin",
     "GuardHoldingCostMixin",
-    "GuardRequestResultMixin"
+    "GuardRequestResultMixin",
+    "EmergencyDodgeMixin"
   ],
   "client": [
     "TreeMixin",
