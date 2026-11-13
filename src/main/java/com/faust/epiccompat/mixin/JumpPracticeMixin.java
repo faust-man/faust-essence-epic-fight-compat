@@ -12,6 +12,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class JumpPracticeMixin {
     @Inject(method="jumpFromGround",at=@At("TAIL"))
     private void completed(CallbackInfo ci){
-        if((Object)this instanceof ServerPlayer player&&CoreRuntime.active(player))CombatPractice.add(player,CombatPractice.JUMPS,1);
+        if((Object)this instanceof ServerPlayer player&&com.faust.essence.api.EssenceApi.active(player))CombatPractice.add(player,CombatPractice.JUMPS,1);
     }
 }

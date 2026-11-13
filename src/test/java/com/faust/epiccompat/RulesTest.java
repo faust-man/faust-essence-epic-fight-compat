@@ -3,21 +3,22 @@ public final class RulesTest {
     private static int checks;
     private static void check(boolean result){checks++;if(!result)throw new AssertionError("Check "+checks);}
     public static void main(String[] args){
+        new com.faust.core.progression.Balance();
         var fist=Compat.relocate(Compat.mastery(Combat.FIST_POWER));check(fist.counter().equals(CombatPractice.FIST_DAMAGE)&&fist.amount()==100);
         for(String name:java.util.List.of("technician","demolition_leap","phantom_ascent","endurance")){
-            var node=Compat.relocate(new com.faust.core.progression.Balance.Ability("faust_epic_compat:epicfight/"+name,com.faust.core.progression.Skill.dexterity,5,"hits",0,"","faust_epic_compat:skill",0));
+            var node=Compat.relocate(new com.faust.core.progression.Balance.Ability("faust_epic_compat:epicfight/"+name,com.faust.essence.api.Skill.valueOf("dexterity"),5,"hits",0,"","faust_epic_compat:skill",0));
             if(name.equals("technician"))check(node.counter().equals(WeaponMastery.HITS)&&node.amount()==200);
             if(name.equals("demolition_leap")){
-                check(node.skill()==com.faust.core.progression.Skill.dexterity&&node.level()==5);
-                check(node.skillRequirements().equals(java.util.List.of(new com.faust.core.progression.Balance.SkillRequirement(com.faust.core.progression.Skill.dexterity,5),new com.faust.core.progression.Balance.SkillRequirement(com.faust.core.progression.Skill.strength,5))));
+                check(node.skill()==com.faust.essence.api.Skill.valueOf("dexterity")&&node.level()==5);
+                check(node.skillRequirements().equals(java.util.List.of(new com.faust.core.progression.Balance.SkillRequirement(com.faust.essence.api.Skill.valueOf("dexterity"),5),new com.faust.core.progression.Balance.SkillRequirement(com.faust.essence.api.Skill.valueOf("strength"),5))));
                 var balance=new com.faust.core.progression.Balance();balance.abilities.add(node);balance.validate();
                 for(int dex:new int[]{4,5})for(int strength:new int[]{4,5}){
-                    var progress=new com.faust.core.progression.Progress();progress.track(com.faust.core.progression.Skill.dexterity).level=dex;progress.track(com.faust.core.progression.Skill.strength).level=strength;progress.setCounter(CombatPractice.JUMPS,100,balance);
+                    var progress=new com.faust.core.progression.Progress();progress.track(com.faust.essence.api.Skill.valueOf("dexterity")).level=dex;progress.track(com.faust.essence.api.Skill.valueOf("strength")).level=strength;progress.setCounter(CombatPractice.JUMPS,100,balance);
                     check(progress.canUnlock(node,balance)==(dex>=5&&strength>=5));
                 }
                 check(Compat.relocate(node).equals(node));
             }
-            if(name.equals("phantom_ascent"))check(node.skill()==com.faust.core.progression.Skill.dexterity&&node.level()==10);
+            if(name.equals("phantom_ascent"))check(node.skill()==com.faust.essence.api.Skill.valueOf("dexterity")&&node.level()==10);
             if(name.equals("endurance"))check(node.counter().equals("faust_epic_peak_stamina")&&node.amount()==30);
         }
         check(Rules.branch("roll","DODGE").equals("dexterity"));
@@ -37,8 +38,8 @@ public final class RulesTest {
         check(Rules.canSpend(0,0,false,false));
         check(Rules.dualCost(1,true,false)==1);check(Rules.dualCost(1,true,true)==0.5);check(Rules.dualCost(1,false,false)==1);
         check(Rules.branch("adaptive_skin","PASSIVE").equals("constitution"));check(Rules.branch("revelation","PASSIVE").equals("intelligence"));
-        check(Compat.mastery(Combat.DAGGER_MASTERY).skill()==com.faust.core.progression.Skill.dexterity);
-        check(Compat.mastery(Combat.SWORD_MASTERY).skill()==com.faust.core.progression.Skill.strength);
+        check(Compat.mastery(Combat.DAGGER_MASTERY).skill()==com.faust.essence.api.Skill.valueOf("dexterity"));
+        check(Compat.mastery(Combat.SWORD_MASTERY).skill()==com.faust.essence.api.Skill.valueOf("strength"));
         check(Compat.icon(Combat.SWORD_MASTERY).startsWith("minecraft:"));check(Compat.icon("faust_epic_compat:epicfight/roll").equals("faust_epic_compat:epicfight/roll"));
         check(Rules.strikeCost(1,false,false,false,false,false,true,false)==2);
         check(Rules.strikeCost(1,false,false,false,false,false,true,true)==1);
@@ -48,7 +49,7 @@ public final class RulesTest {
         check(Rules.strikeCost(1,false,false,false,true,true,true,false)==0);
         check(Rules.strikeCost(1,false,false,false,true,false,true,false)==1);
         check(Rules.strikeCost(1.5,false,false,false,false,false,true,false)==3);
-        check(Compat.mastery(Combat.SHIELD_MASTERY).skill()==com.faust.core.progression.Skill.defense);
+        check(Compat.mastery(Combat.SHIELD_MASTERY).skill()==com.faust.essence.api.Skill.valueOf("defense"));
         check(Compat.mastery(Combat.SHIELD_MASTERY).level()==5);
         for(boolean twoHanded:new boolean[]{false,true})for(boolean spear:new boolean[]{false,true})for(boolean mastery:new boolean[]{false,true}){
             double cost=Rules.strikeCost(1.5,twoHanded,spear,mastery);
@@ -64,13 +65,13 @@ public final class RulesTest {
         for(int i=1;i<=16;i++)check(Rules.passiveSlot("PASSIVE"+i)==(i<=3));
         check(!Rules.passiveSlot("PASSIVE0"));check(!Rules.passiveSlot("CUSTOM_PASSIVE"));
         for(String id:java.util.List.of(Combat.MASTERY,Combat.FIST_MASTERY)){
-            var node=Compat.mastery(id);check(node.skill()==com.faust.core.progression.Skill.strength);check(node.level()==5);check(node.amount()==0);
+            var node=Compat.mastery(id);check(node.skill()==com.faust.essence.api.Skill.valueOf("strength"));check(node.level()==5);check(node.amount()==0);
         }
         var balance=new com.faust.core.progression.Balance();
-        for(int i=0;i<20;i++)balance.abilities.add(new com.faust.core.progression.Balance.Ability("faust_epic_compat:test/skill_"+i,com.faust.core.progression.Skill.strength,5,"hits",0,"","faust_epic_compat:skill",0));
+        for(int i=0;i<20;i++)balance.abilities.add(new com.faust.core.progression.Balance.Ability("faust_epic_compat:test/skill_"+i,com.faust.essence.api.Skill.valueOf("strength"),5,"hits",0,"","faust_epic_compat:skill",0));
         var original=java.util.List.copyOf(balance.trees);
         Compat.extend(balance);
-        var layout=balance.trees.stream().filter(t->t.skill()==com.faust.core.progression.Skill.strength).findFirst().orElseThrow();
+        var layout=balance.trees.stream().filter(t->t.skill()==com.faust.essence.api.Skill.valueOf("strength")).findFirst().orElseThrow();
         var added=layout.nodes().stream().filter(n->n.ability().startsWith("faust_epic_compat:test/")).toList();
         check(added.size()==20);
         check(added.stream().map(com.faust.core.progression.SkillTrees.Node::x).distinct().count()==4);
@@ -81,28 +82,28 @@ public final class RulesTest {
         check(before.equals(com.faust.core.progression.Balance.JSON.toJson(balance.trees)));
         var gates=new com.faust.core.progression.Balance();
         String tech="faust_epic_compat:epicfight/technician", master="faust_epic_compat:epicfight/swordmaster";
-        gates.abilities.add(new com.faust.core.progression.Balance.Ability(tech,com.faust.core.progression.Skill.dexterity,5,"hits",0,"","faust_epic_compat:skill",0));
-        gates.abilities.add(new com.faust.core.progression.Balance.Ability(master,com.faust.core.progression.Skill.strength,5,"hits",0,"","faust_epic_compat:skill",0));
+        gates.abilities.add(new com.faust.core.progression.Balance.Ability(tech,com.faust.essence.api.Skill.valueOf("dexterity"),5,"hits",0,"","faust_epic_compat:skill",0));
+        gates.abilities.add(new com.faust.core.progression.Balance.Ability(master,com.faust.essence.api.Skill.valueOf("strength"),5,"hits",0,"","faust_epic_compat:skill",0));
         gates.abilities.add(Compat.mastery(Combat.SWORD_MASTERY));
-        for(String name:java.util.List.of("berserker","vengeance","forbidden_strength"))gates.abilities.add(new com.faust.core.progression.Balance.Ability("faust_epic_compat:epicfight/"+name,com.faust.core.progression.Skill.strength,5,"hits",0,"","faust_epic_compat:skill",0));
+        for(String name:java.util.List.of("berserker","vengeance","forbidden_strength"))gates.abilities.add(new com.faust.core.progression.Balance.Ability("faust_epic_compat:epicfight/"+name,com.faust.essence.api.Skill.valueOf("strength"),5,"hits",0,"","faust_epic_compat:skill",0));
         Compat.extend(gates);
         var technician=gates.abilities.stream().filter(a->a.id().equals(tech)).findFirst().orElseThrow();
         var pair=gates.abilities.stream().filter(a->a.id().equals(Combat.SWORD_MASTERY)).findFirst().orElseThrow();
-        var progress=new com.faust.core.progression.Progress();progress.track(com.faust.core.progression.Skill.dexterity).level=5;
+        var progress=new com.faust.core.progression.Progress();progress.track(com.faust.essence.api.Skill.valueOf("dexterity")).level=5;
         progress.setCounter(WeaponMastery.HITS,199,gates);check(!progress.canUnlock(technician,gates));
         progress.setCounter(WeaponMastery.HITS,200,gates);check(progress.canUnlock(technician,gates));
-        check(technician.skill()==com.faust.core.progression.Skill.dexterity);
-        progress.track(com.faust.core.progression.Skill.strength).level=5;progress.setCounter(CombatPractice.DUAL,10.0,gates);check(!progress.canUnlock(pair,gates));
-        progress.track(com.faust.core.progression.Skill.strength).level=10;progress.unlocked.add(master);progress.setCounter(CombatPractice.DUAL,10.0,gates);check(progress.canUnlock(pair,gates));
-        var tree=gates.trees.stream().filter(t->t.skill()==com.faust.core.progression.Skill.strength).findFirst().orElseThrow();
+        check(technician.skill()==com.faust.essence.api.Skill.valueOf("dexterity"));
+        progress.track(com.faust.essence.api.Skill.valueOf("strength")).level=5;progress.setCounter(CombatPractice.DUAL,10.0,gates);check(!progress.canUnlock(pair,gates));
+        progress.track(com.faust.essence.api.Skill.valueOf("strength")).level=10;progress.unlocked.add(master);progress.setCounter(CombatPractice.DUAL,10.0,gates);check(progress.canUnlock(pair,gates));
+        var tree=gates.trees.stream().filter(t->t.skill()==com.faust.essence.api.Skill.valueOf("strength")).findFirst().orElseThrow();
         var first=tree.nodes().stream().filter(n->n.ability().equals(master)).findFirst().orElseThrow();
         var second=tree.nodes().stream().filter(n->n.ability().equals(pair.id())).findFirst().orElseThrow();
         check(first.x()==second.x()&&second.y()-first.y()==com.faust.core.progression.SkillTrees.snap(4));
-        check(first.x()<original.stream().filter(t->t.skill()==com.faust.core.progression.Skill.strength).findFirst().orElseThrow().nodes().stream().mapToDouble(com.faust.core.progression.SkillTrees.Node::x).min().orElseThrow());
+        check(first.x()<original.stream().filter(t->t.skill()==com.faust.essence.api.Skill.valueOf("strength")).findFirst().orElseThrow().nodes().stream().mapToDouble(com.faust.core.progression.SkillTrees.Node::x).min().orElseThrow());
         for(var left:tree.nodes())for(var right:tree.nodes())if(!left.ability().equals(right.ability()))check(Math.abs(left.x()-right.x())>=2||Math.abs(left.y()-right.y())>=2);
         var chain=gates.abilities.stream().filter(a->a.counter().equals(CombatPractice.DAMAGE)).sorted(java.util.Comparator.comparingDouble(com.faust.core.progression.Balance.Ability::amount)).toList();
         check(chain.size()==3);check(chain.get(0).amount()==40&&chain.get(1).amount()==80&&chain.get(2).amount()==120);
-        progress.track(com.faust.core.progression.Skill.constitution).level=10;progress.setCounter(CombatPractice.DAMAGE,39.0,gates);check(!progress.canUnlock(chain.get(0),gates));progress.setCounter(CombatPractice.DAMAGE,40.0,gates);check(progress.canUnlock(chain.get(0),gates));
+        progress.track(com.faust.essence.api.Skill.valueOf("constitution")).level=10;progress.setCounter(CombatPractice.DAMAGE,39.0,gates);check(!progress.canUnlock(chain.get(0),gates));progress.setCounter(CombatPractice.DAMAGE,40.0,gates);check(progress.canUnlock(chain.get(0),gates));
         progress.setCounter(CombatPractice.DAMAGE,120.0,gates);check(!progress.canUnlock(chain.get(2),gates));
         progress.unlocked.add(chain.get(0).id());progress.setCounter(CombatPractice.DAMAGE,80,gates);check(progress.canUnlock(chain.get(1),gates));progress.unlocked.add(chain.get(1).id());progress.setCounter(CombatPractice.DAMAGE,120,gates);check(progress.canUnlock(chain.get(2),gates));
         progress.setCounter(CombatPractice.DUAL,9.0,gates);check(!progress.canUnlock(pair,gates));progress.setCounter(CombatPractice.DUAL,10.0,gates);check(progress.canUnlock(pair,gates));
@@ -112,8 +113,8 @@ public final class RulesTest {
             check(practice.amount()==10);progress.unlocked.remove(id);progress.setCounter(practice.counter(),9.0,gates);check(!progress.canUnlock(practice,gates));progress.setCounter(practice.counter(),10.0,gates);check(progress.canUnlock(practice,gates));
         }
         String gateLayout=com.faust.core.progression.Balance.JSON.toJson(gates.trees);Compat.extend(gates);check(gateLayout.equals(com.faust.core.progression.Balance.JSON.toJson(gates.trees)));
-        for(int i=0;i<4;i++)gates.abilities.add(new com.faust.core.progression.Balance.Ability("faust_epic_compat:test/remaining_"+i,com.faust.core.progression.Skill.strength,5,"hits",0,"","faust_epic_compat:skill",0));
-        Compat.extend(gates);var packed=gates.trees.stream().filter(t->t.skill()==com.faust.core.progression.Skill.strength).findFirst().orElseThrow();
+        for(int i=0;i<4;i++)gates.abilities.add(new com.faust.core.progression.Balance.Ability("faust_epic_compat:test/remaining_"+i,com.faust.essence.api.Skill.valueOf("strength"),5,"hits",0,"","faust_epic_compat:skill",0));
+        Compat.extend(gates);var packed=gates.trees.stream().filter(t->t.skill()==com.faust.essence.api.Skill.valueOf("strength")).findFirst().orElseThrow();
         var bottom=packed.nodes().stream().filter(n->n.ability().startsWith("faust_epic_compat:test/remaining_")).toList();
         check(bottom.size()==4&&bottom.stream().map(com.faust.core.progression.SkillTrees.Node::y).distinct().count()==1);
         check(bottom.stream().mapToDouble(com.faust.core.progression.SkillTrees.Node::x).min().orElseThrow()==packed.nodes().stream().mapToDouble(com.faust.core.progression.SkillTrees.Node::x).min().orElseThrow());
@@ -129,9 +130,9 @@ public final class RulesTest {
         check(Rules.canSpend(0.5,1,false,false));check(!Rules.canSpend(0,1,true,false));
         var dex=new com.faust.core.progression.Balance();
         String prefix="faust_epic_compat:epicfight/";
-        for(String name:java.util.List.of("roll","step","technician"))dex.abilities.add(new com.faust.core.progression.Balance.Ability(prefix+name,com.faust.core.progression.Skill.dexterity,5,"hits",0,"","faust_epic_compat:skill",0));
+        for(String name:java.util.List.of("roll","step","technician"))dex.abilities.add(new com.faust.core.progression.Balance.Ability(prefix+name,com.faust.essence.api.Skill.valueOf("dexterity"),5,"hits",0,"","faust_epic_compat:skill",0));
         dex.abilities.add(Compat.mastery(Combat.DAGGER_MASTERY));Compat.extend(dex);
-        var dexTree=dex.trees.stream().filter(t->t.skill()==com.faust.core.progression.Skill.dexterity).findFirst().orElseThrow();
+        var dexTree=dex.trees.stream().filter(t->t.skill()==com.faust.essence.api.Skill.valueOf("dexterity")).findFirst().orElseThrow();
         var rollNode=dexTree.nodes().stream().filter(n->n.ability().equals(prefix+"roll")).findFirst().orElseThrow();
         var stepNode=dexTree.nodes().stream().filter(n->n.ability().equals(prefix+"step")).findFirst().orElseThrow();
         var techNode=dexTree.nodes().stream().filter(n->n.ability().equals(prefix+"technician")).findFirst().orElseThrow();
@@ -143,11 +144,11 @@ public final class RulesTest {
         var encoded=com.faust.core.progression.Balance.JSON.toJson(dex.trees);Compat.extend(dex);check(encoded.equals(com.faust.core.progression.Balance.JSON.toJson(dex.trees)));
         var dagger=dex.abilities.stream().filter(a->a.id().equals(Combat.DAGGER_MASTERY)).findFirst().orElseThrow();
         check(dagger.all().contains(prefix+"technician"));check(Compat.relocate(dagger).equals(dagger));
-        var dexProgress=new com.faust.core.progression.Progress();dexProgress.track(com.faust.core.progression.Skill.dexterity).level=5;dexProgress.setCounter(CombatPractice.DAGGER_HITS,10.0,dex);
+        var dexProgress=new com.faust.core.progression.Progress();dexProgress.track(com.faust.essence.api.Skill.valueOf("dexterity")).level=5;dexProgress.setCounter(CombatPractice.DAGGER_HITS,10.0,dex);
         check(!dexProgress.canUnlock(dagger,dex));dexProgress.unlocked.add(prefix+"technician");dexProgress.setCounter(CombatPractice.DAGGER_HITS,99,dex);check(!dexProgress.canUnlock(dagger,dex));dexProgress.setCounter(CombatPractice.DAGGER_HITS,100,dex);check(dexProgress.unlock(dagger.id(),dex));check(dexProgress.revoke(prefix+"technician",dex).contains(dagger.id()));
         var rollAbility=dex.abilities.stream().filter(a->a.id().equals(prefix+"roll")).findFirst().orElseThrow();
         dexProgress=new com.faust.core.progression.Progress();dexProgress.setCounter("run_metres",500.0,dex);check(!dexProgress.canUnlock(rollAbility,dex));
-        dexProgress.track(com.faust.core.progression.Skill.dexterity).level=3;dexProgress.setCounter("run_metres",499.0,dex);check(!dexProgress.canUnlock(rollAbility,dex));dexProgress.setCounter("run_metres",500.0,dex);check(dexProgress.canUnlock(rollAbility,dex));
+        dexProgress.track(com.faust.essence.api.Skill.valueOf("dexterity")).level=3;dexProgress.setCounter("run_metres",499.0,dex);check(!dexProgress.canUnlock(rollAbility,dex));dexProgress.setCounter("run_metres",500.0,dex);check(dexProgress.canUnlock(rollAbility,dex));
         check(Compat.relocate(rollAbility).equals(rollAbility));
         System.out.println("Passed "+checks+" integration policy checks");
     }

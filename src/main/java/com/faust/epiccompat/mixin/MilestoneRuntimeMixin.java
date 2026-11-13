@@ -17,7 +17,7 @@ public class MilestoneRuntimeMixin {
     }
     @Inject(method="food",at=@At("HEAD"))
     private static void food(ServerPlayer player,ItemStack food,CallbackInfo ci){
-        if(!CoreRuntime.active(player))return;
+        if(!com.faust.essence.api.EssenceApi.active(player))return;
         String id=BuiltInRegistries.ITEM.getKey(food.getItem()).toString();
         if(CoreRuntime.balance.sweetFoods.getOrDefault(id,0.0)>0)Milestones.add(CoreRuntime.data(player),"sweet_food",1);
     }

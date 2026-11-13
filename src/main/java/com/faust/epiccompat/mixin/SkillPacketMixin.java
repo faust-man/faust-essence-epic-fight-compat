@@ -23,6 +23,6 @@ public interface SkillPacketMixin {
         if(data.skillBookSlotIndex()!=-1||!data.skillSlot().category().learnable()||!com.faust.epiccompat.Combat.allowedSlot(data.skillSlot())){ci.cancel();return;}
         if(data.skill()==null)return;
         var skill=data.skill().value();
-        if(!skill.getCategory().learnable()||data.skillSlot().category()!=skill.getCategory()||!CoreRuntime.data(player).unlocked.contains(Compat.nodeId(skill)))ci.cancel();
+        if(!skill.getCategory().learnable()||data.skillSlot().category()!=skill.getCategory()||!com.faust.essence.api.EssenceApi.learned(player,Compat.nodeId(skill)))ci.cancel();
     }
 }

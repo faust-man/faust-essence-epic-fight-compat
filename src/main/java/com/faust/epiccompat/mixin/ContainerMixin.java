@@ -23,12 +23,12 @@ public abstract class ContainerMixin {
         if(getSkill() instanceof yesman.epicfight.skill.common.ComboAttacks&&!com.faust.epiccompat.Combat.canStrike(executor)){cir.setReturnValue(false);return;}
         if(executor.getOriginal() instanceof ServerPlayer player){
             var skill=getSkill();
-            if(skill!=null&&((skill.getCategory().learnable()&&!CoreRuntime.data(player).unlocked.contains(Compat.nodeId(skill)))||(!CoreRuntime.canAct(player)&&skill.getCategory()!=SkillCategories.KNOCKDOWN_WAKEUP&&!(skill.getCategory()==SkillCategories.DODGE&&com.faust.epiccompat.EmergencyDodge.available(executor)))))cir.setReturnValue(false);
+            if(skill!=null&&((skill.getCategory().learnable()&&!com.faust.essence.api.EssenceApi.learned(player,Compat.nodeId(skill)))||(!CoreRuntime.canAct(player)&&skill.getCategory()!=SkillCategories.KNOCKDOWN_WAKEUP&&!(skill.getCategory()==SkillCategories.DODGE&&com.faust.epiccompat.EmergencyDodge.available(executor)))))cir.setReturnValue(false);
         }
     }
     @Inject(method="setSkill(Lyesman/epicfight/skill/Skill;Z)Z",at=@At("HEAD"),cancellable=true)
     private void gate(Skill skill,boolean initialize,CallbackInfoReturnable<Boolean> cir){
         if(skill!=null&&!com.faust.epiccompat.Combat.allowedSlot(getSlot())){cir.setReturnValue(false);return;}
-        if(skill!=null&&skill.getCategory().learnable()&&getExecutor()!=null&&getExecutor().getOriginal() instanceof ServerPlayer player&&!CoreRuntime.data(player).unlocked.contains(Compat.nodeId(skill)))cir.setReturnValue(false);
+        if(skill!=null&&skill.getCategory().learnable()&&getExecutor()!=null&&getExecutor().getOriginal() instanceof ServerPlayer player&&!com.faust.essence.api.EssenceApi.learned(player,Compat.nodeId(skill)))cir.setReturnValue(false);
     }
 }

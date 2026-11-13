@@ -46,13 +46,13 @@ public final class Combat {
     public static boolean canStrike(PlayerPatch<?> patch){
         if(patch.getOriginal() instanceof ServerPlayer p){
             double cost=cost(patch,patch.getPrimaryHand(),CoreRuntime.data(p),CoreRuntime.balance);
-            return !CoreRuntime.active(p)||CoreRuntime.balance.stamina.get("enabled")==0||(Forbidden.mode(p)?Forbidden.afford(p,cost):!CoreRuntime.data(p).actionsBlocked(CoreRuntime.balance));
+            return !com.faust.essence.api.EssenceApi.active(p)||CoreRuntime.balance.stamina.get("enabled")==0||(Forbidden.mode(p)?Forbidden.afford(p,cost):!CoreRuntime.data(p).actionsBlocked(CoreRuntime.balance));
         }
         return com.faust.epiccompat.client.ClientBridge.canStrike(patch);
     }
     public static void strike(PlayerPatch<?> patch,InteractionHand hand){
         if(!(patch.getOriginal() instanceof ServerPlayer player))return;
         double cost=cost(patch,hand,CoreRuntime.data(player),CoreRuntime.balance);
-        PAID.put(patch,CoreRuntime.pay(player,cost));
+        PAID.put(patch,com.faust.essence.api.Resources.payStamina(player,cost,false));
     }
 }
