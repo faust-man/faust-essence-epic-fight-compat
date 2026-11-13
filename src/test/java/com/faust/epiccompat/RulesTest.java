@@ -76,7 +76,7 @@ public final class RulesTest {
         check(added.stream().map(com.faust.core.progression.SkillTrees.Node::x).distinct().count()==4);
         check(added.stream().map(com.faust.core.progression.SkillTrees.Node::y).distinct().count()==5);
         check(added.stream().allMatch(n->n.x()>=0&&n.x()+2<=15));
-        for(var tree:original)check(balance.trees.stream().filter(t->t.skill()==tree.skill()).findFirst().orElseThrow().nodes().containsAll(tree.nodes().stream().filter(n->!java.util.Set.of("faustcore:second_wind","faustcore:resilient_recovery","faustcore:metabolism").contains(n.ability())).toList()));
+        for(var tree:original)check(balance.trees.stream().filter(t->t.skill()==tree.skill()).findFirst().orElseThrow().nodes().containsAll(tree.nodes().stream().filter(n->!java.util.Set.of("faustcore:second_wind","faustcore:resilient_recovery","faustcore:metabolism","faustcore:mace_efficiency").contains(n.ability())).toList()));
         var before=com.faust.core.progression.Balance.JSON.toJson(balance.trees);Compat.extend(balance);
         check(before.equals(com.faust.core.progression.Balance.JSON.toJson(balance.trees)));
         var gates=new com.faust.core.progression.Balance();

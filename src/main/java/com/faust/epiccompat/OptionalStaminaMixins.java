@@ -6,7 +6,7 @@ import org.spongepowered.asm.mixin.extensibility.*;
 
 /** Only tree, slot and practice integration applies without Faust Stamina. */
 public final class OptionalStaminaMixins implements IMixinConfigPlugin {
-    private static final Set<String> RESOURCE=Set.of("StaminaMixin","StaminaPillagerMixin","AttackMixin","CoreAttackMixin","ComboCostMixin","SkillCostMixin","GrapplingCostMixin","ForbiddenMixin","HealthPaymentMixin","HealthStaminaTickMixin","GuardRecoveryMixin","FatigueMilestoneMixin","HudMixin","HealthClientMixin");
+    private static final Set<String> RESOURCE=Set.of("SecondWindAttackMixin","StaminaMixin","StaminaPillagerMixin","AttackMixin","CoreAttackMixin","ComboCostMixin","SkillCostMixin","GrapplingCostMixin","ForbiddenMixin","HealthPaymentMixin","HealthStaminaTickMixin","GuardRecoveryMixin","FatigueMilestoneMixin","HudMixin","HealthClientMixin");
     public void onLoad(String pkg){}
     public String getRefMapperConfig(){return null;}
     public boolean shouldApplyMixin(String target,String mixin){return !RESOURCE.contains(mixin.substring(mixin.lastIndexOf('.')+1))||getClass().getClassLoader().getResource("com/faust/stamina/StaminaModel.class")!=null;}

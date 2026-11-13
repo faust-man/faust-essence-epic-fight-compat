@@ -35,7 +35,9 @@
     "GreatswordDamageMixin",
     "GreatswordGuardMixin",
     "GreatswordShieldMixin",
-    "LongswordMasteryMixin"
+    "LongswordMasteryMixin",
+    "GuardStartCostMixin",
+    "SecondWindAttackMixin"
   ],
   "client": [
     "TreeMixin",
