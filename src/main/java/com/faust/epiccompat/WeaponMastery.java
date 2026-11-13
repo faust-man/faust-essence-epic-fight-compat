@@ -22,6 +22,9 @@ public final class WeaponMastery {
  public static boolean great(Player player,ItemStack stack){return !stack.isEmpty()&&innate(player,stack) instanceof yesman.epicfight.skill.weaponinnate.SteelWhirlwindSkill;}
  public static boolean longSword(Player player,ItemStack stack){return !stack.isEmpty()&&innate(player,stack) instanceof yesman.epicfight.skill.weaponinnate.LiechtenauerSkill;}
  public static float armorMultiplier(DamageSource source){if(!(source instanceof EpicFightDamageSource epic)||!(source.getEntity() instanceof ServerPlayer player))return 1;var stack=epic.getUsedItem().isEmpty()?player.getMainHandItem():epic.getUsedItem();return great(player,stack)&&enabled(player,GREAT)?1.5F:longSword(player,stack)&&enabled(player,LONG)?2:1;}
+ private static final java.util.Map<ServerPlayer,Long> LAST_ATTACK=new java.util.WeakHashMap<>();
+ public static void markAttack(ServerPlayer player){LAST_ATTACK.put(player,player.serverLevel().getGameTime());}
+ public static boolean windBlocked(ServerPlayer player){long tick=player.serverLevel().getGameTime();if(attacking(player)){LAST_ATTACK.put(player,tick);return true;}var last=LAST_ATTACK.get(player);return last!=null&&tick-last<20;}
  public static boolean attacking(ServerPlayer player){return EpicFightCapabilities.getUnparameterizedEntityPatch(player,yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch.class).map(patch->{var animation=patch.getAnimator().getPlayerFor(null);return animation.getRealAnimation().get() instanceof yesman.epicfight.api.animation.types.AttackAnimation&&!animation.isEnd();}).orElse(false);}
  public static void refreshSpeed(ServerPlayer player){
   var attribute=player.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.MOVEMENT_SPEED);if(attribute==null)return;double[] amounts={0,0,1};

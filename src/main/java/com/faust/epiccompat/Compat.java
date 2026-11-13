@@ -50,7 +50,7 @@ public final class Compat {
     }
     private void tick(net.neoforged.neoforge.event.tick.PlayerTickEvent.Post event){
         if(!(event.getEntity() instanceof net.minecraft.server.level.ServerPlayer player))return;
-        SharedStaminaBonus.refresh(player);WeaponMastery.refreshSpeed(player);
+        WeaponMastery.windBlocked(player);SharedStaminaBonus.refresh(player);WeaponMastery.refreshSpeed(player);
         if(CoreRuntime.active(player)){if(com.faust.core.progression.StaminaServices.present()){Milestones.fatigue(CoreRuntime.data(player));Milestones.peak(CoreRuntime.data(player),"peak_stamina",CoreRuntime.data(player).maxStamina(CoreRuntime.balance));}Milestones.visitEnd(player);}
         if(player.tickCount%5!=0)return;
         yesman.epicfight.world.capabilities.EpicFightCapabilities.getUnparameterizedEntityPatch(player,yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch.class).ifPresent(patch->{
@@ -262,7 +262,7 @@ public final class Compat {
                 if(parry!=null&&armor!=null){
                     var shield=placed.stream().filter(n->n.ability().equals(Combat.SHIELD_MASTERY)).findFirst().orElse(null);
                     move(placed,WeaponMastery.LONG,parry.x(),shield==null?parry.y()+4:shield.y());
-                    var iron=placed.stream().filter(n->n.ability().equals("faustcore:training_defense_armor")).findFirst().orElse(null);
+                    var iron=placed.stream().filter(n->n.ability().equals("faustcore:armor_familiarity")).findFirst().orElse(null);
                     var guardNode=placed.stream().filter(n->n.ability().endsWith("/guard")).findFirst().orElse(null);
                     double vertical=iron==null||guardNode==null?0:iron.y()-guardNode.y();
                     var group=new java.util.HashSet<String>();group.add("faust_epic_compat:epicfight/guard");boolean changed;
@@ -302,7 +302,9 @@ public final class Compat {
 
             }
             if(tree!=null)layouts.remove(tree);
-            layouts.add(new com.faust.core.progression.SkillTrees.Tree(branch,com.faust.core.progression.SkillTrees.spaced(placed)));
+            var finalNodes=com.faust.core.progression.SkillTrees.spaced(placed);
+            if(branch==com.faust.core.progression.Skill.strength){var forbidden=finalNodes.stream().filter(n->n.ability().endsWith("/forbidden_strength")).findFirst().orElse(null);var bone=finalNodes.stream().filter(n->n.ability().endsWith("/bonebreaker")).findFirst().orElse(null);if(forbidden!=null&&bone!=null)move(finalNodes,"faust_epic_compat:epicfight/adrenaline_fiend",forbidden.x(),bone.y());}
+            layouts.add(new com.faust.core.progression.SkillTrees.Tree(branch,finalNodes));
         }
         balance.trees=layouts;
         balance.validate();
