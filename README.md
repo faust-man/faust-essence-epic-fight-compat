@@ -1,3 +1,7 @@
+Имена итоговых файлов: `essence-core-<loader>-1.21.1-1.6.0.jar`,
+`essence-stamina-<loader>-1.21.1-1.6.0.jar`, `essence-compat-epic-fight-1.21.1-1.6.0.jar`.
+При обновлении удаляйте прежние JAR с префиксом faust, чтобы не установить мод дважды.
+
 Правки: зельеварение требует 30 зелий и даёт +2% длительности за уровень интеллекта;
 ломание блоков даёт немного опыта строительства. Раскладка Телосложения разнесена по строкам.
 
@@ -96,7 +100,7 @@ checkout Stamina. Для пользователей достаточно ито�
 Разработка по умолчанию без дополнения; `-PwithStamina` добавляет JAR из
 `../essence/stamina/build/libs/`. `runServer -PruntimeChecks` проверяет самостоятельный
 режим, `runServer -PruntimeChecks -PwithStamina` — прежнюю интеграцию.
-Итоговый JAR: `build/libs/faust-epic-fight-compat-1.21.1-1.6.0.jar`.
+Итоговый JAR: `build/libs/essence-compat-epic-fight-1.21.1-1.6.0.jar`.
 
 ## Ограниченный учёт действий через core
 
@@ -412,7 +416,7 @@ JDK 21. Сначала соберите соседний `../essence` верси
 ./gradlew.bat runServer -PruntimeChecks
 ```
 
-JAR: `build/libs/faust-epic-fight-compat-1.21.1-1.6.0.jar`.
+JAR: `build/libs/essence-compat-epic-fight-1.21.1-1.6.0.jar`.
 `build` запускает 321 проверку распределения, правил оплаты, слотов и компактной раскладки.
 `runServer -PruntimeChecks` дополнительно запускает 270 проверок на игровом сервере:
 настоящие предметы Epic Fight (двуручный меч, копьё, перчатка), оба узла, недостаточный
