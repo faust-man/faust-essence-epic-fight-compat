@@ -12,7 +12,7 @@ public final class Forbidden {
         return skill!=null&&patch.getSkillContainerFor(skill).filter(c->!c.isDisabled()).isPresent();
     }
     public static boolean mode(ServerPlayer player){
-        return CoreRuntime.active(player)&&CoreRuntime.balance.stamina.get("enabled")>0&&CoreRuntime.data(player).actionsBlocked(CoreRuntime.balance)
+        return com.faust.essence.api.EssenceApi.active(player)&&CoreRuntime.balance.stamina.get("enabled")>0&&CoreRuntime.data(player).actionsBlocked(CoreRuntime.balance)
             &&EpicFightCapabilities.getUnparameterizedEntityPatch(player,PlayerPatch.class).filter(Forbidden::equipped).isPresent();
     }
     public static boolean afford(ServerPlayer player,double cost){return Double.isFinite(cost)&&cost>=0&&player.isAlive()&&player.getHealth()>0;}

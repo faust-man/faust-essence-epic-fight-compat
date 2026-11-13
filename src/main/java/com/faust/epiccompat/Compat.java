@@ -33,7 +33,7 @@ public final class Compat {
         NeoForge.EVENT_BUS.addListener(this::tick);
     }
     private static class Client {
-        static void register(net.neoforged.fml.ModContainer container){EmergencyDodge.CLIENT_EXHAUSTED=()->com.faust.core.client.CoreClient.progress!=null&&com.faust.core.client.CoreClient.balance!=null&&com.faust.core.client.CoreClient.progress.actionsBlocked(com.faust.core.client.CoreClient.balance);WeaponMastery.CLIENT_LONG=()->com.faust.core.client.CoreClient.progress!=null&&com.faust.core.client.CoreClient.balance!=null&&com.faust.core.client.CoreClient.progress.enabled(WeaponMastery.LONG,com.faust.core.client.CoreClient.balance);container.registerExtensionPoint(net.neoforged.neoforge.client.gui.IConfigScreenFactory.class,(net.neoforged.neoforge.client.gui.IConfigScreenFactory)(c,parent)->{prepareConfig();return new com.faust.core.client.CoreConfigScreen(parent,java.util.List.of("abilities","trees","integrations"),"faust_epic_compat");});}
+        static void register(net.neoforged.fml.ModContainer container){EmergencyDodge.CLIENT_EXHAUSTED=()->com.faust.essence.api.client.ClientApi.stamina().map(com.faust.essence.api.ResourceProvider.ResourceState::exhausted).orElse(false);WeaponMastery.CLIENT_LONG=()->com.faust.essence.api.client.ClientApi.enabled(WeaponMastery.LONG);container.registerExtensionPoint(net.neoforged.neoforge.client.gui.IConfigScreenFactory.class,(net.neoforged.neoforge.client.gui.IConfigScreenFactory)(c,parent)->{prepareConfig();return new com.faust.core.client.CoreConfigScreen(parent,java.util.List.of("abilities","trees","integrations"),"faust_epic_compat");});}
     }
     private static void prepareConfig(){
         if(!nodes.isEmpty())return;
@@ -51,12 +51,12 @@ public final class Compat {
     private void tick(net.neoforged.neoforge.event.tick.PlayerTickEvent.Post event){
         if(!(event.getEntity() instanceof net.minecraft.server.level.ServerPlayer player))return;
         WeaponMastery.windBlocked(player);SharedStaminaBonus.refresh(player);WeaponMastery.refreshSpeed(player);
-        if(CoreRuntime.active(player)){if(com.faust.core.progression.StaminaServices.present()){Milestones.fatigue(CoreRuntime.data(player));Milestones.peak(CoreRuntime.data(player),"peak_stamina",CoreRuntime.data(player).maxStamina(CoreRuntime.balance));}Milestones.visitEnd(player);}
+        if(com.faust.essence.api.EssenceApi.active(player)){if(com.faust.core.progression.StaminaServices.present()){Milestones.fatigue(CoreRuntime.data(player));Milestones.peak(CoreRuntime.data(player),"peak_stamina",CoreRuntime.data(player).maxStamina(CoreRuntime.balance));}Milestones.visitEnd(player);}
         if(player.tickCount%5!=0)return;
         yesman.epicfight.world.capabilities.EpicFightCapabilities.getUnparameterizedEntityPatch(player,yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch.class).ifPresent(patch->{
             for(var container:patch.getPlayerSkills().skillContainers){
                 var skill=container.getSkill();
-                if(skill!=null&&skill.getCategory().learnable()&&(!Combat.allowedSlot(container.getSlot())||!CoreRuntime.data(player).unlocked.contains(nodeId(skill)))){
+                if(skill!=null&&skill.getCategory().learnable()&&(!Combat.allowedSlot(container.getSlot())||!com.faust.essence.api.EssenceApi.learned(player,nodeId(skill)))){
                     container.setSkill(null);patch.getPlayerSkills().removeLearnedSkill(skill);
                     yesman.epicfight.network.EpicFightNetworkManager.sendToPlayer(new yesman.epicfight.network.server.SPRemoveSkillAndLearn(skill,container.getSlot()),player);
                 }
@@ -106,24 +106,24 @@ public final class Compat {
             extend(CoreRuntime.balance);
         } catch(Exception ex) { throw new IllegalStateException("Invalid Epic Fight compatibility configuration: "+file,ex); }
     }
-    public static com.faust.core.progression.Skill branch(String name,String category) {
-        return com.faust.core.progression.Skill.valueOf(Rules.branch(name,category));
+    public static com.faust.essence.api.Skill branch(String name,String category) {
+        return com.faust.essence.api.Skill.valueOf(Rules.branch(name,category));
     }
     public static boolean isMastery(String id){return List.of(Combat.MASTERY,Combat.FIST_MASTERY,Combat.SHIELD_MASTERY,Combat.SWORD_MASTERY,Combat.DAGGER_MASTERY,Combat.FIST_POWER,Combat.SHIELD_EFFICIENCY).contains(id);}
-    public static Balance.Ability mastery(String id){return new Balance.Ability(id,(id.equals(Combat.SHIELD_MASTERY)||id.equals(Combat.SHIELD_EFFICIENCY))?com.faust.core.progression.Skill.defense:id.equals(Combat.DAGGER_MASTERY)?com.faust.core.progression.Skill.dexterity:com.faust.core.progression.Skill.strength,5,"hits",0,id.equals(Combat.SHIELD_MASTERY)?"faustcore:shield_efficiency":"",id.equals(Combat.SHIELD_EFFICIENCY)?"shield_cost_reduction":"faust_epic_compat:mastery",id.equals(Combat.SHIELD_EFFICIENCY)?0.5:0,List.of(),List.of(),List.of(),List.of(),List.of(),"all",0,0,true);}
+    public static Balance.Ability mastery(String id){return new Balance.Ability(id,(id.equals(Combat.SHIELD_MASTERY)||id.equals(Combat.SHIELD_EFFICIENCY))?com.faust.essence.api.Skill.valueOf("defense"):id.equals(Combat.DAGGER_MASTERY)?com.faust.essence.api.Skill.valueOf("dexterity"):com.faust.essence.api.Skill.valueOf("strength"),5,"hits",0,id.equals(Combat.SHIELD_MASTERY)?"faustcore:shield_efficiency":"",id.equals(Combat.SHIELD_EFFICIENCY)?"shield_cost_reduction":"faust_epic_compat:mastery",id.equals(Combat.SHIELD_EFFICIENCY)?0.5:0,List.of(),List.of(),List.of(),List.of(),List.of(),"all",0,0,true);}
     public static Balance.Ability relocate(Balance.Ability a){
-        var branch=(a.id().equals("faust_epic_compat:epicfight/adaptive_skin")||a.id().equals("faust_epic_compat:epicfight/catharsis")||a.id().equals("faust_epic_compat:epicfight/death_harvest"))?com.faust.core.progression.Skill.constitution:a.id().equals("faust_epic_compat:epicfight/revelation")?com.faust.core.progression.Skill.intelligence:a.skill();
+        var branch=(a.id().equals("faust_epic_compat:epicfight/adaptive_skin")||a.id().equals("faust_epic_compat:epicfight/catharsis")||a.id().equals("faust_epic_compat:epicfight/death_harvest"))?com.faust.essence.api.Skill.valueOf("constitution"):a.id().equals("faust_epic_compat:epicfight/revelation")?com.faust.essence.api.Skill.valueOf("intelligence"):a.skill();
         if(a.id().startsWith("faust_epic_compat:epicfight/")){
             String name=a.id().substring("faust_epic_compat:epicfight/".length());
-            if(java.util.Set.of("guard","impact_guard","parrying").contains(name))branch=com.faust.core.progression.Skill.defense;
-            if(java.util.Set.of("roll","step","technician","demolition_leap").contains(name))branch=com.faust.core.progression.Skill.dexterity;
+            if(java.util.Set.of("guard","impact_guard","parrying").contains(name))branch=com.faust.essence.api.Skill.valueOf("defense");
+            if(java.util.Set.of("roll","step","technician","demolition_leap").contains(name))branch=com.faust.essence.api.Skill.valueOf("dexterity");
         }
         var json=Balance.JSON.toJsonTree(a).getAsJsonObject();
         if(a.id().startsWith("faust_epic_compat:"))json.addProperty("toggleable",isMastery(a.id())||WeaponMastery.custom(a.id()));
         if(branch!=a.skill())json.addProperty("skill",branch.name());
         if(a.id().equals("faust_epic_compat:epicfight/technician")){
             json.addProperty("skill","dexterity");json.addProperty("level",5);
-            json.add("characteristics",Balance.JSON.toJsonTree(List.of(new Balance.SkillRequirement(com.faust.core.progression.Skill.dexterity,5))));json.addProperty("counter",WeaponMastery.HITS);json.addProperty("amount",200);json.add("conditions",new com.google.gson.JsonArray());
+            json.add("characteristics",Balance.JSON.toJsonTree(List.of(new Balance.SkillRequirement(com.faust.essence.api.Skill.valueOf("dexterity"),5))));json.addProperty("counter",WeaponMastery.HITS);json.addProperty("amount",200);json.add("conditions",new com.google.gson.JsonArray());
         }
         if(a.id().equals("faust_epic_compat:epicfight/guard")||a.id().equals("faust_epic_compat:epicfight/impact_guard")){
             json.addProperty("counter","blocks");json.addProperty("amount",a.id().endsWith("/guard")?10:100);json.add("conditions",new com.google.gson.JsonArray());
@@ -138,7 +138,7 @@ public final class Compat {
         }
         if(a.id().equals("faust_epic_compat:epicfight/demolition_leap")||a.id().equals("faust_epic_compat:epicfight/phantom_ascent")){
             json.addProperty("skill","dexterity");json.addProperty("level",a.id().endsWith("/demolition_leap")?5:10);
-            json.add("characteristics",Balance.JSON.toJsonTree(a.id().endsWith("/demolition_leap")?List.of(new Balance.SkillRequirement(com.faust.core.progression.Skill.dexterity,5),new Balance.SkillRequirement(com.faust.core.progression.Skill.strength,5)):List.of(new Balance.SkillRequirement(com.faust.core.progression.Skill.dexterity,10))));
+            json.add("characteristics",Balance.JSON.toJsonTree(a.id().endsWith("/demolition_leap")?List.of(new Balance.SkillRequirement(com.faust.essence.api.Skill.valueOf("dexterity"),5),new Balance.SkillRequirement(com.faust.essence.api.Skill.valueOf("strength"),5)):List.of(new Balance.SkillRequirement(com.faust.essence.api.Skill.valueOf("dexterity"),10))));
             json.addProperty("counter",CombatPractice.JUMPS);json.addProperty("amount",100);json.add("conditions",new com.google.gson.JsonArray());
         }
         if(a.id().equals("faust_epic_compat:epicfight/step")){
@@ -180,7 +180,7 @@ public final class Compat {
         for(int i=0;i<balance.abilities.size();i++)balance.abilities.set(i,relocate(balance.abilities.get(i)));
         for(var configured:nodes)for(int i=0;i<balance.abilities.size();i++)if(balance.abilities.get(i).id().equals(configured.id()))balance.abilities.set(i,configured);
         if(!com.faust.core.progression.StaminaServices.present()){
-            var removed=new HashSet<String>();
+            var removed=new HashSet<String>(List.of(Combat.MASTERY,Combat.FIST_MASTERY,Combat.SHIELD_MASTERY,Combat.SWORD_MASTERY,Combat.DAGGER_MASTERY,Combat.FIST_POWER,Combat.SHIELD_EFFICIENCY));
             for(var a:balance.abilities)if(isMastery(a.id()))removed.add(a.id());
             balance.abilities.removeIf(a->removed.contains(a.id()));
             var staminaDependent=new HashSet<String>();staminaDependent.add("faust_epic_compat:epicfight/endurance");
@@ -196,12 +196,14 @@ public final class Compat {
                 if(staminaDependent.contains(a.id())&&!WeaponMastery.custom(a.id())){
                     var json=Balance.JSON.toJsonTree(a).getAsJsonObject();json.addProperty("skill","constitution");json.addProperty("level",7);json.add("characteristics",new com.google.gson.JsonArray());json.addProperty("parent","");json.add("requiresAll",new com.google.gson.JsonArray());json.add("requiresAny",new com.google.gson.JsonArray());json.addProperty("requiresCount",0);json.addProperty("counter","skill_levels");json.addProperty("amount",0);json.add("conditions",new com.google.gson.JsonArray());a=Balance.JSON.fromJson(json,Balance.Ability.class);
                 }
+                a=com.faust.core.progression.StaminaContent.detach(a,removed);
                 balance.abilities.set(i,a);
             }
         }
+        com.faust.core.progression.StaminaContent.withoutProvider(balance);
         // Preserve Core positions; reflow addon nodes into the left branches and compact grid.
         var layouts=new ArrayList<com.faust.core.progression.SkillTrees.Tree>(balance.trees);
-        for(var branch:com.faust.core.progression.Skill.values()){
+        for(var branch:com.faust.essence.api.Skill.values()){
             var tree=layouts.stream().filter(t->t.skill()==branch).findFirst().orElse(null);
             var placed=new ArrayList<com.faust.core.progression.SkillTrees.Node>();
             if(tree!=null)for(var n:tree.nodes()){
@@ -209,18 +211,18 @@ public final class Compat {
                 if(balance.abilities.stream().noneMatch(a->a.id().equals(n.ability())&&a.skill()==branch))continue;
                 placed.add(n.ability().startsWith("faust_epic_compat:")?new com.faust.core.progression.SkillTrees.Node(n.ability(),n.x(),n.y(),icon(n.ability())):n);
             }
-            if(branch==com.faust.core.progression.Skill.strength&&balance.abilities.stream().anyMatch(a->a.id().equals(WeaponMastery.GREAT)))placed.add(new com.faust.core.progression.SkillTrees.Node(WeaponMastery.GREAT,4,7,icon(WeaponMastery.GREAT)));
-            if(branch==com.faust.core.progression.Skill.defense&&balance.abilities.stream().anyMatch(a->a.id().equals(WeaponMastery.LONG)))placed.add(new com.faust.core.progression.SkillTrees.Node(WeaponMastery.LONG,-8,11,icon(WeaponMastery.LONG)));
+            if(branch==com.faust.essence.api.Skill.valueOf("strength")&&balance.abilities.stream().anyMatch(a->a.id().equals(WeaponMastery.GREAT)))placed.add(new com.faust.core.progression.SkillTrees.Node(WeaponMastery.GREAT,4,7,icon(WeaponMastery.GREAT)));
+            if(branch==com.faust.essence.api.Skill.valueOf("defense")&&balance.abilities.stream().anyMatch(a->a.id().equals(WeaponMastery.LONG)))placed.add(new com.faust.core.progression.SkillTrees.Node(WeaponMastery.LONG,-8,11,icon(WeaponMastery.LONG)));
             var left=List.of("faust_epic_compat:epicfight/swordmaster",Combat.SWORD_MASTERY,Combat.FIST_MASTERY,Combat.MASTERY,"faust_epic_compat:epicfight/berserker","faust_epic_compat:epicfight/vengeance","faust_epic_compat:epicfight/forbidden_strength");
             double leftX=placed.stream().mapToDouble(com.faust.core.progression.SkillTrees.Node::x).min().orElse(0)-4;
             double leftY=placed.stream().mapToDouble(com.faust.core.progression.SkillTrees.Node::y).min().orElse(0);
-            if(branch==com.faust.core.progression.Skill.strength)for(int i=0;i<left.size();i++){
+            if(branch==com.faust.essence.api.Skill.valueOf("strength"))for(int i=0;i<left.size();i++){
                 String id=left.get(i);if(balance.abilities.stream().noneMatch(a->a.id().equals(id)&&a.skill()==branch))continue;
                 // Weapon pair in the near column; the three-step damage path farther left.
                 int column=i<2?0:i<4?1:2;int row=i<2?i:i<4?i-2:i-4;
                 placed.add(new com.faust.core.progression.SkillTrees.Node(id,leftX-column*4,leftY+(row==2?7:row*4),icon(id)));
             }
-            if(branch==com.faust.core.progression.Skill.defense){
+            if(branch==com.faust.essence.api.Skill.valueOf("defense")){
                 var guard=(tree==null?placed:tree.nodes()).stream().filter(n->n.ability().equals("faust_epic_compat:epicfight/guard")).findFirst().orElse(null);
                 double gx=guard==null?3:guard.x(),gy=guard==null?7:guard.y();
                 for(String id:List.of("guard","impact_guard","parrying")){
@@ -231,34 +233,34 @@ public final class Compat {
                 var economy=placed.stream().filter(n->n.ability().equals(Combat.SHIELD_EFFICIENCY)).findFirst().orElse(null);
                 if(economy!=null&&balance.abilities.stream().anyMatch(a->a.id().equals(Combat.SHIELD_MASTERY)))placed.add(new com.faust.core.progression.SkillTrees.Node(Combat.SHIELD_MASTERY,economy.x(),economy.y()+4,icon(Combat.SHIELD_MASTERY)));
             }
-            if(branch==com.faust.core.progression.Skill.strength){
+            if(branch==com.faust.essence.api.Skill.valueOf("strength")){
                 var fist=placed.stream().filter(n->n.ability().equals(Combat.FIST_MASTERY)).findFirst().orElse(null);
                 if(fist!=null&&balance.abilities.stream().anyMatch(a->a.id().equals(Combat.FIST_POWER)))placed.add(new com.faust.core.progression.SkillTrees.Node(Combat.FIST_POWER,fist.x(),fist.y()+7,icon(Combat.FIST_POWER)));
             }
-            if(branch==com.faust.core.progression.Skill.strength){
+            if(branch==com.faust.essence.api.Skill.valueOf("strength")){
                 for(int i=0;i<placed.size();i++){var n=placed.get(i);if(n.ability().equals("faustcore:mace_efficiency")){double rootY=placed.stream().filter(a->a.ability().equals("faustcore:training_strength_damage")).mapToDouble(com.faust.core.progression.SkillTrees.Node::y).findFirst().orElse(0);placed.set(i,new com.faust.core.progression.SkillTrees.Node(n.ability(),n.x(),rootY+3,n.icon()));}}
             }
             var missing=balance.abilities.stream().filter(a->a.skill()==branch&&a.id().startsWith("faust_epic_compat:")&&placed.stream().noneMatch(n->n.ability().equals(a.id()))).sorted(Comparator.comparing(Balance.Ability::id)).toList();
             double top=placed.stream().mapToDouble(com.faust.core.progression.SkillTrees.Node::y).max().orElse(-3)+3;
-            double gridLeft=branch==com.faust.core.progression.Skill.strength?placed.stream().mapToDouble(com.faust.core.progression.SkillTrees.Node::x).min().orElse(0):0;
+            double gridLeft=branch==com.faust.essence.api.Skill.valueOf("strength")?placed.stream().mapToDouble(com.faust.core.progression.SkillTrees.Node::x).min().orElse(0):0;
             for(int i=0;i<missing.size();i++){
                 placed.add(new com.faust.core.progression.SkillTrees.Node(missing.get(i).id(),gridLeft+(i%4)*3,top+(i/4)*3,icon(missing.get(i).id())));
             }
-            if(branch==com.faust.core.progression.Skill.strength)swapPositions(placed,Combat.MASTERY,Combat.FIST_POWER);
-            if(branch==com.faust.core.progression.Skill.dexterity)alignDexterity(placed);
-            if(branch==com.faust.core.progression.Skill.strength){
+            if(branch==com.faust.essence.api.Skill.valueOf("strength"))swapPositions(placed,Combat.MASTERY,Combat.FIST_POWER);
+            if(branch==com.faust.essence.api.Skill.valueOf("dexterity"))alignDexterity(placed);
+            if(branch==com.faust.essence.api.Skill.valueOf("strength")){
                 for(var pair:List.of(new String[]{"bonebreaker",Combat.FIST_MASTERY},new String[]{"meteor_slam","faustcore:training_strength_damage"})){
                     var anchor=placed.stream().filter(n->n.ability().equals(pair[1])).findFirst().orElse(null);
                     var node=placed.stream().filter(n->n.ability().equals("faust_epic_compat:epicfight/"+pair[0])).findFirst().orElse(null);
                     if(anchor!=null&&node!=null)move(placed,node.ability(),anchor.x(),node.y());
                 }
             }
-            if(branch==com.faust.core.progression.Skill.strength){
+            if(branch==com.faust.essence.api.Skill.valueOf("strength")){
                 for(int i=0;i<placed.size();i++){var n=placed.get(i);if(n.ability().endsWith("/vengeance")||n.ability().endsWith("/forbidden_strength"))placed.set(i,new com.faust.core.progression.SkillTrees.Node(n.ability(),n.x(),n.y()-1,n.icon()));}
                 var forbidden=placed.stream().filter(n->n.ability().endsWith("/forbidden_strength")).findFirst().orElse(null);
                 if(forbidden!=null)move(placed,"faust_epic_compat:epicfight/adrenaline_fiend",forbidden.x(),forbidden.y()+4);
             }
-            if(branch==com.faust.core.progression.Skill.defense){
+            if(branch==com.faust.essence.api.Skill.valueOf("defense")){
                 var parry=placed.stream().filter(n->n.ability().endsWith("/parrying")).findFirst().orElse(null);
                 var armor=placed.stream().filter(n->n.ability().equals("faustcore:armor_mastery")).findFirst().orElse(null);
                 if(parry!=null&&armor!=null){
@@ -273,24 +275,24 @@ public final class Compat {
                     for(int i=0;i<placed.size();i++){var n=placed.get(i);if(group.contains(n.ability()))placed.set(i,new com.faust.core.progression.SkillTrees.Node(n.ability(),n.x()+delta,n.y()+vertical,n.icon()));}
                 }
             }
-            if(branch==com.faust.core.progression.Skill.intelligence){
+            if(branch==com.faust.essence.api.Skill.valueOf("intelligence")){
                 var cat=placed.stream().filter(n->n.ability().equals("faustcore:cat_scent")).findFirst().orElse(null);
                 var enchant=placed.stream().filter(n->n.ability().equals("faustcore:enchanting_power")).findFirst().orElse(null);
                 if(cat!=null&&enchant!=null){move(placed,cat.ability(),enchant.x(),enchant.y()+4);move(placed,"faust_epic_compat:epicfight/revelation",-1,enchant.y()+4);}
             }
-            if(branch==com.faust.core.progression.Skill.constitution){
+            if(branch==com.faust.essence.api.Skill.valueOf("constitution")){
                 var health=placed.stream().filter(n->n.ability().equals("faustcore:training_constitution_health")).findFirst().orElse(null);
                 var recovery=placed.stream().filter(n->n.ability().equals("faustcore:resilient_recovery")).findFirst().orElse(null);
                 if(health!=null){move(placed,"faust_epic_compat:epicfight/hypervitality",health.x()-4,health.y());move(placed,"faust_epic_compat:epicfight/hyper_vitality",health.x()-4,health.y());move(placed,"faust_epic_compat:epicfight/endurance",health.x()+4,health.y());move(placed,"faust_epic_compat:epicfight/adaptive_skin",health.x(),health.y()+4);}
                 if(health!=null){move(placed,"faustcore:metabolism",health.x()+4,health.y()-4);move(placed,"faustcore:second_wind",health.x()+7,health.y()-4);move(placed,"faustcore:resilient_recovery",health.x()+7,health.y());move(placed,"faust_epic_compat:epicfight/stamina_pillager",health.x()+11,health.y());move(placed,"faust_epic_compat:epicfight/catharsis",health.x()+4,health.y()+4);move(placed,"faust_epic_compat:epicfight/death_harvest",health.x()+7,health.y()+4);}
             }
-            if(branch==com.faust.core.progression.Skill.dexterity){
+            if(branch==com.faust.essence.api.Skill.valueOf("dexterity")){
                 for(int i=0;i<placed.size();i++){var n=placed.get(i);if(n.ability().equals(Combat.DAGGER_MASTERY))placed.set(i,new com.faust.core.progression.SkillTrees.Node(n.ability(),n.x(),n.y()-1,n.icon()));}
             }
-            if(branch==com.faust.core.progression.Skill.constitution){
+            if(branch==com.faust.essence.api.Skill.valueOf("constitution")){
                 for(int i=0;i<placed.size();i++){var n=placed.get(i);if(java.util.Set.of("faustcore:second_wind","faustcore:resilient_recovery","faust_epic_compat:epicfight/stamina_pillager","faust_epic_compat:epicfight/death_harvest").contains(n.ability()))placed.set(i,new com.faust.core.progression.SkillTrees.Node(n.ability(),n.x()+1,n.y(),n.icon()));}
             }
-            if(branch==com.faust.core.progression.Skill.strength){
+            if(branch==com.faust.essence.api.Skill.valueOf("strength")){
                 var meteor=placed.stream().filter(n->n.ability().endsWith("/meteor_slam")).findFirst().orElse(null);
                 var paired=placed.stream().filter(n->n.ability().equals(Combat.SWORD_MASTERY)).findFirst().orElse(null);
                 if(meteor!=null&&paired!=null){move(placed,"faust_epic_compat:epicfight/adrenaline_fiend",paired.x(),meteor.y());double row=meteor.y();for(int i=0;i<placed.size();i++){var n=placed.get(i);if(n.y()==row)placed.set(i,new com.faust.core.progression.SkillTrees.Node(n.ability(),n.x(),n.y()-1,n.icon()));}}
@@ -298,15 +300,15 @@ public final class Compat {
                 var grip=placed.stream().filter(n->n.ability().equals(Combat.MASTERY)).findFirst().orElse(null);
                 if(grip!=null&&paired!=null){move(placed,WeaponMastery.GREAT,paired.x(),grip.y());if(grip.y()-paired.y()<3)move(placed,paired.ability(),paired.x(),grip.y()-3);}
             }
-            if(branch==com.faust.core.progression.Skill.dexterity){for(int i=0;i<placed.size();i++){var n=placed.get(i);if(n.ability().endsWith("/phantom_ascent"))placed.set(i,new com.faust.core.progression.SkillTrees.Node(n.ability(),n.x(),n.y()-1,n.icon()));}}
-            if(branch==com.faust.core.progression.Skill.strength){
+            if(branch==com.faust.essence.api.Skill.valueOf("dexterity")){for(int i=0;i<placed.size();i++){var n=placed.get(i);if(n.ability().endsWith("/phantom_ascent"))placed.set(i,new com.faust.core.progression.SkillTrees.Node(n.ability(),n.x(),n.y()-1,n.icon()));}}
+            if(branch==com.faust.essence.api.Skill.valueOf("strength")){
                 var forbidden=placed.stream().filter(n->n.ability().endsWith("/forbidden_strength")).findFirst().orElse(null);var bone=placed.stream().filter(n->n.ability().endsWith("/bonebreaker")).findFirst().orElse(null);if(forbidden!=null&&bone!=null)move(placed,"faust_epic_compat:epicfight/adrenaline_fiend",forbidden.x(),bone.y());
 
             }
             if(tree!=null)layouts.remove(tree);
             var finalNodes=com.faust.core.progression.SkillTrees.spaced(placed);
-            if(branch==com.faust.core.progression.Skill.strength){var forbidden=finalNodes.stream().filter(n->n.ability().endsWith("/forbidden_strength")).findFirst().orElse(null);var bone=finalNodes.stream().filter(n->n.ability().endsWith("/bonebreaker")).findFirst().orElse(null);if(forbidden!=null&&bone!=null)move(finalNodes,"faust_epic_compat:epicfight/adrenaline_fiend",forbidden.x(),bone.y());}
-            if(branch==com.faust.core.progression.Skill.strength){var grip=finalNodes.stream().filter(n->n.ability().equals(WeaponMastery.GREAT)).findFirst().orElse(null);var bone=finalNodes.stream().filter(n->n.ability().endsWith("/bonebreaker")).findFirst().orElse(null);if(grip!=null&&bone!=null)move(finalNodes,"faust_epic_compat:epicfight/emergency_escape",grip.x(),bone.y());}
+            if(branch==com.faust.essence.api.Skill.valueOf("strength")){var forbidden=finalNodes.stream().filter(n->n.ability().endsWith("/forbidden_strength")).findFirst().orElse(null);var bone=finalNodes.stream().filter(n->n.ability().endsWith("/bonebreaker")).findFirst().orElse(null);if(forbidden!=null&&bone!=null)move(finalNodes,"faust_epic_compat:epicfight/adrenaline_fiend",forbidden.x(),bone.y());}
+            if(branch==com.faust.essence.api.Skill.valueOf("strength")){var grip=finalNodes.stream().filter(n->n.ability().equals(WeaponMastery.GREAT)).findFirst().orElse(null);var bone=finalNodes.stream().filter(n->n.ability().endsWith("/bonebreaker")).findFirst().orElse(null);if(grip!=null&&bone!=null)move(finalNodes,"faust_epic_compat:epicfight/emergency_escape",grip.x(),bone.y());}
             layouts.add(new com.faust.core.progression.SkillTrees.Tree(branch,finalNodes));
         }
         balance.trees=layouts;

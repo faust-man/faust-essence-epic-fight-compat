@@ -1,4 +1,6 @@
 package com.faust.epiccompat;
+import com.faust.essence.api.Skill;
+
 import com.faust.core.progression.*;
 import com.faust.core.runtime.CoreRuntime;
 import net.minecraft.server.level.ServerPlayer;
@@ -16,8 +18,8 @@ public final class WeaponMastery {
  public static java.util.function.BooleanSupplier CLIENT_LONG=()->false;
  private WeaponMastery(){}
  public static boolean custom(String id){return id.equals(LONG)||id.equals(GREAT);}
- public static java.util.List<Balance.Ability> defaults(){return java.util.List.of(RevisionRequirements.apply(new Balance.Ability(LONG,com.faust.core.progression.Skill.defense,15,USES,50,"faust_epic_compat:epicfight/parrying","faust_epic_compat:weapon_mastery",0)),new Balance.Ability(GREAT,com.faust.core.progression.Skill.strength,15,SWINGS,250,StaminaServices.present()?Combat.MASTERY:"","faust_epic_compat:weapon_mastery",0));}
- public static boolean enabled(Player player,String id){return player instanceof ServerPlayer p?CoreRuntime.active(p)&&CoreRuntime.data(p).enabled(id,CoreRuntime.balance):player.level().isClientSide&&id.equals(LONG)&&CLIENT_LONG.getAsBoolean();}
+ public static java.util.List<Balance.Ability> defaults(){return java.util.List.of(RevisionRequirements.apply(new Balance.Ability(LONG,com.faust.essence.api.Skill.valueOf("defense"),15,USES,50,"faust_epic_compat:epicfight/parrying","faust_epic_compat:weapon_mastery",0)),new Balance.Ability(GREAT,com.faust.essence.api.Skill.valueOf("strength"),15,SWINGS,250,StaminaServices.present()?Combat.MASTERY:"","faust_epic_compat:weapon_mastery",0));}
+ public static boolean enabled(Player player,String id){return player instanceof ServerPlayer p?com.faust.essence.api.EssenceApi.active(p)&&com.faust.essence.api.EssenceApi.enabled(p,id):player.level().isClientSide&&id.equals(LONG)&&CLIENT_LONG.getAsBoolean();}
  public static yesman.epicfight.skill.Skill innate(Player player,ItemStack stack){return EpicFightCapabilities.getUnparameterizedEntityPatch(player,yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch.class).map(patch->EpicFightCapabilities.getItemStackCapability(stack).getInnateSkill(patch,stack)).orElse(null);}
  public static boolean great(Player player,ItemStack stack){return !stack.isEmpty()&&innate(player,stack) instanceof yesman.epicfight.skill.weaponinnate.SteelWhirlwindSkill;}
  public static boolean longSword(Player player,ItemStack stack){if(stack.isEmpty())return false;var skill=innate(player,stack);return (skill instanceof yesman.epicfight.skill.weaponinnate.LiechtenauerSkill||skill==yesman.epicfight.registry.entries.EpicFightSkills.SHARP_STAB.get());}
@@ -40,9 +42,9 @@ public final class WeaponMastery {
  }
  public static boolean mastered(DamageSource source){return source instanceof EpicFightDamageSource epic&&source.getEntity() instanceof ServerPlayer player&&enabled(player,GREAT)&&great(player,epic.getUsedItem().isEmpty()?player.getMainHandItem():epic.getUsedItem());}
  public static boolean pierces(DamageSource source){return mastered(source)&&source.is(EpicFightDamageTypeTags.WEAPON_INNATE);}
- public static void swing(ServerPlayer player){if(CoreRuntime.active(player)&&great(player,player.getMainHandItem()))CombatPractice.add(player,SWINGS,1);}
+ public static void swing(ServerPlayer player){if(com.faust.essence.api.EssenceApi.active(player)&&great(player,player.getMainHandItem()))CombatPractice.add(player,SWINGS,1);}
  public static void used(SkillContainer container){
-  if(!(container.getExecutor().getOriginal() instanceof ServerPlayer p)||!CoreRuntime.active(p)||container.getSlot().category()!=SkillCategories.WEAPON_INNATE)return;
+  if(!(container.getExecutor().getOriginal() instanceof ServerPlayer p)||!com.faust.essence.api.EssenceApi.active(p)||container.getSlot().category()!=SkillCategories.WEAPON_INNATE)return;
   var category=EpicFightCapabilities.getItemStackCapability(p.getMainHandItem()).getWeaponCategory();
   if(longSword(p,p.getMainHandItem())&&(!(container.getSkill() instanceof yesman.epicfight.skill.weaponinnate.LiechtenauerSkill)||container.isActivated()))CombatPractice.add(p,USES,1);
  }

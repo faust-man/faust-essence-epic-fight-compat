@@ -15,12 +15,12 @@ public final class Milestones {
     public static void peak(Progress p,String key,double amount){p.recordMaximum(SkillRequirements.PREFIX+key,amount,CoreRuntime.balance);}
     public static void fatigue(Progress p){peak(p,"peak_fatigue",p.fatigue);}
     public static void visitEnd(ServerPlayer player){
-        if(!CoreRuntime.active(player))return;var p=CoreRuntime.data(player);
+        if(!com.faust.essence.api.EssenceApi.active(player))return;var p=CoreRuntime.data(player);
         if(!p.wantsCounter("faust_epic_visited_end",CoreRuntime.balance))return;
         var advancement=player.getServer().getAdvancements().get(net.minecraft.resources.ResourceLocation.parse("minecraft:story/enter_the_end"));
         if(player.level().dimension()==net.minecraft.world.level.Level.END||advancement!=null&&player.getAdvancements().getOrStartProgress(advancement).isDone())peak(p,"visited_end",1);
     }
-    public static void blocked(ServerPlayer player,boolean shield){if(!CoreRuntime.active(player))return;var p=CoreRuntime.data(player);add(p,"any_blocks",1);if(shield)add(p,"shield_blocks",1);}
+    public static void blocked(ServerPlayer player,boolean shield){if(!com.faust.essence.api.EssenceApi.active(player))return;var p=CoreRuntime.data(player);add(p,"any_blocks",1);if(shield)add(p,"shield_blocks",1);}
     public static void damage(LivingEntity target,DamageSource source,double lost,boolean killed,boolean exhaustedAttacker){
         if(lost<=0)return;
         if(target instanceof ServerPlayer player&&!player.isCreative()&&!player.isSpectator()){
@@ -32,7 +32,7 @@ public final class Milestones {
             if(p.wantsCounter("faust_epic_fire_damage",CoreRuntime.balance)&&source.is(DamageTypeTags.IS_FIRE))add(p,"fire_damage",lost);
             if(p.wantsCounter("faust_epic_magic_damage",CoreRuntime.balance)&&(source.is(DamageTypes.MAGIC)||source.is(DamageTypes.INDIRECT_MAGIC)||source.is(DamageTypes.WITHER)||source.is(DamageTypes.DRAGON_BREATH)))add(p,"magic_damage",lost);
         }
-        if(source.getEntity() instanceof ServerPlayer player&&target!=player&&CoreRuntime.active(player)&&!player.isAlliedTo(target)){
+        if(source.getEntity() instanceof ServerPlayer player&&target!=player&&com.faust.essence.api.EssenceApi.active(player)&&!player.isAlliedTo(target)){
             var p=CoreRuntime.data(player);
             if(p.wantsCounter("faust_epic_heavy_attack",CoreRuntime.balance)&&source.getDirectEntity()==player&&!source.is(DamageTypeTags.IS_PROJECTILE)&&lost>15)add(p,"heavy_attack",1);
             if(killed){
@@ -42,7 +42,7 @@ public final class Milestones {
         }
     }
     public static void sleep(ServerPlayer player,int roll){
-        if(!CoreRuntime.active(player))return;
+        if(!com.faust.essence.api.EssenceApi.active(player))return;
         var p=CoreRuntime.data(player);if(!p.wantsCounter("faust_epic_sleep_luck",CoreRuntime.balance)||roll!=0)return;add(p,"sleep_luck",1);
         // A successful sleep roll opens Catharsis without requiring a manual purchase.
         String id="faust_epic_compat:epicfight/catharsis";

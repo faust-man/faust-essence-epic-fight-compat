@@ -109,10 +109,10 @@ public final class RuntimeChecks {
             Combat.begin(patch);check(!Combat.paid(patch),"new animation invalidates old payment");
             check(balance.abilities.stream().anyMatch(a->a.id().equals(Combat.MASTERY)),"two-handed node migrated");
             check(balance.abilities.stream().anyMatch(a->a.id().equals(Combat.FIST_MASTERY)),"fist node migrated");
-            check(balance.abilities.stream().anyMatch(a->a.id().equals(Combat.SHIELD_MASTERY)&&a.skill()==com.faust.core.progression.Skill.defense),"shield node migrated into defense");
+            check(balance.abilities.stream().anyMatch(a->a.id().equals(Combat.SHIELD_MASTERY)&&a.skill()==com.faust.essence.api.Skill.valueOf("defense")),"shield node migrated into defense");
             var shieldNode=balance.abilities.stream().filter(a->a.id().equals(Combat.SHIELD_MASTERY)).findFirst().orElseThrow();
             check(shieldNode.all().contains(Combat.SHIELD_EFFICIENCY),"shield combat requires economical shield block");
-            var shieldProgress=new com.faust.core.progression.Progress();shieldProgress.track(com.faust.core.progression.Skill.defense).level=20;
+            var shieldProgress=new com.faust.core.progression.Progress();shieldProgress.track(com.faust.essence.api.Skill.valueOf("defense")).level=20;
             check(!shieldProgress.canUnlock(shieldNode,balance),"shield combat locked without prerequisite");
             shieldProgress.unlocked.add(Combat.SHIELD_EFFICIENCY);shieldProgress.setCounter(CombatPractice.SHIELD_HITS,100.0,balance);check(shieldProgress.canUnlock(shieldNode,balance),"shield combat available after prerequisite");
             shieldProgress.unlock(shieldNode.id(),balance);check(shieldProgress.revoke(Combat.SHIELD_EFFICIENCY,balance).contains(shieldNode.id()),"shield dependency revoked with parent");
@@ -161,8 +161,8 @@ public final class RuntimeChecks {
             float beforeRun=player.getHealth();CoreRuntime.tick(player);
             check(player.getHealth()<beforeRun,"sprint at zero stamina pays health");check(data.stamina>0,"sprint at zero stamina still regenerates stamina");
             attached.getSkill(SkillSlots.PASSIVE1).setSkill(null);check(!Forbidden.mode(player),"unequipping restores exhaustion block");
-            check(balance.abilities.stream().anyMatch(a->a.id().endsWith("/adaptive_skin")&&a.skill()==com.faust.core.progression.Skill.constitution),"adaptive skin relocated");
-            check(balance.abilities.stream().anyMatch(a->a.id().endsWith("/revelation")&&a.skill()==com.faust.core.progression.Skill.intelligence),"revelation relocated");
+            check(balance.abilities.stream().anyMatch(a->a.id().endsWith("/adaptive_skin")&&a.skill()==com.faust.essence.api.Skill.valueOf("constitution")),"adaptive skin relocated");
+            check(balance.abilities.stream().anyMatch(a->a.id().endsWith("/revelation")&&a.skill()==com.faust.essence.api.Skill.valueOf("intelligence")),"revelation relocated");
             data.stamina=0.5;data.exhausted=false;
             var combo=attached.getSkill(SkillSlots.COMBO_ATTACKS);combo.setSkill(yesman.epicfight.registry.entries.EpicFightSkills.COMBO_ATTACKS.get());
             check(Combat.canStrike(attached),"fractional reserve allows final strike");Combat.begin(attached);Combat.strike(attached,InteractionHand.MAIN_HAND);check(Combat.paid(attached)&&data.stamina==0&&data.exhausted,"final strike exhausts");check(!Combat.canStrike(attached),"subsequent strike blocked");
@@ -203,7 +203,7 @@ public final class RuntimeChecks {
         var impact=balance.abilities.stream().filter(a->a.id().equals(prefix+"impact_guard")).findFirst().orElseThrow();
         var parry=balance.abilities.stream().filter(a->a.id().equals(prefix+"parrying")).findFirst().orElseThrow();
         var step=balance.abilities.stream().filter(a->a.id().equals(prefix+"step")).findFirst().orElseThrow();
-        var progress=new com.faust.core.progression.Progress();for(var skill:com.faust.core.progression.Skill.values())progress.track(skill).level=20;
+        var progress=new com.faust.core.progression.Progress();for(var skill:com.faust.essence.api.Skill.values())progress.track(skill).level=20;
         progress.setCounter("blocks",9.0,balance);check(!progress.canUnlock(guard,balance),"guard needs ten shield blocks");progress.setCounter("blocks",10.0,balance);check(progress.unlock(guard.id(),balance),"ten shield blocks unlock guard");
         progress.setCounter("blocks",99.0,balance);check(!progress.canUnlock(impact,balance),"impact guard needs 100 blocks");progress.setCounter("blocks",100.0,balance);check(progress.canUnlock(impact,balance),"impact guard available at 100 blocks");
         progress.unlocked.remove(guard.id());check(!progress.canUnlock(impact,balance),"impact guard requires learned guard");check(!progress.canUnlock(parry,balance),"parrying requires learned guard");
@@ -278,21 +278,21 @@ public final class RuntimeChecks {
     private static void jumpChecks(com.faust.core.progression.Balance balance,net.minecraft.server.level.ServerPlayer player,ServerPlayerPatch ignored){
         var patch=yesman.epicfight.world.capabilities.EpicFightCapabilities.getEntityPatch(player,ServerPlayerPatch.class);
         var data=CoreRuntime.data(player);data.stamina=20;data.exhausted=false;
-        var tree=balance.trees.stream().filter(t->t.skill()==com.faust.core.progression.Skill.dexterity).findFirst().orElseThrow();
+        var tree=balance.trees.stream().filter(t->t.skill()==com.faust.essence.api.Skill.valueOf("dexterity")).findFirst().orElseThrow();
         var bow=tree.nodes().stream().filter(n->n.ability().equals("faustcore:bow_mastery")).findFirst().orElseThrow();
         var previous=bow;
         for(String name:java.util.List.of("demolition_leap","phantom_ascent")){
             String id="faust_epic_compat:epicfight/"+name;
             var ability=balance.abilities.stream().filter(a->a.id().equals(id)).findFirst().orElseThrow();
             check(ability.all().isEmpty(),"jump has no added parent");
-            var p=new com.faust.core.progression.Progress();for(var s:com.faust.core.progression.Skill.values())p.track(s).level=20;
+            var p=new com.faust.core.progression.Progress();for(var s:com.faust.essence.api.Skill.values())p.track(s).level=20;
             p.setCounter(CombatPractice.JUMPS,99.0,balance);check(!p.canUnlock(ability,balance),"99 jumps rejected");p.setCounter(CombatPractice.JUMPS,100.0,balance);check(p.canUnlock(ability,balance),"100 jumps accepted");
-            var node=tree.nodes().stream().filter(n->n.ability().equals(id)).findFirst().orElseThrow();check(node.x()==bow.x()&&node.y()==previous.y()+40,"jump column below bow mastery");check(ability.skill()==com.faust.core.progression.Skill.dexterity,"both jumps stay in dexterity");previous=node;
+            var node=tree.nodes().stream().filter(n->n.ability().equals(id)).findFirst().orElseThrow();check(node.x()==bow.x()&&node.y()==previous.y()+40,"jump column below bow mastery");check(ability.skill()==com.faust.essence.api.Skill.valueOf("dexterity"),"both jumps stay in dexterity");previous=node;
             if(name.equals("demolition_leap")){
-                p.track(com.faust.core.progression.Skill.dexterity).level=4;check(!p.canUnlock(ability,balance),"leap rejects dexterity4");
-                p.track(com.faust.core.progression.Skill.dexterity).level=5;p.track(com.faust.core.progression.Skill.strength).level=4;check(!p.canUnlock(ability,balance),"leap rejects strength4");
-                p.track(com.faust.core.progression.Skill.strength).level=5;check(p.canUnlock(ability,balance),"leap accepts dexterity5 and strength5");
-            }else{p.track(com.faust.core.progression.Skill.dexterity).level=9;check(!p.canUnlock(ability,balance),"phantom rejects dexterity9");p.track(com.faust.core.progression.Skill.dexterity).level=10;check(p.canUnlock(ability,balance),"phantom accepts dexterity10");}
+                p.track(com.faust.essence.api.Skill.valueOf("dexterity")).level=4;check(!p.canUnlock(ability,balance),"leap rejects dexterity4");
+                p.track(com.faust.essence.api.Skill.valueOf("dexterity")).level=5;p.track(com.faust.essence.api.Skill.valueOf("strength")).level=4;check(!p.canUnlock(ability,balance),"leap rejects strength4");
+                p.track(com.faust.essence.api.Skill.valueOf("strength")).level=5;check(p.canUnlock(ability,balance),"leap accepts dexterity5 and strength5");
+            }else{p.track(com.faust.essence.api.Skill.valueOf("dexterity")).level=9;check(!p.canUnlock(ability,balance),"phantom rejects dexterity9");p.track(com.faust.essence.api.Skill.valueOf("dexterity")).level=10;check(p.canUnlock(ability,balance),"phantom accepts dexterity10");}
             check(Compat.relocate(ability).equals(ability),"jump conditions idempotent");data.unlocked.add(id);
         }
         var registry=yesman.epicfight.registry.EpicFightRegistries.SKILL;

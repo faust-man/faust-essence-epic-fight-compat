@@ -12,10 +12,10 @@ public final class CombatPractice {
     public static final String JUMPS="faust_epic_jumps";
     public static final String DAMAGE="faust_epic_damage_taken", FISTS="faust_epic_fist_kills", TWO_HAND="faust_epic_two_hand_kills", SWORDS="faust_epic_sword_kills", DUAL="faust_epic_dual_sword_kills";
     public static boolean weaponPracticeNeeded(ServerPlayer player){
-        if(!CoreRuntime.active(player))return false;var p=CoreRuntime.data(player);var b=CoreRuntime.balance;
-        return p.wantsCounter(FIST_DAMAGE,b)||p.wantsCounter(FISTS,b)||p.wantsCounter(TWO_HAND,b)||p.wantsCounter(SWORDS,b)||p.wantsCounter(DUAL,b)||p.wantsCounter(SHIELD_HITS,b)||p.wantsCounter(DAGGER_HITS,b);
+        if(!com.faust.essence.api.EssenceApi.active(player))return false;
+        return java.util.stream.Stream.of(FIST_DAMAGE,FISTS,TWO_HAND,SWORDS,DUAL,SHIELD_HITS,DAGGER_HITS).anyMatch(key->com.faust.essence.api.EssenceApi.needsCounter(player,key));
     }
-    public static void add(ServerPlayer player,String counter,double amount){if(!Double.isFinite(amount)||amount<=0)return;CoreRuntime.data(player).recordCounter(counter,amount,CoreRuntime.balance);}
+    public static void add(ServerPlayer player,String counter,double amount){if(!Double.isFinite(amount)||amount<=0)return;com.faust.essence.api.EssenceApi.recordCounter(player,counter,amount);}
     public record Weapon(boolean fists,boolean swords,boolean dual,boolean twoHand){}
     public static Weapon weapon(ServerPlayer player,ItemStack used){
         var cap=EpicFightCapabilities.getItemStackCapability(used);var category=cap.getWeaponCategory();
@@ -26,7 +26,7 @@ public final class CombatPractice {
         return new Weapon(fists,sword,dual,twoHand);
     }
     public static void kill(ServerPlayer player,Weapon weapon){
-        if(!CoreRuntime.active(player))return;
+        if(!com.faust.essence.api.EssenceApi.active(player))return;
         if(weapon.fists())add(player,FISTS,1);if(weapon.swords())add(player,SWORDS,1);if(weapon.dual())add(player,DUAL,1);if(weapon.twoHand())add(player,TWO_HAND,1);
     }
 }

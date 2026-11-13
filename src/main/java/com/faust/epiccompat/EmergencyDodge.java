@@ -11,7 +11,7 @@ public final class EmergencyDodge {
  public static boolean available(PlayerPatch<?> patch){
   boolean exhausted=patch.getOriginal() instanceof net.minecraft.server.level.ServerPlayer p?CoreRuntime.data(p).actionsBlocked(CoreRuntime.balance):CLIENT_EXHAUSTED.getAsBoolean();if(!exhausted)return false;
   for(var container:patch.getPlayerSkills().skillContainers)if(container.getSkill() instanceof yesman.epicfight.skill.passive.EmergencyEscapeSkill&&container.getStack()>0&&!container.isDisabled()){
-   if(patch.getOriginal() instanceof net.minecraft.server.level.ServerPlayer p&&!CoreRuntime.data(p).enabled(Compat.nodeId(container.getSkill()),CoreRuntime.balance))continue;return true;
+   if(patch.getOriginal() instanceof net.minecraft.server.level.ServerPlayer p&&!com.faust.essence.api.EssenceApi.enabled(p,Compat.nodeId(container.getSkill())))continue;return true;
   }return false;
  }
 }

@@ -1,4 +1,6 @@
 package com.faust.epiccompat;
+import com.faust.essence.api.Skill;
+
 import com.faust.core.progression.*;
 import com.faust.core.runtime.*;
 import net.minecraft.world.item.*;
@@ -14,7 +16,7 @@ public final class LongswordShieldRuntime {
  public static void started(net.neoforged.neoforge.event.server.ServerStartedEvent event) throws Exception {
   var player=net.neoforged.neoforge.common.util.FakePlayerFactory.get(event.getServer().overworld(),new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(),"ShieldMasterChecks"));player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);player.setOnGround(true);
   var b=CoreRuntime.balance;var p=CoreRuntime.data(player);p.max(b);p.unlocked.remove(WeaponMastery.LONG);var a=b.abilities.stream().filter(x->x.id().equals(WeaponMastery.LONG)).findFirst().orElseThrow();
-  p.setCounter(WeaponMastery.USES,50,b);p.track(com.faust.core.progression.Skill.defense).level=15;p.track(com.faust.core.progression.Skill.strength).level=9;check(!p.canUnlock(a,b),"strength9 cannot learn longsword mastery");p.track(com.faust.core.progression.Skill.strength).level=10;p.track(com.faust.core.progression.Skill.defense).level=14;check(!p.canUnlock(a,b),"defense14 cannot learn longsword mastery");p.track(com.faust.core.progression.Skill.defense).level=15;check(p.unlock(a.id(),b),"defense15 plus strength10 learns mastery");
+  p.setCounter(WeaponMastery.USES,50,b);p.track(com.faust.essence.api.Skill.valueOf("defense")).level=15;p.track(com.faust.essence.api.Skill.valueOf("strength")).level=9;check(!p.canUnlock(a,b),"strength9 cannot learn longsword mastery");p.track(com.faust.essence.api.Skill.valueOf("strength")).level=10;p.track(com.faust.essence.api.Skill.valueOf("defense")).level=14;check(!p.canUnlock(a,b),"defense14 cannot learn longsword mastery");p.track(com.faust.essence.api.Skill.valueOf("defense")).level=15;check(p.unlock(a.id(),b),"defense15 plus strength10 learns mastery");
   var patch=EpicFightCapabilities.getEntityPatch(player,ServerPlayerPatch.class);patch.toEpicFightMode(false);
   player.setItemInHand(InteractionHand.MAIN_HAND,new ItemStack(yesman.epicfight.registry.entries.EpicFightItems.IRON_LONGSWORD.get()));player.setItemInHand(InteractionHand.OFF_HAND,new ItemStack(Items.SHIELD));
   var skill=WeaponMastery.innate(player,player.getMainHandItem());check(skill==yesman.epicfight.registry.entries.EpicFightSkills.SHARP_STAB.get(),"shield selects native Sharp Stab");check(WeaponMastery.longSword(player,player.getMainHandItem()),"shield style recognized as longsword");
@@ -27,7 +29,7 @@ public final class LongswordShieldRuntime {
   player.setItemInHand(InteractionHand.OFF_HAND,ItemStack.EMPTY);check(!WeaponMastery.shieldSpecial(source)&&source.calculateDamageAgainst(player,null,4)==4&&source.calculateImpact()==3&&source.calculateArmorNegation()==40,"without shield longsword retains previous behavior");
   player.setItemInHand(InteractionHand.MAIN_HAND,new ItemStack(Items.IRON_SWORD));player.setItemInHand(InteractionHand.OFF_HAND,new ItemStack(Items.SHIELD));var swordSource=new EpicFightDamageSource(player.damageSources().playerAttack(player)).setUsedItem(player.getMainHandItem()).setBaseImpact(3);swordSource.addRuntimeTag(EpicFightDamageTypeTags.WEAPON_INNATE);check(!WeaponMastery.shieldSpecial(swordSource),"other weapon innate is not boosted");
   var dispatcher=event.getServer().getCommands().getDispatcher();var commandSource=player.createCommandSourceStack().withPermission(2);
-  check(dispatcher.execute("essence reset",commandSource)==1,"reset without target succeeds for player");check(CoreRuntime.data(player).unlocked.isEmpty()&&CoreRuntime.data(player).track(com.faust.core.progression.Skill.strength).level==0,"self reset clears progression");
+  check(dispatcher.execute("essence reset",commandSource)==1,"reset without target succeeds for player");check(CoreRuntime.data(player).unlocked.isEmpty()&&CoreRuntime.data(player).track(com.faust.essence.api.Skill.valueOf("strength")).level==0,"self reset clears progression");
   CoreRuntime.data(player).max(b);check(dispatcher.execute("essence reset @s",commandSource)==1&&CoreRuntime.data(player).unlocked.isEmpty(),"explicit self reset still works");
   boolean denied=false;try{dispatcher.execute("essence reset",event.getServer().createCommandSourceStack());}catch(com.mojang.brigadier.exceptions.CommandSyntaxException expected){denied=true;}check(denied,"console must specify a target");
   CoreRuntime.data(player).max(b);denied=false;try{dispatcher.execute("essence reset",commandSource.withPermission(0));}catch(com.mojang.brigadier.exceptions.CommandSyntaxException expected){denied=true;}check(denied&&!CoreRuntime.data(player).unlocked.isEmpty(),"reset retains operator permission gate");

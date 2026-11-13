@@ -37,3 +37,10 @@ type="optional"
 versionRange="[1.6,)"
 ordering="AFTER"
 side="BOTH"
+
+[[dependencies.faust_epic_compat]]
+modId="essence_api"
+type="required"
+versionRange="[1.0.0,)"
+ordering="AFTER"
+side="BOTH"
