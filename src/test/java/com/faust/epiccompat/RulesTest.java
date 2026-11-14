@@ -18,11 +18,11 @@ public final class RulesTest {
             if(name.equals("technician"))check(node.counter().equals(WeaponMastery.HITS)&&node.amount()==200);
             if(name.equals("demolition_leap")){
                 check(node.skill()==com.faust.essence.api.Skill.valueOf("dexterity")&&node.level()==5);
-                check(node.skillRequirements().equals(java.util.List.of(new com.faust.core.progression.Balance.SkillRequirement(com.faust.essence.api.Skill.valueOf("dexterity"),5),new com.faust.core.progression.Balance.SkillRequirement(com.faust.essence.api.Skill.valueOf("strength"),5))));
+                check(node.skillRequirements().equals(java.util.List.of(new com.faust.core.progression.Balance.SkillRequirement(com.faust.essence.api.Skill.valueOf("dexterity"),5),new com.faust.core.progression.Balance.SkillRequirement(com.faust.essence.api.Skill.valueOf("strength"),7))));
                 var balance=new com.faust.core.progression.Balance();balance.abilities.add(node);balance.validate();
-                for(int dex:new int[]{4,5})for(int strength:new int[]{4,5}){
+                for(int dex:new int[]{4,5})for(int strength:new int[]{6,7}){
                     var progress=new com.faust.core.progression.Progress();progress.track(com.faust.essence.api.Skill.valueOf("dexterity")).level=dex;progress.track(com.faust.essence.api.Skill.valueOf("strength")).level=strength;progress.setCounter(CombatPractice.JUMPS,100,balance);
-                    check(progress.canUnlock(node,balance)==(dex>=5&&strength>=5));
+                    check(progress.canUnlock(node,balance)==(dex>=5&&strength>=7));
                 }
                 check(Compat.relocate(node).equals(node));
             }

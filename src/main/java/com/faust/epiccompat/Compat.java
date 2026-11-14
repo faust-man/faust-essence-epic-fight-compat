@@ -101,6 +101,7 @@ public final class Compat {
             Path constitutionRevision=file.resolveSibling(".constitution-tune");if(!Files.exists(constitutionRevision)){Files.copy(file,file.resolveSibling("abilities-before-constitution-tune.json"),StandardCopyOption.REPLACE_EXISTING);for(int i=0;i<merged.size();i++)if(java.util.Set.of("faust_epic_compat:epicfight/adaptive_skin","faust_epic_compat:epicfight/catharsis","faust_epic_compat:epicfight/death_harvest").contains(merged.get(i).id()))merged.set(i,relocate(merged.get(i)));}
             Path requested=file.resolveSibling(".requirements-2026-11");
             if(!Files.exists(requested)){Files.copy(file,file.resolveSibling("abilities-before-requirements-2026-11.json"),StandardCopyOption.REPLACE_EXISTING);for(int i=0;i<merged.size();i++)if(merged.get(i).id().endsWith("/adaptive_skin")||merged.get(i).id().endsWith("/roll")||merged.get(i).id().equals(Combat.MASTERY))merged.set(i,relocate(merged.get(i)));Files.writeString(requested,"1\n");}
+            Path leapRevision=file.resolveSibling(".leap-strength-seven");if(!Files.exists(leapRevision)){Files.copy(file,file.resolveSibling("abilities-before-leap-strength-seven.json"),StandardCopyOption.REPLACE_EXISTING);for(int i=0;i<merged.size();i++)if(merged.get(i).id().endsWith("/demolition_leap"))merged.set(i,relocate(merged.get(i)));Files.writeString(leapRevision,"1\n");}
             Path revision=file.resolveSibling(".requirements-revision");
             if(!Files.exists(revision))for(int i=0;i<merged.size();i++)merged.set(i,relocate(merged.get(i)));
             Path polish=file.resolveSibling(".tree-polish");
@@ -152,7 +153,7 @@ public final class Compat {
         }
         if(a.id().equals("faust_epic_compat:epicfight/demolition_leap")||a.id().equals("faust_epic_compat:epicfight/phantom_ascent")){
             json.addProperty("skill","dexterity");json.addProperty("level",a.id().endsWith("/demolition_leap")?5:10);
-            json.add("characteristics",Balance.JSON.toJsonTree(a.id().endsWith("/demolition_leap")?List.of(new Balance.SkillRequirement(com.faust.essence.api.Skill.valueOf("dexterity"),5),new Balance.SkillRequirement(com.faust.essence.api.Skill.valueOf("strength"),5)):List.of(new Balance.SkillRequirement(com.faust.essence.api.Skill.valueOf("dexterity"),10))));
+            json.add("characteristics",Balance.JSON.toJsonTree(a.id().endsWith("/demolition_leap")?List.of(new Balance.SkillRequirement(com.faust.essence.api.Skill.valueOf("dexterity"),5),new Balance.SkillRequirement(com.faust.essence.api.Skill.valueOf("strength"),7)):List.of(new Balance.SkillRequirement(com.faust.essence.api.Skill.valueOf("dexterity"),10))));
             json.addProperty("counter",CombatPractice.JUMPS);json.addProperty("amount",100);json.add("conditions",new com.google.gson.JsonArray());
         }
         if(a.id().equals("faust_epic_compat:epicfight/step")){
@@ -295,8 +296,8 @@ public final class Compat {
             if(branch==com.faust.essence.api.Skill.valueOf("intelligence")){
                 var cat=placed.stream().filter(n->n.ability().equals("faustcore:cat_scent")).findFirst().orElse(null);
                 var enchant=placed.stream().filter(n->n.ability().equals("faustcore:enchanting_power")).findFirst().orElse(null);
-                move(placed,AcceleratedThinking.ID,-5,enchant==null?4:enchant.y()+4);
-                if(cat!=null&&enchant!=null){move(placed,cat.ability(),enchant.x(),enchant.y()+4);move(placed,"faust_epic_compat:epicfight/revelation",-1,enchant.y()+4);}
+                move(placed,AcceleratedThinking.ID,-5,enchant==null?8:enchant.y()+8);
+                if(cat!=null&&enchant!=null){var brew=placed.stream().filter(n->n.ability().equals("faustcore:potion_duration")).findFirst().orElse(null);move(placed,cat.ability(),brew==null?enchant.x()+4:brew.x(),brew==null?enchant.y()+4:brew.y()+4);move(placed,"faustcore:experience_steal",enchant.x(),enchant.y()+4);move(placed,"faust_epic_compat:epicfight/revelation",-1,enchant.y()+8);}
             }
             if(branch==com.faust.essence.api.Skill.valueOf("constitution")){
                 var health=placed.stream().filter(n->n.ability().equals("faustcore:training_constitution_health")).findFirst().orElse(null);

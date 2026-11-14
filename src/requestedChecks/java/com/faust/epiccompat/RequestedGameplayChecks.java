@@ -41,6 +41,7 @@ public final class RequestedGameplayChecks {
    var pos=player.blockPosition().above(4);var level=player.serverLevel();var previous=level.getBlockState(pos);
    try{p.unlocked.remove("faustcore:training_intelligence_luck");p.setCounter("world_chests",0,b);level.setBlockAndUpdate(pos,net.minecraft.world.level.block.Blocks.CHEST.defaultBlockState());var chest=(net.minecraft.world.level.block.entity.ChestBlockEntity)level.getBlockEntity(pos);chest.setLootTable(net.minecraft.world.level.storage.loot.BuiltInLootTables.SIMPLE_DUNGEON);chest.unpackLootTable(player);check(p.counters.get("world_chests")==1,"world chest counts first generation");chest.unpackLootTable(player);check(p.counters.get("world_chests")==1,"repeat chest opening does not count");}finally{level.setBlockAndUpdate(pos,previous);}
    var book=new net.minecraft.world.entity.item.ItemEntity(player.level(),player.getX(),player.getY(),player.getZ(),new ItemStack(yesman.epicfight.registry.entries.EpicFightItems.SKILLBOOK.get()));check(!player.serverLevel().addFreshEntity(book),"skill books cannot spawn");
+   ExperienceGameplayChecks.run(player);
    System.out.println("REQUESTED GAMEPLAY CHECKS PASSED");
   }catch(Throwable failure){failure.printStackTrace();System.out.println("REQUESTED GAMEPLAY CHECKS FAILED");throw new AssertionError(failure);}
   finally{event.getServer().halt(false);}
