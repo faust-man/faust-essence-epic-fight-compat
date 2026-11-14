@@ -12,9 +12,10 @@ public final class Rules {
         double cost=strikeCost(base,twoHanded,spear,mastery,fist,fistMastery);
         return shield&&!twoHanded&&!fist&&!shieldMastery?cost*2:cost;
     }
+    public static double airStrikeCost(double modifiedCost,boolean airWeaponAttack){return modifiedCost*(airWeaponAttack?2:1);}
     public static boolean passiveSlot(String slot){return java.util.Set.of("PASSIVE1","PASSIVE2","PASSIVE3").contains(slot);}
     public static String branch(String name,String category){
-        if(name.equals("adaptive_skin"))return "constitution";
+        if(name.equals("adaptive_skin"))return "defense";
         if(name.equals("revelation"))return "intelligence";
         String key=(name+" "+category).toLowerCase(Locale.ROOT);
         if(key.matches(".*(guard|parry|block|defen).*"))return "defense";

@@ -15,7 +15,7 @@ public abstract class AttackMixin {
     @Shadow protected abstract void hurtCollidingEntities(LivingEntityPatch<?> patch,float previous,float current,EntityState oldState,EntityState state,AttackAnimation.Phase phase);
     @Redirect(method="attackTick",at=@At(value="INVOKE",target="Lyesman/epicfight/world/capabilities/entitypatch/LivingEntityPatch;onStrike(Lyesman/epicfight/api/animation/types/AttackAnimation;Lnet/minecraft/world/InteractionHand;)V"))
     private void pay(LivingEntityPatch<?> patch,AttackAnimation animation,InteractionHand hand){
-        if(patch instanceof PlayerPatch<?> player&&patch.getOriginal() instanceof ServerPlayer)Combat.strike(player,hand);
+        if(patch instanceof PlayerPatch<?> player&&patch.getOriginal() instanceof ServerPlayer)Combat.strike(player,hand,animation);
         patch.onStrike(animation,hand);
     }
     @Redirect(method="attackTick",at=@At(value="INVOKE",target="Lyesman/epicfight/api/animation/types/AttackAnimation;hurtCollidingEntities(Lyesman/epicfight/world/capabilities/entitypatch/LivingEntityPatch;FFLyesman/epicfight/api/animation/types/EntityState;Lyesman/epicfight/api/animation/types/EntityState;Lyesman/epicfight/api/animation/types/AttackAnimation$Phase;)V"))

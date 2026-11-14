@@ -4,17 +4,25 @@ public final class RulesTest {
     private static void check(boolean result){checks++;if(!result)throw new AssertionError("Check "+checks);}
     public static void main(String[] args){
         new com.faust.core.progression.Balance();
+        check(AcceleratedThinking.multiplier(0,true)==1);check(AcceleratedThinking.multiplier(5,true)==1.1);check(AcceleratedThinking.multiplier(100,false)==1);
+        var thinking=AcceleratedThinking.defaults();check(thinking.level()==5&&thinking.amount()==3);
+        var skin=Compat.relocate(new com.faust.core.progression.Balance.Ability("faust_epic_compat:epicfight/adaptive_skin",com.faust.essence.api.Skill.valueOf("constitution"),12,"hits",1,"","faust_epic_compat:skill",0));
+        check(skin.skill()==com.faust.essence.api.Skill.valueOf("defense")&&skin.parent().equals("faustcore:training_defense_armor")&&skin.requiredConditions()==1&&skin.actionConditions().size()==3);
+        for(double base:new double[]{0,0.5,1,2.75})for(boolean two:new boolean[]{false,true})for(boolean master:new boolean[]{false,true}){
+            double cost=Rules.strikeCost(base,two,false,master);
+            check(Rules.airStrikeCost(cost,true)==cost*2);check(Rules.airStrikeCost(cost,false)==cost);
+        }
         var fist=Compat.relocate(Compat.mastery(Combat.FIST_POWER));check(fist.counter().equals(CombatPractice.FIST_DAMAGE)&&fist.amount()==100);
         for(String name:java.util.List.of("technician","demolition_leap","phantom_ascent","endurance")){
             var node=Compat.relocate(new com.faust.core.progression.Balance.Ability("faust_epic_compat:epicfight/"+name,com.faust.essence.api.Skill.valueOf("dexterity"),5,"hits",0,"","faust_epic_compat:skill",0));
             if(name.equals("technician"))check(node.counter().equals(WeaponMastery.HITS)&&node.amount()==200);
             if(name.equals("demolition_leap")){
                 check(node.skill()==com.faust.essence.api.Skill.valueOf("dexterity")&&node.level()==5);
-                check(node.skillRequirements().equals(java.util.List.of(new com.faust.core.progression.Balance.SkillRequirement(com.faust.essence.api.Skill.valueOf("dexterity"),5),new com.faust.core.progression.Balance.SkillRequirement(com.faust.essence.api.Skill.valueOf("strength"),5))));
+                check(node.skillRequirements().equals(java.util.List.of(new com.faust.core.progression.Balance.SkillRequirement(com.faust.essence.api.Skill.valueOf("dexterity"),5),new com.faust.core.progression.Balance.SkillRequirement(com.faust.essence.api.Skill.valueOf("strength"),7))));
                 var balance=new com.faust.core.progression.Balance();balance.abilities.add(node);balance.validate();
-                for(int dex:new int[]{4,5})for(int strength:new int[]{4,5}){
+                for(int dex:new int[]{4,5})for(int strength:new int[]{6,7}){
                     var progress=new com.faust.core.progression.Progress();progress.track(com.faust.essence.api.Skill.valueOf("dexterity")).level=dex;progress.track(com.faust.essence.api.Skill.valueOf("strength")).level=strength;progress.setCounter(CombatPractice.JUMPS,100,balance);
-                    check(progress.canUnlock(node,balance)==(dex>=5&&strength>=5));
+                    check(progress.canUnlock(node,balance)==(dex>=5&&strength>=7));
                 }
                 check(Compat.relocate(node).equals(node));
             }
@@ -37,7 +45,7 @@ public final class RulesTest {
         check(!Rules.canSpend(20,-1,false,true));
         check(Rules.canSpend(0,0,false,false));
         check(Rules.dualCost(1,true,false)==1);check(Rules.dualCost(1,true,true)==0.5);check(Rules.dualCost(1,false,false)==1);
-        check(Rules.branch("adaptive_skin","PASSIVE").equals("constitution"));check(Rules.branch("revelation","PASSIVE").equals("intelligence"));
+        check(Rules.branch("adaptive_skin","PASSIVE").equals("defense"));check(Rules.branch("revelation","PASSIVE").equals("intelligence"));
         check(Compat.mastery(Combat.DAGGER_MASTERY).skill()==com.faust.essence.api.Skill.valueOf("dexterity"));
         check(Compat.mastery(Combat.SWORD_MASTERY).skill()==com.faust.essence.api.Skill.valueOf("strength"));
         check(Compat.icon(Combat.SWORD_MASTERY).startsWith("minecraft:"));check(Compat.icon("faust_epic_compat:epicfight/roll").equals("faust_epic_compat:epicfight/roll"));
@@ -110,7 +118,7 @@ public final class RulesTest {
         progress.unlocked.add(tech);
         for(String id:java.util.List.of(Combat.FIST_MASTERY,Combat.MASTERY,master)){
             var practice=id.equals(master)?gates.abilities.stream().filter(a->a.id().equals(id)).findFirst().orElseThrow():Compat.relocate(Compat.mastery(id));
-            check(practice.amount()==10);progress.unlocked.remove(id);progress.setCounter(practice.counter(),9.0,gates);check(!progress.canUnlock(practice,gates));progress.setCounter(practice.counter(),10.0,gates);check(progress.canUnlock(practice,gates));
+            int count=id.equals(Combat.MASTERY)?50:10;check(practice.amount()==count);progress.unlocked.remove(id);progress.setCounter(practice.counter(),count-1,gates);check(!progress.canUnlock(practice,gates));progress.setCounter(practice.counter(),count,gates);if(id.equals(Combat.MASTERY)){progress.setCounter("strength_received",0,gates);check(!progress.canUnlock(practice,gates));progress.recordMaximum("strength_received",1,gates);}check(progress.canUnlock(practice,gates));
         }
         String gateLayout=com.faust.core.progression.Balance.JSON.toJson(gates.trees);Compat.extend(gates);check(gateLayout.equals(com.faust.core.progression.Balance.JSON.toJson(gates.trees)));
         for(int i=0;i<4;i++)gates.abilities.add(new com.faust.core.progression.Balance.Ability("faust_epic_compat:test/remaining_"+i,com.faust.essence.api.Skill.valueOf("strength"),5,"hits",0,"","faust_epic_compat:skill",0));
@@ -148,7 +156,7 @@ public final class RulesTest {
         check(!dexProgress.canUnlock(dagger,dex));dexProgress.unlocked.add(prefix+"technician");dexProgress.setCounter(CombatPractice.DAGGER_HITS,99,dex);check(!dexProgress.canUnlock(dagger,dex));dexProgress.setCounter(CombatPractice.DAGGER_HITS,100,dex);check(dexProgress.unlock(dagger.id(),dex));check(dexProgress.revoke(prefix+"technician",dex).contains(dagger.id()));
         var rollAbility=dex.abilities.stream().filter(a->a.id().equals(prefix+"roll")).findFirst().orElseThrow();
         dexProgress=new com.faust.core.progression.Progress();dexProgress.setCounter("run_metres",500.0,dex);check(!dexProgress.canUnlock(rollAbility,dex));
-        dexProgress.track(com.faust.essence.api.Skill.valueOf("dexterity")).level=3;dexProgress.setCounter("run_metres",499.0,dex);check(!dexProgress.canUnlock(rollAbility,dex));dexProgress.setCounter("run_metres",500.0,dex);check(dexProgress.canUnlock(rollAbility,dex));
+        dexProgress.track(com.faust.essence.api.Skill.valueOf("dexterity")).level=3;dexProgress.setCounter("faust_epic_ranged_hits_received",10,dex);dexProgress.setCounter("faust_epic_side_jumps",99,dex);check(!dexProgress.canUnlock(rollAbility,dex));dexProgress.setCounter("faust_epic_side_jumps",100,dex);check(dexProgress.canUnlock(rollAbility,dex));
         check(Compat.relocate(rollAbility).equals(rollAbility));
         System.out.println("Passed "+checks+" integration policy checks");
     }

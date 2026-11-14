@@ -12,6 +12,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class JumpPracticeMixin {
     @Inject(method="jumpFromGround",at=@At("TAIL"))
     private void completed(CallbackInfo ci){
-        if((Object)this instanceof ServerPlayer player&&com.faust.essence.api.EssenceApi.active(player))CombatPractice.add(player,CombatPractice.JUMPS,1);
+        if((Object)this instanceof ServerPlayer player&&com.faust.essence.api.EssenceApi.active(player)){
+            CombatPractice.add(player,CombatPractice.JUMPS,1);
+            var v=player.getDeltaMovement();double yaw=Math.toRadians(player.getYRot());
+            double sideways=v.x*Math.cos(yaw)+v.z*Math.sin(yaw);
+            double forward=-v.x*Math.sin(yaw)+v.z*Math.cos(yaw);
+            if(Math.abs(sideways)>0.01&&Math.abs(sideways)>=Math.abs(forward))com.faust.epiccompat.Milestones.add(CoreRuntime.data(player),"side_jumps",1);
+        }
     }
 }

@@ -24,6 +24,9 @@ public final class Milestones {
     public static void damage(LivingEntity target,DamageSource source,double lost,boolean killed,boolean exhaustedAttacker){
         if(lost<=0)return;
         if(target instanceof ServerPlayer player&&!player.isCreative()&&!player.isSpectator()){
+            if(source.is(DamageTypeTags.IS_PROJECTILE)&&source.getEntity() instanceof LivingEntity&&source.getEntity()!=player)add(CoreRuntime.data(player),"ranged_hits_received",1);
+            var resistance=player.getEffect(net.minecraft.world.effect.MobEffects.DAMAGE_RESISTANCE);
+            if(resistance!=null&&resistance.getAmplifier()>=3){var progress=CoreRuntime.data(player);String key=SkillRequirements.PREFIX+"resistance_4_damage";progress.recordMilestone(key,Math.min(10,progress.counters.getOrDefault(key,0.0)+lost),CoreRuntime.balance);}
             var p=CoreRuntime.data(player);if(p.wantsCounter("faust_epic_peak_damage",CoreRuntime.balance))peak(p,"peak_damage",lost);
             // Total damage uses the existing compat counter, already recorded by PracticeMixin.
             if(p.wantsCounter("faust_epic_fall_damage",CoreRuntime.balance)&&source.is(DamageTypeTags.IS_FALL))add(p,"fall_damage",lost);
