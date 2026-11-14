@@ -102,6 +102,7 @@ public final class Compat {
             Path requested=file.resolveSibling(".requirements-2026-11");
             if(!Files.exists(requested)){Files.copy(file,file.resolveSibling("abilities-before-requirements-2026-11.json"),StandardCopyOption.REPLACE_EXISTING);for(int i=0;i<merged.size();i++)if(merged.get(i).id().endsWith("/adaptive_skin")||merged.get(i).id().endsWith("/roll")||merged.get(i).id().equals(Combat.MASTERY))merged.set(i,relocate(merged.get(i)));Files.writeString(requested,"1\n");}
             Path leapRevision=file.resolveSibling(".leap-strength-seven");if(!Files.exists(leapRevision)){Files.copy(file,file.resolveSibling("abilities-before-leap-strength-seven.json"),StandardCopyOption.REPLACE_EXISTING);for(int i=0;i<merged.size();i++)if(merged.get(i).id().endsWith("/demolition_leap"))merged.set(i,relocate(merged.get(i)));Files.writeString(leapRevision,"1\n");}
+            Path gripRevision=file.resolveSibling(".two-hand-fifty-strength");if(!Files.exists(gripRevision)){Files.copy(file,file.resolveSibling("abilities-before-two-hand-fifty-strength.json"),StandardCopyOption.REPLACE_EXISTING);for(int i=0;i<merged.size();i++)if(merged.get(i).id().equals(Combat.MASTERY))merged.set(i,relocate(merged.get(i)));Files.writeString(gripRevision,"1\n");}
             Path revision=file.resolveSibling(".requirements-revision");
             if(!Files.exists(revision))for(int i=0;i<merged.size();i++)merged.set(i,relocate(merged.get(i)));
             Path polish=file.resolveSibling(".tree-polish");

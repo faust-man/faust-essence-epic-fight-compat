@@ -118,7 +118,7 @@ public final class RulesTest {
         progress.unlocked.add(tech);
         for(String id:java.util.List.of(Combat.FIST_MASTERY,Combat.MASTERY,master)){
             var practice=id.equals(master)?gates.abilities.stream().filter(a->a.id().equals(id)).findFirst().orElseThrow():Compat.relocate(Compat.mastery(id));
-            check(practice.amount()==10);progress.unlocked.remove(id);progress.setCounter(practice.counter(),9.0,gates);check(!progress.canUnlock(practice,gates));progress.setCounter(practice.counter(),10.0,gates);check(progress.canUnlock(practice,gates));
+            int count=id.equals(Combat.MASTERY)?50:10;check(practice.amount()==count);progress.unlocked.remove(id);progress.setCounter(practice.counter(),count-1,gates);check(!progress.canUnlock(practice,gates));progress.setCounter(practice.counter(),count,gates);if(id.equals(Combat.MASTERY)){progress.setCounter("strength_received",0,gates);check(!progress.canUnlock(practice,gates));progress.recordMaximum("strength_received",1,gates);}check(progress.canUnlock(practice,gates));
         }
         String gateLayout=com.faust.core.progression.Balance.JSON.toJson(gates.trees);Compat.extend(gates);check(gateLayout.equals(com.faust.core.progression.Balance.JSON.toJson(gates.trees)));
         for(int i=0;i<4;i++)gates.abilities.add(new com.faust.core.progression.Balance.Ability("faust_epic_compat:test/remaining_"+i,com.faust.essence.api.Skill.valueOf("strength"),5,"hits",0,"","faust_epic_compat:skill",0));

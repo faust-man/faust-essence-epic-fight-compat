@@ -13,6 +13,7 @@ public final class SkillRequirements {
         String id=ability.id();
         String name=id.startsWith("faust_epic_compat:epicfight/")?id.substring("faust_epic_compat:epicfight/".length()):id;
         switch(name){
+            case "faust_epic_compat:two_handed_mastery" -> conditions(json,"all",0,new Balance.Condition(CombatPractice.TWO_HAND,50),new Balance.Condition("strength_received",1));
             case "faust_epic_compat:shield_efficiency" -> conditions(json,"all",0,c("shield_blocks",120));
             case "roll" -> conditions(json,"all",0,c("ranged_hits_received",10),c("side_jumps",100));
             case "parrying" -> conditions(json,"all",0,c("any_blocks",50));
