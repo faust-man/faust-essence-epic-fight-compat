@@ -50,9 +50,12 @@ public final class Combat {
         }
         return com.faust.epiccompat.client.ClientBridge.canStrike(patch);
     }
-    public static void strike(PlayerPatch<?> patch,InteractionHand hand){
+    public static void strike(PlayerPatch<?> patch,InteractionHand hand){strike(patch,hand,null);}
+    public static void strike(PlayerPatch<?> patch,InteractionHand hand,yesman.epicfight.api.animation.types.AttackAnimation animation){
         if(!(patch.getOriginal() instanceof ServerPlayer player))return;
         double cost=cost(patch,hand,CoreRuntime.data(player),CoreRuntime.balance);
+        boolean weapon=!player.getItemInHand(hand).isEmpty()&&patch.getAdvancedHoldingItemCapability(hand).getWeaponCategory()!=CapabilityItem.WeaponCategories.FIST;
+        cost=Rules.airStrikeCost(cost,weapon&&animation instanceof yesman.epicfight.api.animation.types.AirSlashAnimation);
         PAID.put(patch,com.faust.essence.api.Resources.payStamina(player,cost,false));
     }
 }

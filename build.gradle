@@ -52,3 +52,11 @@ sourceSets.revisionChecks {
 if(project.hasProperty('revisionChecks'))neoForge.mods.faust_epic_compat.sourceSet(sourceSets.revisionChecks)
 
 dependencies { implementation files(new File(rootProject.file(providers.gradleProperty('apiProjectDir').getOrElse('../faust-essence-api')), 'neoforge/build/libs/essence-api-neoforge-1.21.1-1.0.0.jar')) }
+
+// Optional gameplay regressions, excluded from release artifacts.
+sourceSets.create('requestedChecks')
+sourceSets.requestedChecks {
+    compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
+    runtimeClasspath += sourceSets.main.output + sourceSets.main.runtimeClasspath
+}
+if(project.hasProperty('requestedChecks'))neoForge.mods.faust_epic_compat.sourceSet(sourceSets.requestedChecks)
